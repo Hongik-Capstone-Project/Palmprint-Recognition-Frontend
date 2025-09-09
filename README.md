@@ -1,2 +1,2 @@
 # Palmprint-Recognition-Frontend
-Palmprint Recognition Frontend / AIML Project Repository
+Offline Integrated Recognition Platform based on Palmprint Recognition Module
