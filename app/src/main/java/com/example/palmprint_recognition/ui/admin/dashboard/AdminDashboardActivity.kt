@@ -1,5 +1,6 @@
 package com.example.palmprint_recognition.ui.admin.dashboard
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.activity.enableEdgeToEdge
@@ -7,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.palmprint_recognition.R
+import com.example.palmprint_recognition.ui.admin.modules.user.AdminUserListActivity
 
 /**
  * UC-19: 관리자 대시보드 화면
@@ -47,11 +49,13 @@ class AdminDashboardActivity : AppCompatActivity() {
         val buttonManageDevice = findViewById<Button>(R.id.buttonManageDevice)
         val buttonStats = findViewById<Button>(R.id.buttonStats)
 
-        // 추후 UC-20~22에서 Activity 이동 연결 예정
+        // UC-19 시작: 유저 관리 목록 화면으로 이동
         buttonManageUsers.setOnClickListener {
-            // TODO: startActivity(Intent(this, UserManageActivity::class.java))
+            val intent = Intent(this, AdminUserListActivity::class.java)
+            startActivity(intent)
         }
 
+        // 추후 UC-20~22에서 Activity 이동 연결 예정
         buttonManagePalms.setOnClickListener {
             // TODO: startActivity(Intent(this, PalmManageActivity::class.java))
         }

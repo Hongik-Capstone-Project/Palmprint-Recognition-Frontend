@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:padding="24dp"
+    tools:context=".ui.admin.modules.user.AdminUserEditActivity">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/textEditTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/admin_user_label_info"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:paddingBottom="8dp" />
+
+        <!-- 이름 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/admin_user_label_name" />
+
+        <EditText
+            android:id="@+id/editUserName"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_button_gray"
+            android:padding="12dp"
+            android:hint="@string/admin_user_hint_name" />
+
+        <!-- 이메일 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/admin_user_label_email" />
+
+        <EditText
+            android:id="@+id/editUserEmail"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:inputType="textEmailAddress"
+            android:background="@drawable/bg_button_gray"
+            android:padding="12dp"
+            android:hint="@string/admin_user_hint_email" />
+
+        <!-- 비밀번호 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/admin_user_label_password" />
+
+        <EditText
+            android:id="@+id/editUserPassword"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:inputType="textPassword"
+            android:background="@drawable/bg_button_gray"
+            android:padding="12dp"
+            android:hint="@string/admin_user_hint_password" />
+
+        <!-- 손바닥 정보 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/admin_user_label_palm" />
+
+        <EditText
+            android:id="@+id/editUserPalmInfo"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_button_gray"
+            android:padding="12dp"
+            android:hint="@string/admin_user_hint_palm" />
+
+        <!-- 추가 정보 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/admin_user_label_extra" />
+
+        <EditText
+            android:id="@+id/editUserExtraInfo"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_button_gray"
+            android:padding="12dp"
+            android:hint="@string/admin_user_hint_extra" />
+
+        <!-- 관리자 계정 체크 -->
+        <CheckBox
+            android:id="@+id/checkboxIsAdmin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/admin_user_label_is_admin" />
+
+        <!-- 저장 버튼 -->
+        <Button
+            android:id="@+id/buttonSaveUser"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="32dp"
+            android:background="@drawable/bg_button_default"
+            android:text="@string/admin_user_button_save" />
+
+        <!-- 삭제 버튼 -->
+        <Button
+            android:id="@+id/buttonDeleteUser"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_button_gray"
+            android:text="@string/admin_user_button_delete" />
+
+    </LinearLayout>
+</ScrollView>

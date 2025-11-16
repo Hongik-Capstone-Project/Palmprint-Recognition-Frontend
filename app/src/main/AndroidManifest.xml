@@ -11,46 +11,78 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PalmprintRecognition">
-
-        <!-- ▶ 관리자 영역 -->
-        <activity android:name=".ui.admin.dashboard.AdminDashboardActivity" android:exported="false" />
-        <activity android:name=".ui.admin.modules.StatsDashboardActivity" android:exported="false" />
-        <activity android:name=".ui.admin.modules.DeviceManageActivity" android:exported="false" />
-        <activity android:name=".ui.admin.modules.PalmManageActivity" android:exported="false" />
-        <activity android:name=".ui.admin.modules.UserManageActivity" android:exported="false" />
-        <activity android:name=".ui.admin.AdminMainActivity" android:exported="false" />
-        <activity android:name=".ui.admin.AdminLoginActivity" android:exported="false" />
-
-        <!-- ▶ 사용자 기능 화면 -->
-        <activity android:name=".ui.user.UserMainActivity" android:exported="false" />
-        <activity android:name=".ui.user.modules.HistoryListActivity" android:exported="false" />
-        <activity android:name=".ui.user.modules.InstitutionListActivity" android:exported="false" />
-        <activity android:name=".ui.user.modules.PaymentListActivity" android:exported="false" />
-        <activity android:name=".ui.user.modules.PalmRegisterActivity" android:exported="false" />
-
-        <!-- ▶ 회원가입 관련 -->
-        <activity android:name=".ui.user.UserSignUpActivity" android:exported="false" />
-        <activity android:name=".ui.user.modules.TermsAgreementActivity" android:exported="false" />
-        <activity android:name=".ui.user.modules.SignUpCompleteActivity" android:exported="false" />
-
-        <!-- ▶ 공용 화면 -->
-        <activity android:name=".ui.common.RoleSelectionActivity" android:exported="false" />
-        <activity android:name=".ui.common.SplashActivity" android:exported="false" />
-
-        <!-- ▶ 앱 실행 시 최초 진입 Activity = UserLoginActivity -->
+        <activity
+            android:name=".ui.admin.modules.user.AdminUserListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.admin.modules.user.AdminUserEditActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.admin.modules.user.AdminUserDeleteDialog"
+            android:exported="false" />
+        <activity
+            android:name=".ui.admin.modules.user.AdminUserAddActivity"
+            android:exported="false" /> <!-- ▶ 관리자 영역 -->
+        <activity
+            android:name=".ui.admin.dashboard.AdminDashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.admin.modules.StatsDashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.admin.modules.DeviceManageActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.admin.modules.PalmManageActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.admin.AdminMainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.admin.AdminLoginActivity"
+            android:exported="false" /> <!-- ▶ 사용자 기능 화면 -->
+        <activity
+            android:name=".ui.user.UserMainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.user.modules.HistoryListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.user.modules.InstitutionListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.user.modules.PaymentListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.user.modules.PalmRegisterActivity"
+            android:exported="false" /> <!-- ▶ 회원가입 관련 -->
+        <activity
+            android:name=".ui.user.UserSignUpActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.user.modules.TermsAgreementActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.user.modules.SignUpCompleteActivity"
+            android:exported="false" /> <!-- ▶ 공용 화면 -->
+        <activity
+            android:name=".ui.common.RoleSelectionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.common.SplashActivity"
+            android:exported="false" /> <!-- ▶ 앱 실행 시 최초 진입 Activity = UserLoginActivity -->
         <activity
             android:name=".ui.user.UserLoginActivity"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-        </activity>
+                <action android:name="android.intent.action.MAIN" />
 
-        <!-- ▶ 초기 생성된 MainActivity는 사용하지 않을 경우 exported=false로 변경 -->
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity> <!-- ▶ 초기 생성된 MainActivity는 사용하지 않을 경우 exported=false로 변경 -->
         <activity
             android:name=".MainActivity"
             android:exported="false" />
-
     </application>
+
 </manifest>
