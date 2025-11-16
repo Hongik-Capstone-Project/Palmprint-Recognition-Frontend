@@ -1,3 +1,35 @@
 <resources>
-    <string name="app_name">Palmprint-Recognition-Frontend</string>
+    <!-- App -->
+    <string name="app_name">PalmprintRecognition</string>
+
+    <!-- Login Screen -->
+    <string name="login_logo">PALM.AI</string>
+    <string name="login_email_hint">이메일</string>
+    <string name="login_password_hint">비밀번호</string>
+    <string name="login_button">로그인</string>
+    <string name="login_go_signup">회원가입</string>
+
+    <!-- Sign Up Screen -->
+    <string name="signup_title">회원가입</string>
+    <string name="signup_name_hint">이름</string>
+    <string name="signup_email_hint">이메일</string>
+    <string name="signup_password_hint">비밀번호</string>
+    <string name="signup_password_confirm_hint">비밀번호 확인</string>
+    <string name="signup_next_terms">약관 동의로 이동</string>
+
+    <!-- Sign Up Validation -->
+    <string name="signup_error_empty_fields">모든 정보를 입력해주세요.</string>
+    <string name="signup_error_password_mismatch">비밀번호가 일치하지 않습니다.</string>
+
+    <!-- Terms Screen -->
+    <string name="terms_title">약관 동의</string>
+    <string name="terms_preview">(약관 내용 미리보기)</string>
+    <string name="terms_full_text">여기에 실제 약관 전체 내용이 들어갑니다.</string>
+    <string name="terms_agree">동의</string>
+    <string name="terms_disagree">동의 안 함</string>
+
+    <!-- Complete Screen -->
+    <string name="signup_complete_logo">PALM.AI</string>
+    <string name="signup_complete_message">가입 완료!</string>
+    <string name="signup_button_go_login">로그인 하기</string>
 </resources>
