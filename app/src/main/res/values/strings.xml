@@ -8,6 +8,8 @@
     <string name="login_password_hint">비밀번호</string>
     <string name="login_button">로그인</string>
     <string name="login_go_signup">회원가입</string>
+    <string name="login_go_admin">관리자 로그인</string>
+    <string name="login_error_empty">이메일과 비밀번호를 입력해주세요.</string>
 
     <!-- Sign Up Screen -->
     <string name="signup_title">회원가입</string>
@@ -32,4 +34,49 @@
     <string name="signup_complete_logo">PALM.AI</string>
     <string name="signup_complete_message">가입 완료!</string>
     <string name="signup_button_go_login">로그인 하기</string>
+
+    <!-- Admin Login -->
+    <string name="admin_login_title">관리자 로그인</string>
+    <string name="admin_login_email_hint">관리자 이메일</string>
+    <string name="admin_login_password_hint">관리자 비밀번호</string>
+    <string name="admin_login_button">로그인</string>
+
+    <!-- User Main Screen -->
+    <string name="user_main_welcome_title">OO님, 환영합니다!</string>
+    <string name="user_main_welcome_desc">OO님의 인증 정보를 추가하고 어디서든 손쉽게 Palm 인증을 사용하세요.</string>
+
+    <string name="user_main_manage_agency">인증 기관 관리</string>
+    <string name="user_main_manage_payment">결제 수단 관리</string>
+
+    <string name="user_main_palm_title">손바닥 관리</string>
+    <string name="user_main_palm_desc">현재 손바닥이 정상적으로 등록되어있어요.</string>
+    <string name="user_main_register_palm">손바닥 등록</string>
+    <string name="user_main_delete_palm">손바닥 삭제</string>
+
+    <string name="user_main_history">인증 내역 조회하기</string>
+    <string name="user_main_guideline">MODEN AI 사용설명</string>
+
+    <string name="user_main_logout">로그아웃</string>
+    <string name="user_main_withdraw">회원탈퇴</string>
+
+    <!-- Admin Dashboard -->
+    <!-- Admin Dashboard -->
+    <string name="admin_dashboard_logo_desc">관리자 대시보드 로고</string>
+    <string name="admin_dashboard_title">관리자 대시보드</string>
+    <string name="admin_dashboard_manage_users">유저 관리</string>
+    <string name="admin_dashboard_manage_palm">손바닥 관리</string>
+    <string name="admin_dashboard_manage_device">디바이스 관리</string>
+    <string name="admin_dashboard_stats">통계 정보</string>
+
+    <!-- Admin Main Page -->
+    <string name="admin_info_manage">정보 관리</string>
+    <string name="admin_manage_user">유저 관리</string>
+    <string name="admin_manage_device">디바이스 관리</string>
+    <string name="admin_manage_report">신고 내역 관리</string>
+    <string name="admin_view_stats">통계 정보 조회</string>
+    <string name="logout">로그아웃</string>
+    <string name="admin_go_dashboard">관리자 페이지로 이동</string>
+
+
+
 </resources>

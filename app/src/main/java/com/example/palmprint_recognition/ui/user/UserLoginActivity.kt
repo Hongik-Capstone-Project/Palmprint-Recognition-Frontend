@@ -10,17 +10,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.palmprint_recognition.R
-import com.example.palmprint_recognition.ui.user.UserSignUpActivity
+import com.example.palmprint_recognition.ui.admin.AdminLoginActivity
 import com.example.palmprint_recognition.ui.user.modules.SignUpCompleteActivity
+import com.example.palmprint_recognition.ui.user.UserSignUpActivity
 
 /**
- * UC-1: 로그인 화면
+ * UC-1: 사용자 로그인 화면
  *
- * 사용자가 이메일/비밀번호를 입력하고 로그인 버튼을 누르는 화면입니다.
- * 현재 단계에서는 서버 로그인 API 연동 전이므로,
- * 버튼 클릭 시 입력값 검증 및 테스트용 이동만 처리합니다.
+ * - 이메일/비밀번호 입력
+ * - 로그인 버튼 클릭 시 입력 검증 수행
+ * - 회원가입 화면 이동
+ * - 관리자 로그인 화면 이동 (UC-17)
  *
- * 이후 단계에서 ViewModel(onLoginClicked)과 Repository(loginUser) 연동 예정입니다.
+ * 이후 단계에서 AuthViewModel 연동하여
+ * 실제 로그인 API 처리 예정.
  */
 class UserLoginActivity : AppCompatActivity() {
 
@@ -29,7 +32,7 @@ class UserLoginActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_user_login)
 
-        // 기존 자동 생성된 시스템 UI 패딩 코드
+        // 시스템 UI 패딩 처리
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -42,7 +45,8 @@ class UserLoginActivity : AppCompatActivity() {
     /**
      * UI 초기화 함수
      *
-     * UC-1의 입력 필드/버튼을 초기화하고 클릭 이벤트를 연결합니다.
+     * - 모든 입력 필드(EditText) 초기화
+     * - 로그인/회원가입/관리자 로그인 버튼 이벤트 연결
      */
     private fun initViews() {
         val editEmail = findViewById<EditText>(R.id.editEmail)
@@ -50,29 +54,42 @@ class UserLoginActivity : AppCompatActivity() {
         val buttonLogin = findViewById<Button>(R.id.buttonLogin)
         val buttonGoSignUp = findViewById<Button>(R.id.buttonGoSignUp)
 
-        // 로그인 버튼 클릭
+        // 추가된 관리자 로그인 버튼
+        val buttonGoAdminLogin = findViewById<Button>(R.id.buttonGoAdminLogin)
+
+        /**
+         * 로그인 버튼 클릭 처리
+         *
+         * 이후 ViewModel.onLoginClicked(email, password) 로 교체 예정.
+         */
         buttonLogin.setOnClickListener {
             val email = editEmail.text.toString()
             val password = editPassword.text.toString()
 
-            // 입력 검증 추가 (UC-1 기본 조건)
             if (email.isBlank() || password.isBlank()) {
-                Toast.makeText(this, "이메일과 비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.login_error_empty), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            /**
-             * 여기서 ViewModel의 onLoginClicked(email, password) 호출 예정
-             *
-             * 현재는 테스트 단계이므로 임시로 가입완료 화면으로 이동.
-             */
-            val intent = Intent(this, SignUpCompleteActivity::class.java)
+            // 로그인 성공 → UserMainActivity 이동
+            val intent = Intent(this, UserMainActivity::class.java)
+            startActivity(intent)
+
+        }
+
+        /**
+         * 회원가입 버튼 → UC-2 (기본 정보 입력)
+         */
+        buttonGoSignUp.setOnClickListener {
+            val intent = Intent(this, UserSignUpActivity::class.java)
             startActivity(intent)
         }
 
-        // 회원가입 → UC-2 (기본정보 입력 화면)
-        buttonGoSignUp.setOnClickListener {
-            val intent = Intent(this, UserSignUpActivity::class.java)
+        /**
+         * 관리자 로그인 버튼 → AdminLoginActivity (UC-17)
+         */
+        buttonGoAdminLogin.setOnClickListener {
+            val intent = Intent(this, AdminLoginActivity::class.java)
             startActivity(intent)
         }
     }
