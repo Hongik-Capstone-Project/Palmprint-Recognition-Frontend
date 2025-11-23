@@ -1,5 +1,30 @@
 package com.example.palmprint_recognition.data.model
 
+import com.google.gson.annotations.SerializedName
+
+/**
+ * 회원가입 요청 바디 데이터 클래스
+ *
+ * @property name 사용자 이름
+ * @property email 사용자 이메일
+ * @property password 사용자 비밀번호
+ */
+data class SignUpRequest(
+    val name: String,
+    val email: String,
+    val password: String
+)
+
+/**
+ * 회원가입 성공 응답 데이터 클래스
+ *
+ * @property userId 생성된 유저의 식별자
+ */
+data class SignUpResponse(
+    @SerializedName("user_id")
+    val userId: String
+)
+
 
 /**
  * 로그인 요청 바디를 나타내는 데이터 클래스
@@ -25,30 +50,6 @@ data class LoginResponse(
     val userId: String,
     val accessToken: String,
     val refreshToken: String
-)
-
-/**
- * 회원가입 요청 바디 데이터 클래스
- *
- * @property name 사용자 이름
- * @property email 사용자 이메일
- * @property password 사용자 비밀번호
- */
-data class SignUpRequest(
-    val name: String,
-    val email: String,
-    val password: String
-)
-
-/**
- * 회원가입 응답 데이터 클래스
- *
- * @property status 성공/실패 상태
- * @property message 서버가 반환하는 메시지
- */
-data class SignUpResponse(
-    val status: String,
-    val message: String
 )
 
 /**
