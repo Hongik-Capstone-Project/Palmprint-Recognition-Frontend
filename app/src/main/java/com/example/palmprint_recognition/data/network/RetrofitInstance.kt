@@ -2,6 +2,7 @@ package com.example.palmprint_recognition.data.network
 
 import com.example.palmprint_recognition.data.api.AdminApi
 import com.example.palmprint_recognition.data.api.AuthApi
+import com.example.palmprint_recognition.data.api.UserApi
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import retrofit2.Retrofit
@@ -41,6 +42,13 @@ object RetrofitInstance {
      */
     val adminApi: AdminApi by lazy {
         retrofit.create(AdminApi::class.java)
+    }
+
+    /**
+     * UserApi 인터페이스의 구현체를 반환합니다.
+     */
+    val userApi: UserApi by lazy {
+        retrofit.create(UserApi::class.java)
     }
 
 }
