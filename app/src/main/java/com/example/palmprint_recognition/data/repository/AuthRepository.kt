@@ -8,7 +8,7 @@ import com.example.palmprint_recognition.data.model.LoginResponse
 import com.example.palmprint_recognition.data.model.LogoutResponse
 import com.example.palmprint_recognition.data.model.SignUpRequest
 import com.example.palmprint_recognition.data.model.SignUpResponse
-import com.example.palmprint_recognition.data.network.RetrofitInstance
+import com.google.gson.Gson
 import retrofit2.HttpException
 
 /**
@@ -16,7 +16,8 @@ import retrofit2.HttpException
  * API 호출 시 발생하는 예외를 [ApiException]으로 변환하여 throw 합니다.
  */
 class AuthRepository(
-    private val authApi: AuthApi
+    private val authApi: AuthApi,
+    private val gson: Gson
 ) {
 
     /**
@@ -38,7 +39,7 @@ class AuthRepository(
             authApi.signup(SignUpRequest(name, email, password))
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -54,7 +55,7 @@ class AuthRepository(
             authApi.signout()
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -73,7 +74,7 @@ class AuthRepository(
             authApi.login(LoginRequest(email, password))
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -90,7 +91,7 @@ class AuthRepository(
             authApi.logout()
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }

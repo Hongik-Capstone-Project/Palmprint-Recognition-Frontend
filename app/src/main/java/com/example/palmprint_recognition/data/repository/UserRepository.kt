@@ -14,7 +14,7 @@ import com.example.palmprint_recognition.data.model.RegisterPalmprintResponse
 import com.example.palmprint_recognition.data.model.ReportVerificationRequest
 import com.example.palmprint_recognition.data.model.UserInstitutionsResponse
 import com.example.palmprint_recognition.data.model.UserVerificationsResponse
-import com.example.palmprint_recognition.data.network.RetrofitInstance
+import com.google.gson.Gson
 import retrofit2.HttpException
 
 /**
@@ -22,7 +22,8 @@ import retrofit2.HttpException
  * API 호출 시 발생하는 예외를 [ApiException]으로 변환하여 throw 합니다.
  */
 class UserRepository(
-    private val userApi: UserApi
+    private val userApi: UserApi,
+    private val gson: Gson
 ) {
 
     /**
@@ -37,7 +38,7 @@ class UserRepository(
             userApi.getUserInstitutions()
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -57,7 +58,7 @@ class UserRepository(
             userApi.addUserInstitution(request)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -74,7 +75,7 @@ class UserRepository(
             userApi.deleteUserInstitution(institutionId)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -91,7 +92,7 @@ class UserRepository(
             userApi.getPaymentMethods()
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -111,7 +112,7 @@ class UserRepository(
             userApi.addPaymentMethod(request)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -128,7 +129,7 @@ class UserRepository(
             userApi.deletePaymentMethod(paymentMethodId)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -145,7 +146,7 @@ class UserRepository(
             userApi.getPalmprintRegistrationStatus()
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -164,7 +165,7 @@ class UserRepository(
             userApi.registerPalmprint(request)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -180,7 +181,7 @@ class UserRepository(
             userApi.deletePalmprint()
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -197,7 +198,7 @@ class UserRepository(
             userApi.getUserVerifications()
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -216,7 +217,7 @@ class UserRepository(
             userApi.reportVerification(logId, request)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }

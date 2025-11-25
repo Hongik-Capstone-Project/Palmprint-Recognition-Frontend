@@ -19,7 +19,7 @@ import com.example.palmprint_recognition.data.model.UpdateReportStatusResponse
 import com.example.palmprint_recognition.data.model.UpdateUserRequest
 import com.example.palmprint_recognition.data.model.UserListResponse
 import com.example.palmprint_recognition.data.model.VerificationListResponse
-import com.example.palmprint_recognition.data.network.RetrofitInstance
+import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -31,7 +31,8 @@ import java.io.File
  * API 호출 시 발생하는 예외를 [ApiException]으로 변환하여 throw 합니다.
  */
 class AdminRepository(
-    private val adminApi: AdminApi
+    private val adminApi: AdminApi,
+    private val gson: Gson
 ) {
 
     /**
@@ -55,7 +56,7 @@ class AdminRepository(
             adminApi.getUserList(page, size, search, sort)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -73,7 +74,7 @@ class AdminRepository(
             adminApi.getUserById(userId)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -94,7 +95,7 @@ class AdminRepository(
             adminApi.addUser(request)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -115,7 +116,7 @@ class AdminRepository(
             adminApi.updateUser(userId, request)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -132,7 +133,7 @@ class AdminRepository(
             adminApi.deleteUser(userId)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -150,7 +151,7 @@ class AdminRepository(
             adminApi.getUserPalmprints(userId)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -171,7 +172,7 @@ class AdminRepository(
             adminApi.uploadPalmprint(body)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -189,7 +190,7 @@ class AdminRepository(
             adminApi.deletePalmprint(userId, palmprintId)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -211,7 +212,7 @@ class AdminRepository(
             adminApi.getDeviceList(page, size)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -229,7 +230,7 @@ class AdminRepository(
             adminApi.getDeviceById(deviceId)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -250,7 +251,7 @@ class AdminRepository(
             adminApi.updateDevice(deviceId, request)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -270,7 +271,7 @@ class AdminRepository(
             adminApi.registerDevice(request)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -287,7 +288,7 @@ class AdminRepository(
             adminApi.deleteDevice(deviceId)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -315,7 +316,7 @@ class AdminRepository(
             adminApi.getVerificationList(page, size, userId, status, sort)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -343,7 +344,7 @@ class AdminRepository(
             adminApi.getReportList(page, size, status, userId, sort)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -361,7 +362,7 @@ class AdminRepository(
             adminApi.getReportById(reportId)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
@@ -381,7 +382,7 @@ class AdminRepository(
             adminApi.updateReportStatus(reportId, request)
         } catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            val errorResponse = RetrofitInstance.gson.fromJson(errorBody, ErrorResponse::class.java)
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
             throw ApiException(errorResponse)
         }
     }
