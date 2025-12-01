@@ -23,7 +23,6 @@ import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
-import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -38,16 +37,12 @@ interface AdminApi {
      *
      * @param page 조회할 페이지 번호
      * @param size 페이지당 항목 수
-     * @param search 이름 또는 이메일 검색어 (optional)
-     * @param sort 정렬 기준 (optional)
      * @return 사용자 목록과 페이지 정보
      */
     @GET("/api/admin/users")
     suspend fun getUserList(
         @Query("page") page: Int = 1,
-        @Query("size") size: Int = 10,
-        @Query("search") search: String? = null,
-        @Query("sort") sort: String? = null
+        @Query("size") size: Int = 10
     ): UserListResponse
 
     /**
@@ -212,18 +207,12 @@ interface AdminApi {
      *
      * @param page 조회할 페이지 번호
      * @param size 페이지당 항목 수
-     * @param status 상태 필터 (optional)
-     * @param userId 특정 사용자 ID로 필터링 (optional)
-     * @param sort 정렬 기준 (optional)
      * @return 신고 내역 목록과 페이지 정보
      */
     @GET("/api/admin/reports")
     suspend fun getReportList(
         @Query("page") page: Int = 1,
-        @Query("size") size: Int = 10,
-        @Query("status") status: String? = null,
-        @Query("user_id") userId: String? = null,
-        @Query("sort") sort: String? = null
+        @Query("size") size: Int = 10
     ): ReportListResponse
 
     /**

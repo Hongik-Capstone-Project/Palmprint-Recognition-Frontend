@@ -6,11 +6,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.example.palmprint_recognition.ui.admin.navigation.adminGraph
 import com.example.palmprint_recognition.ui.auth.AuthRoutes
-import com.example.palmprint_recognition.ui.auth.authGraph
 import com.example.palmprint_recognition.ui.auth.AuthViewModel
-import com.example.palmprint_recognition.ui.user.navigation.userGraph
+import com.example.palmprint_recognition.ui.auth.authGraph
+import com.example.palmprint_recognition.ui.admin.navigation.adminGraph // 추가
+import com.example.palmprint_recognition.ui.user.navigation.userGraph   // 추가
 
 /**
  * ===========================================================================
@@ -31,6 +31,10 @@ fun AppNavHost(
 ) {
     val authState = authViewModel.authState.value
 
+    // --- 테스트를 위해 관리자 화면으로 시작점 고정 ---
+    val startDestination = "admin_root"
+
+    /* --- 원래 코드 ---
     // 시작 화면 결정 (로그인 여부 + 역할)
     val startDestination = when {
         !authState.isLoggedIn -> AuthRoutes.ROLE_SELECTION
@@ -38,6 +42,7 @@ fun AppNavHost(
         authState.role == "USER" -> "user_root"
         else -> AuthRoutes.ROLE_SELECTION
     }
+    */
 
     NavHost(
         navController = navController,

@@ -5,9 +5,6 @@ import com.example.palmprint_recognition.data.api.AdminApi
 import com.example.palmprint_recognition.data.api.AuthApi
 import com.example.palmprint_recognition.data.api.UserApi
 import com.example.palmprint_recognition.data.local.PreferenceManager
-import com.example.palmprint_recognition.data.repository.AdminRepository
-import com.example.palmprint_recognition.data.repository.AuthRepository
-import com.example.palmprint_recognition.data.repository.UserRepository
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -20,9 +17,10 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object DataModule {
+object NetworkModule {
 
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    // 실제 배포된 백엔드 서버 주소로 변경
+    private const val BASE_URL = "http://54.180.254.119:8000/"
 
     @Provides
     @Singleton
@@ -51,36 +49,8 @@ object DataModule {
     fun provideUserApi(retrofit: Retrofit): UserApi =
         retrofit.create(UserApi::class.java)
 
-    /** PreferenceManager 주입 */
     @Provides
     @Singleton
     fun providePreferenceManager(app: Application): PreferenceManager =
         PreferenceManager(app)
-
-    /** AuthRepository 주입 */
-    @Provides
-    @Singleton
-    fun provideAuthRepository(
-        authApi: AuthApi,
-        prefs: PreferenceManager,
-        gson: Gson
-    ): AuthRepository = AuthRepository(
-        authApi = authApi,
-        prefs = prefs,
-        gson = gson
-    )
-
-    @Provides
-    @Singleton
-    fun provideAdminRepository(
-        adminApi: AdminApi,
-        gson: Gson
-    ): AdminRepository = AdminRepository(adminApi, gson)
-
-    @Provides
-    @Singleton
-    fun provideUserRepository(
-        userApi: UserApi,
-        gson: Gson
-    ): UserRepository = UserRepository(userApi, gson)
 }
