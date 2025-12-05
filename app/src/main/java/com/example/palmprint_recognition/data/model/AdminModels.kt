@@ -3,16 +3,22 @@ package com.example.palmprint_recognition.data.model
 import com.google.gson.annotations.SerializedName
 
 /**
- * 관리자 API에서 사용하는 사용자 정보 모델
+ * 관리자 API에서 사용하는 사용자 정보 모델 (Get Users API 기준)
  *
  * @property id 사용자 ID
- * @property name 사용자 이름
+ * @property createdAt 생성 일시
  * @property email 사용자 이메일
+ * @property name 사용자 이름
+ * @property phoneNumber 전화번호
  */
 data class AdminUserInfo(
     val id: Int,
+    @SerializedName("created_at")
+    val createdAt: String,
+    val email: String,
     val name: String,
-    val email: String
+    @SerializedName("phone_number")
+    val phoneNumber: String
 )
 
 /**
@@ -23,18 +29,15 @@ data class AdminUserInfo(
  * @property page 현재 페이지 번호
  * @property size 페이지당 항목 수
  * @property pages 전체 페이지 수
- * @property next 다음 페이지 번호 (없으면 null)
- * @property previous 이전 페이지 번호 (없으면 null)
  */
 data class UserListResponse(
     val items: List<AdminUserInfo>,
     val total: Int,
     val page: Int,
     val size: Int,
-    val pages: Int,
-    val next: Int?,
-    val previous: Int?
+    val pages: Int
 )
+
 
 /**
  * 관리자가 사용자를 추가할 때 사용하는 요청 모델
@@ -108,16 +111,22 @@ data class PalmprintUploadResponse(
  * 디바이스 정보 모델
  *
  * @property id 디바이스 ID
- * @property identifier 디바이스 식별자
- * @property memo 메모
  * @property createdAt 등록 일시
+ * @property institutionId 기관 ID
+ * @property firmwareVersion 펌웨어 버전
+ * @property location 위치
+ * @property status 상태
  */
 data class DeviceInfo(
     val id: Int,
-    val identifier: String,
-    val memo: String,
     @SerializedName("created_at")
-    val createdAt: String
+    val createdAt: String,
+    @SerializedName("institution_id")
+    val institutionId: Int,
+    @SerializedName("firmware_version")
+    val firmwareVersion: String,
+    val location: String,
+    val status: String
 )
 
 /**
@@ -128,17 +137,13 @@ data class DeviceInfo(
  * @property page 현재 페이지 번호
  * @property size 페이지당 항목 수
  * @property pages 전체 페이지 수
- * @property next 다음 페이지 번호 (없으면 null)
- * @property previous 이전 페이지 번호 (없으면 null)
  */
 data class DeviceListResponse(
     val items: List<DeviceInfo>,
     val total: Int,
     val page: Int,
     val size: Int,
-    val pages: Int,
-    val next: Int?,
-    val previous: Int?
+    val pages: Int
 )
 
 /**
@@ -205,21 +210,22 @@ data class VerificationListResponse(
  * 신고 내역 정보 모델
  *
  * @property id 신고 ID
- * @property verificationLogId 관련 인증 로그 ID
- * @property reason 신고 사유
- * @property status 신고 처리 상태
- * @property user 신고한 사용자 정보
- * @property createdAt 신고 시각
+ * @property createdAt 생성 시각
+ * @property userId 사용자 ID
+ * @property reportType 신고 타입
+ * @property description 신고 내용
+ * @property status 처리 상태
  */
 data class ReportInfo(
     val id: Int,
-    @SerializedName("_id")
-    val verificationLogId: String,
-    val reason: String,
-    val status: String,
-    val user: AdminUserInfo,
     @SerializedName("created_at")
-    val createdAt: String
+    val createdAt: String,
+    @SerializedName("user_id")
+    val userId: Int,
+    @SerializedName("report_type")
+    val reportType: String,
+    val description: String,
+    val status: String
 )
 
 /**
@@ -230,17 +236,13 @@ data class ReportInfo(
  * @property page 현재 페이지 번호
  * @property size 페이지당 항목 수
  * @property pages 전체 페이지 수
- * @property next 다음 페이지 번호 (없으면 null)
- * @property previous 이전 페이지 번호 (없으면 null)
  */
 data class ReportListResponse(
     val items: List<ReportInfo>,
     val total: Int,
     val page: Int,
     val size: Int,
-    val pages: Int,
-    val next: Int?,
-    val previous: Int?
+    val pages: Int
 )
 
 /**

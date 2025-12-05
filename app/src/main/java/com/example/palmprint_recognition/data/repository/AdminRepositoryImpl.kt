@@ -1,0 +1,194 @@
+package com.example.palmprint_recognition.data.repository
+
+import com.example.palmprint_recognition.data.api.AdminApi
+import com.example.palmprint_recognition.data.model.AddUserRequest
+import com.example.palmprint_recognition.data.model.AddUserResponse
+import com.example.palmprint_recognition.data.model.AdminUserInfo
+import com.example.palmprint_recognition.data.model.ApiException
+import com.example.palmprint_recognition.data.model.DeviceListResponse
+import com.example.palmprint_recognition.data.model.DeviceInfo
+import com.example.palmprint_recognition.data.model.ErrorResponse
+import com.example.palmprint_recognition.data.model.PalmprintListResponse
+import com.example.palmprint_recognition.data.model.PalmprintUploadResponse
+import com.example.palmprint_recognition.data.model.RegisterDeviceRequest
+import com.example.palmprint_recognition.data.model.ReportInfo
+import com.example.palmprint_recognition.data.model.ReportListResponse
+import com.example.palmprint_recognition.data.model.UpdateDeviceRequest
+import com.example.palmprint_recognition.data.model.UpdateReportStatusRequest
+import com.example.palmprint_recognition.data.model.UpdateReportStatusResponse
+import com.example.palmprint_recognition.data.model.UpdateUserRequest
+import com.example.palmprint_recognition.data.model.UserListResponse
+import com.example.palmprint_recognition.data.model.VerificationListResponse
+import com.google.gson.Gson
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import retrofit2.HttpException
+import java.io.File
+import javax.inject.Inject
+
+class AdminRepositoryImpl @Inject constructor(
+    private val adminApi: AdminApi,
+    private val gson: Gson
+) : AdminRepository {
+
+    private fun parseError(e: HttpException): ApiException {
+        return try {
+            val errorBody = e.response()?.errorBody()?.string()
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
+            ApiException(errorResponse)
+        } catch (jsonException: Exception) {
+            val errorMessage = e.response()?.message() ?: "An unknown error occurred"
+            ApiException(ErrorResponse("parse_error", errorMessage))
+        }
+    }
+
+    override suspend fun getUserList(page: Int, size: Int): UserListResponse {
+        return try {
+            adminApi.getUserList(page, size)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun getUserById(userId: Int): AdminUserInfo {
+        return try {
+            adminApi.getUserById(userId)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun addUser(name: String, email: String, password: String): AddUserResponse {
+        return try {
+            val request = AddUserRequest(name, email, password)
+            adminApi.addUser(request)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun updateUser(userId: Int, name: String?, email: String?): AdminUserInfo {
+        return try {
+            val request = UpdateUserRequest(name, email)
+            adminApi.updateUser(userId, request)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun deleteUser(userId: Int) {
+        try {
+            adminApi.deleteUser(userId)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun getUserPalmprints(userId: Int): PalmprintListResponse {
+        return try {
+            adminApi.getUserPalmprints(userId)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun uploadPalmprint(imageFile: File): PalmprintUploadResponse {
+        return try {
+            val requestFile = imageFile.asRequestBody("image/*".toMediaTypeOrNull())
+            val body = MultipartBody.Part.createFormData("palmprint", imageFile.name, requestFile)
+            adminApi.uploadPalmprint(body)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun deletePalmprint(userId: Int, palmprintId: Int) {
+        try {
+            adminApi.deletePalmprint(userId, palmprintId)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun getDeviceList(page: Int, size: Int): DeviceListResponse {
+        return try {
+            adminApi.getDeviceList(page, size)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun getDeviceById(deviceId: Int): DeviceInfo {
+        return try {
+            adminApi.getDeviceById(deviceId)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun updateDevice(deviceId: Int, identifier: String?, memo: String?): DeviceInfo {
+        return try {
+            val request = UpdateDeviceRequest(identifier, memo)
+            adminApi.updateDevice(deviceId, request)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun registerDevice(identifier: String, memo: String): DeviceInfo {
+        return try {
+            val request = RegisterDeviceRequest(identifier, memo)
+            adminApi.registerDevice(request)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun deleteDevice(deviceId: Int) {
+        return try {
+            adminApi.deleteDevice(deviceId)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun getVerificationList(
+        page: Int,
+        size: Int,
+        userId: Int?,
+        status: String?,
+        sort: String?
+    ): VerificationListResponse {
+        return try {
+            adminApi.getVerificationList(page, size, userId, status, sort)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun getReportList(page: Int, size: Int): ReportListResponse {
+        return try {
+            adminApi.getReportList(page, size)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun getReportById(reportId: Int): ReportInfo {
+        return try {
+            adminApi.getReportById(reportId)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun updateReportStatus(reportId: Int, status: String): UpdateReportStatusResponse {
+        return try {
+            val request = UpdateReportStatusRequest(status)
+            adminApi.updateReportStatus(reportId, request)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+}
