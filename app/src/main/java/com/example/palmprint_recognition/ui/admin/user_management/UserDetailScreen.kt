@@ -1,5 +1,6 @@
 package com.example.palmprint_recognition.ui.admin.user_management
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -12,8 +13,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.activity.compose.BackHandler
+import androidx.navigation.NavController
 import com.example.palmprint_recognition.data.model.AdminUserInfo
 import com.example.palmprint_recognition.ui.admin.common.UiState
+import com.example.palmprint_recognition.ui.admin.navigation.AdminRoutes
 
 /**
  * UserDetailScreen (수정 + 상세 기능 통합)
@@ -33,7 +37,7 @@ import com.example.palmprint_recognition.ui.admin.common.UiState
 fun UserDetailScreen(
     userId: Int,
     onDeleteClick: () -> Unit = {},
-    onPalmprintListClick: () -> Unit,
+    navController: NavController,
     viewModel: UserDetailViewModel = hiltViewModel()
 ) {
     // ViewModel 의 상태 구독
@@ -70,9 +74,18 @@ fun UserDetailScreen(
                 onSaveClick = { name, email ->
                     viewModel.updateUser(userId, name, email)
                 },
-                onDeleteClick = onDeleteClick,
-                onPalmprintListClick = onPalmprintListClick
+                onDeleteClick = onDeleteClick
             )
+        }
+    }
+
+    // 뒤로가기 눌렀을 때
+    // 기존 리스트 화면 제거하고 새 리스트 생성
+    BackHandler {
+        navController.navigate(AdminRoutes.USER_LIST) {
+            popUpTo(AdminRoutes.USER_LIST) {
+                inclusive = true
+            }
         }
     }
 }
@@ -84,8 +97,7 @@ fun UserDetailScreen(
 fun UserDetailContent(
     user: AdminUserInfo,
     onSaveClick: (String?, String?) -> Unit,
-    onDeleteClick: () -> Unit,
-    onPalmprintListClick: () -> Unit
+    onDeleteClick: () -> Unit
 ) {
     // 내부 UI 상태
     var name by remember { mutableStateOf(user.name) }
@@ -138,18 +150,6 @@ fun UserDetailContent(
         )
         Spacer(Modifier.height(16.dp))
 
-        Spacer(Modifier.height(20.dp))
-
-        Button(
-            onClick = onPalmprintListClick,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            )
-        ) {
-            Text("손바닥 리스트 보기")
-        }
-
         // 관리자 계정 여부
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(checked = isAdmin, onCheckedChange = { isAdmin = it })
@@ -190,11 +190,10 @@ fun PreviewUserDetailContent() {
     UserDetailContent(
         user = AdminUserInfo(
             id = 1,
-            name = "홍길동",
-            email = "hong@example.com"
+            name = "Alice",
+            email = "alice@example.com"
         ),
         onSaveClick = { _, _ -> },
-        onDeleteClick = {},
-        onPalmprintListClick = {}
+        onDeleteClick = {}
     )
 }

@@ -41,86 +41,66 @@ android {
 }
 
 dependencies {
-    // AndroidX Core
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
 
-    // Compose
-    val composeBom = platform("androidx.compose:compose-bom:2025.10.01")
+    // -----------------------------
+    // 1) Compose BOM — 버전 통합
+    // -----------------------------
+    val composeBom = platform("androidx.compose:compose-bom:2024.10.00")
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
-
-    // Choose one of the following:
-    // Material Design 3
-    implementation("androidx.compose.material3:material3")
-    // or skip Material Design and build directly on top of foundational components
-    //implementation("androidx.compose.foundation:foundation")
-    // or only import the main APIs for the underlying toolkit systems,
-    // such as input and measurement/layout
-    //implementation("androidx.compose.ui:ui")
-
-    // Android Studio Preview support
+    // -----------------------------
+    // 2) Compose core libs
+    // -----------------------------
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
-    // UI Tests
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
 
-    // Optional - Add window size utils
+    // Pull-to-refresh API 포함
+    implementation("androidx.compose.foundation:foundation")
+
+    // Optional adaptive layout
     implementation("androidx.compose.material3.adaptive:adaptive")
 
-    // Optional - Integration with activities
-    implementation("androidx.activity:activity-compose:1.11.0")
-    // Optional - Integration with ViewModels
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.5")
-    // Optional - Integration with LiveData
-    implementation("androidx.compose.runtime:runtime-livedata")
-    // Optional - Integration with RxJava
-    implementation("androidx.compose.runtime:runtime-rxjava2")
-
-
-    // Android Studio Preview support
-    implementation("androidx.compose.ui:ui-tooling-preview")
+    // Preview tools
     debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 
-    // UI Tests
+    // -----------------------------
+    // AndroidX / Activity / Lifecycle
+    // -----------------------------
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.5")
+    implementation("androidx.activity:activity-compose:1.12.0")
 
     // Navigation Compose
     implementation(libs.androidx.navigation.compose)
 
-    // Camera
-    implementation("androidx.activity:activity-ktx:1.8.0")
-    implementation("androidx.activity:activity-compose:1.8.0")
-
+    // -----------------------------
     // Hilt
+    // -----------------------------
     implementation("com.google.dagger:hilt-android:2.50")
     kapt("com.google.dagger:hilt-android-compiler:2.50")
-
-    // Hilt + Compose Navigation
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
+    // -----------------------------
     // Network
+    // -----------------------------
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp)
     implementation(libs.gson)
 
-    // Testing
+    // -----------------------------
+    // Tests
+    // -----------------------------
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-
-    // Debug tools
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }

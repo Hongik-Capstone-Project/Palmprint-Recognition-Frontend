@@ -1,4 +1,4 @@
-package com.example.palmprint_recognition.ui.theme
+package com.example.palmprint_recognition.ui.common.theme
 
 import androidx.compose.ui.graphics.Color
 

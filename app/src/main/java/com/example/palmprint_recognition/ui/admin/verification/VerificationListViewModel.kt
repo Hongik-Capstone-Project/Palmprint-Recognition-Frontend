@@ -4,44 +4,76 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.palmprint_recognition.data.model.VerificationRecord
 import com.example.palmprint_recognition.data.repository.AdminRepository
-import com.example.palmprint_recognition.ui.admin.common.UiState
+import com.example.palmprint_recognition.ui.admin.common.PaginationUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * VerificationListViewModel
- *
- * 역할
- * - 인증 내역 리스트 조회 API 호출
- * - 서버 데이터를 UiState 로 변환하여 UI 에 전달
- *
+ * VerificationList 화면용 ViewModel
+ * - 무한 스크롤 + PaginationUiState 기반
  */
 @HiltViewModel
 class VerificationListViewModel @Inject constructor(
     private val repository: AdminRepository
 ) : ViewModel() {
 
-    /** UI 상태를 나타내는 StateFlow */
-    private val _verificationState =
-        MutableStateFlow<UiState<List<VerificationRecord>>>(UiState.Idle)
-    val verificationState: StateFlow<UiState<List<VerificationRecord>>> = _verificationState
+    private val _uiState = MutableStateFlow(
+        PaginationUiState<VerificationRecord>(isLoadingInitial = true)
+    )
+    val uiState = _uiState.asStateFlow()
+
+    private var currentPage = 1
+    private val pageSize = 10
+
+    init {
+        loadNextPage()
+    }
 
     /**
-     * 인증 내역 리스트 API 호출
+     * 무한스크롤 다음 페이지 로드
      */
-    fun fetchVerificationList() {
+    fun loadNextPage() {
+        val state = _uiState.value
+
+        if (state.isLoadingInitial || state.isLoadingMore || !state.hasMore) return
+
         viewModelScope.launch {
-            _verificationState.value = UiState.Loading
+
+            if (currentPage == 1) {
+                _uiState.value = state.copy(isLoadingInitial = true)
+            } else {
+                _uiState.value = state.copy(isLoadingMore = true)
+            }
 
             try {
-                val response = repository.getVerificationList()
-                _verificationState.value = UiState.Success(response.items)
+                val response = repository.getVerificationList(
+                    page = currentPage,
+                    size = pageSize
+                )
+
+                val newItems = response.items
+                val combinedItems = state.items + newItems
+                val hasMore = newItems.isNotEmpty()
+
+                _uiState.value = state.copy(
+                    items = combinedItems,
+                    isLoadingInitial = false,
+                    isLoadingMore = false,
+                    hasMore = hasMore
+                )
+
+                if (hasMore) currentPage++
 
             } catch (e: Exception) {
-                _verificationState.value = UiState.Error(e.message)
+                _uiState.value = state.copy(
+                    errorMessage = e.message,
+                    isLoadingInitial = false,
+                    isLoadingMore = false,
+                    hasMore = false
+                )
             }
         }
     }

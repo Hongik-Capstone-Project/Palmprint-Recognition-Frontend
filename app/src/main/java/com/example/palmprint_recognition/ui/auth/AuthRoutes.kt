@@ -1,10 +1,9 @@
 package com.example.palmprint_recognition.ui.auth
 
 object AuthRoutes {
-    const val ROLE_SELECTION = "role_selection"
-    const val LOGIN = "login/{role}"
+    // 로그인 화면
+    const val LOGIN = "login"
 
-    fun login(role: String) = "login/$role"
-
+    // 회원가입 화면
     const val SIGN_UP = "sign_up"
 }

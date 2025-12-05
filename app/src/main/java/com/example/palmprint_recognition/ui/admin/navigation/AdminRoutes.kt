@@ -26,19 +26,6 @@ object AdminRoutes {
     const val DELETE_USER = "admin_delete_user/{userId}"
     fun deleteUser(userId: Int) = "admin_delete_user/$userId"
 
-    /* ------------------------------------------------------------------------
-     * PALMPRINT MANAGEMENT
-     * ------------------------------------------------------------------------ */
-    const val PALMPRINT_LIST = "admin_palmprint_list/{userId}"
-    fun palmprintList(userId: Int) = "admin_palmprint_list/$userId"
-
-    const val UPLOAD_PALMPRINT = "admin_upload_palmprint/{userId}"
-    fun uploadPalmprint(userId: Int) = "admin_upload_palmprint/$userId"
-
-    const val DELETE_PALMPRINT = "admin_delete_palmprint/{userId}/{palmprintId}"
-    fun deletePalmprint(userId: Int, palmprintId: Int) =
-        "admin_delete_palmprint/$userId/$palmprintId"
-
 
     /* ------------------------------------------------------------------------
      * DEVICE MANAGEMENT

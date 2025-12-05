@@ -2,155 +2,130 @@ package com.example.palmprint_recognition.ui.admin.verification
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.palmprint_recognition.ui.admin.common.UiState
-import com.example.palmprint_recognition.data.model.VerificationRecord
 import com.example.palmprint_recognition.data.model.AdminUserInfo
+import com.example.palmprint_recognition.data.model.VerificationRecord
+import com.example.palmprint_recognition.ui.admin.common.PaginationUiState
+import com.example.palmprint_recognition.ui.common.components.LogoPalmAI
+import com.example.palmprint_recognition.ui.common.components.ProfileCard
+import com.example.palmprint_recognition.ui.common.components.table.TableColumn
+import com.example.palmprint_recognition.ui.common.components.table.TableView
+import com.example.palmprint_recognition.ui.common.theme.Typography
 
 /**
- * VerificationListScreen
- *
- * 역할
- * - 인증 내역 리스트를 서버에서 불러오고 ViewModel 상태를 관찰하여 UI 업데이트
- * - 실제 UI는 아래 VerificationListContent() 에서 책임진다
- *
- * Navigation
- * - 뒤로가기 버튼은 없음 → 시스템 하단바 “뒤로가기”로 Dashboard 화면 복귀
+ * ViewModel + 상태 연결
  */
 @Composable
 fun VerificationListScreen(
-    onBack: () -> Unit,
     viewModel: VerificationListViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.verificationState.collectAsStateWithLifecycle()
-
-    // 화면 진입 시 API 호출
-    LaunchedEffect(Unit) {
-        viewModel.fetchVerificationList()
-    }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     VerificationListContent(
         uiState = uiState,
-        onRetry = { viewModel.fetchVerificationList() }
+        onLoadMore = { viewModel.loadNextPage() }
     )
 }
 
 /**
- * VerificationListContent (UI 전담)
- *
- * - Preview 를 위해 순수 UI만 포함
- * - 실제 데이터는 Preview에서 dummy 값 전달
+ * 순수 UI 전용 화면
  */
 @Composable
 fun VerificationListContent(
-    uiState: UiState<*>,
-    onRetry: () -> Unit
+    uiState: PaginationUiState<VerificationRecord>,
+    onLoadMore: () -> Unit
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp)
+            .background(Color.White)
     ) {
 
-        Text(
-            text = "인증 내역 목록",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 24.dp)
+        // 1) 로고
+        LogoPalmAI(
+            modifier = Modifier.offset(x = 20.dp, y = 0.dp)
         )
 
-        when (uiState) {
+        // 2) 프로필 카드
+        ProfileCard(
+            name = "OO",
+            email = "email",
+            modifier = Modifier
+                .offset(x = 17.dp, y = 89.dp)
+                .width(368.dp)
+                .height(48.dp)
+        )
 
-            UiState.Idle -> {
-                Text("초기 상태입니다.")
-            }
+        // 3) 인증 통계 박스 (하드코딩)
+        VerificationStatsBox(
+            modifier = Modifier.offset(x = 17.dp, y = 185.dp)
+        )
 
-            UiState.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
-            }
+        // 4) 제목: 인증 통계 상세
+        Text(
+            text = "인증 통계 상세",
+            style = Typography.titleMedium.copy(
+                fontSize = 14.sp,
+                color = Color(0xFF21272A)
+            ),
+            modifier = Modifier.offset(x = 25.dp, y = 379.dp)
+        )
 
-            is UiState.Error -> {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = uiState.message ?: "오류가 발생했습니다.",
-                        color = MaterialTheme.colorScheme.error
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Button(onClick = onRetry) { Text("다시 시도") }
-                }
-            }
+        // 5) 테이블
+        val columns = listOf(
+            TableColumn("user_id", width = 60),
+            TableColumn("location", weight = 1f)
+        )
 
-            is UiState.Success<*> -> {
-                val data = uiState.data as List<VerificationRecord>
+        TableView(
+            columns = columns,
+            rows = uiState.items.map { record ->
+                listOf(
+                    record.user.id.toString(),
+                    record.user.name  // 임시 location → API 정해지면 수정
+                )
+            },
+            hasMoreData = uiState.hasMore,
+            isLoading = uiState.isLoadingMore,
+            modifier = Modifier.offset(x = 25.dp, y = 438.dp),
 
-                VerificationTable(records = data)
-            }
-        }
+            onRowClick = { /* 상세 페이지 없음 */ },
+            onLoadMore = onLoadMore
+        )
     }
 }
 
 /**
- * VerificationTable (리스트 테이블 UI)
- *
- * - Figma 와이어프레임 기반 테이블 UI
- * - 인증내역, 사용자명, 이메일, 상태, 생성일 등을 표시할 수 있으나
- *   지금은 Cell Text 형태로 간단히 표시
+ * 인증 통계 하드코딩 박스: TODO(): api 작성 완료 후 수정
  */
 @Composable
-fun VerificationTable(records: List<VerificationRecord>) {
-
-    /* --- 테이블 헤더 --- */
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFFE9ECF2))
-            .padding(vertical = 12.dp)
+fun VerificationStatsBox(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .width(377.dp)
+            .height(160.dp)
+            .background(Color(0xFFF5F5F5))
+            .padding(16.dp)
     ) {
-        Text(
-            "인증내역",
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f).padding(start = 16.dp)
-        )
-        Text(
-            "사용자",
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f).padding(start = 16.dp)
-        )
-    }
+        Column {
+            Text("전체 유저 수: 00명", fontSize = 14.sp, color = Color(0xFF21272A))
+            Spacer(Modifier.height(12.dp))
 
-    /* --- 리스트 데이터 --- */
-    LazyColumn {
-        items(records) { record ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 14.dp)
-            ) {
-                Text(
-                    text = record.status,
-                    modifier = Modifier.weight(1f).padding(start = 16.dp)
-                )
-                Text(
-                    text = record.user.email,
-                    modifier = Modifier.weight(1f).padding(start = 16.dp)
-                )
-            }
+            Text("등록된 손바닥 수: 00개", fontSize = 14.sp, color = Color(0xFF21272A))
+            Spacer(Modifier.height(12.dp))
+
+            Text("인증 요청 수: 00건", fontSize = 14.sp, color = Color(0xFF21272A))
+            Spacer(Modifier.height(12.dp))
+
+            Text("인증 성공률: 00%", fontSize = 14.sp, color = Color(0xFF21272A))
         }
     }
 }
@@ -158,25 +133,31 @@ fun VerificationTable(records: List<VerificationRecord>) {
 /**
  * Preview
  */
-@Preview(showBackground = true)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun PreviewVerificationListContent() {
-    val dummy = listOf(
-        VerificationRecord(
-            id = "1",
-            user = AdminUserInfo(1, "홍길동", "hong@example.com"),
-            status = "approved",
-            createdAt = "2025-10-10T16:00:00Z"
+fun PreviewVerificationListScreen() {
+    val sample = PaginationUiState(
+        items = listOf(
+            VerificationRecord(
+                id = "1",
+                status = "approved",
+                createdAt = "...",
+                user = AdminUserInfo(1, "홍길동", "hong@example.com")
+            ),
+            VerificationRecord(
+                id = "2",
+                status = "rejected",
+                createdAt = "...",
+                user = AdminUserInfo(2, "김철수", "kim@example.com")
+            ),
         ),
-        VerificationRecord(
-            id = "2",
-            user = AdminUserInfo(2, "김철수", "kim@example.com"),
-            status = "rejected",
-            createdAt = "2025-10-11T10:00:00Z"
-        )
+        isLoadingInitial = false,
+        isLoadingMore = false,
+        hasMore = true
     )
+
     VerificationListContent(
-        uiState = UiState.Success(dummy),
-        onRetry = {}
+        uiState = sample,
+        onLoadMore = {}
     )
 }

@@ -1,43 +1,49 @@
 package com.example.palmprint_recognition.ui.admin.navigation
 
-import androidx.navigation.*
+import androidx.activity.compose.BackHandler
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navigation
+import androidx.navigation.navArgument
 
 /* Dashboard */
 import com.example.palmprint_recognition.ui.admin.dashboard.AdminDashboardScreen
 
 /* User Management */
-import com.example.palmprint_recognition.ui.admin.user_management.*
+import com.example.palmprint_recognition.ui.admin.user_management.AddUserScreen
+import com.example.palmprint_recognition.ui.admin.user_management.DeleteUserScreen
+import com.example.palmprint_recognition.ui.admin.user_management.UserDetailScreen
+import com.example.palmprint_recognition.ui.admin.user_management.UserListScreen
 
 /* Device Management */
-import com.example.palmprint_recognition.ui.admin.device_management.*
+import com.example.palmprint_recognition.ui.admin.device_management.AddDeviceScreen
+import com.example.palmprint_recognition.ui.admin.device_management.DeleteDeviceScreen
+import com.example.palmprint_recognition.ui.admin.device_management.DeviceDetailScreen
+import com.example.palmprint_recognition.ui.admin.device_management.DeviceListScreen
 
 /* Report Management */
-import com.example.palmprint_recognition.ui.admin.report_management.*
-
-/* Palmprint Management */
-import com.example.palmprint_recognition.ui.admin.palmprint_management.*
+import com.example.palmprint_recognition.ui.admin.report_management.ReportDetailScreen
+import com.example.palmprint_recognition.ui.admin.report_management.ReportListScreen
 
 /* Verification */
 import com.example.palmprint_recognition.ui.admin.verification.VerificationListScreen
 
-
 /**
  * adminGraph()
  *
- * AppNavHost 안에서 불려서,
- * 관리자 전용 모든 화면을 한 개의 Navigation Graph 로 묶는 함수.
- * navigation() 사용하여 “admin_root” 라우트 하위에 모든 화면 구성
+ * AppNavHost 안에서 호출되어
+ * 관리자 전용 화면들을 "admin_root" 하위에 묶는 Navigation Graph.
  */
 fun NavGraphBuilder.adminGraph(
     navController: NavController,
-    route: String      // 보통 "admin_root" 로 AppNavHost에서 전달됨
+    route: String      // 보통 "admin_root"
 ) {
     navigation(
         startDestination = AdminRoutes.DASHBOARD,
         route = route
     ) {
-
         /* =========================================================================
          * 1. ADMIN DASHBOARD (관리자 대시보드)
          * ========================================================================= */
@@ -58,7 +64,6 @@ fun NavGraphBuilder.adminGraph(
             )
         }
 
-
         /* =========================================================================
          * 2. USER MANAGEMENT (유저 관리)
          * ========================================================================= */
@@ -71,7 +76,8 @@ fun NavGraphBuilder.adminGraph(
                 },
                 onAddUserClick = {
                     navController.navigate(AdminRoutes.ADD_USER)
-                }
+                },
+
             )
         }
 
@@ -87,9 +93,7 @@ fun NavGraphBuilder.adminGraph(
                 onDeleteClick = {
                     navController.navigate(AdminRoutes.deleteUser(userId))
                 },
-                onPalmprintListClick = {
-                    navController.navigate(AdminRoutes.palmprintList(userId))
-                }
+                navController = navController
             )
         }
 
@@ -98,7 +102,9 @@ fun NavGraphBuilder.adminGraph(
             AddUserScreen(
                 onAddSuccess = { newUserId ->
                     navController.navigate(AdminRoutes.userDetail(newUserId)) {
-                        popUpTo(AdminRoutes.USER_LIST) { inclusive = false }
+                        popUpTo(AdminRoutes.ADD_USER) {
+                            inclusive = true
+                        }
                     }
                 }
             )
@@ -114,98 +120,29 @@ fun NavGraphBuilder.adminGraph(
             DeleteUserScreen(
                 userId = userId,
                 onConfirmDelete = {
+                    // 삭제 플로우 스택 예시:
+                    //   DASHBOARD → USER_LIST → USER_DETAIL → DELETE_USER
+                    // popUpTo(USER_LIST, inclusive=true)의 의미:
+                    //   - USER_LIST까지 포함해서 모두 제거 (USER_LIST도 삭제)
+                    //   - 남는 스택: DASHBOARD
+                    // 그 다음 USER_LIST로 다시 이동 → 새로운 USER_LIST 화면을 하나 쌓음
+                    //   결과 스택: DASHBOARD → USER_LIST
                     navController.navigate(AdminRoutes.USER_LIST) {
-                        popUpTo(AdminRoutes.USER_LIST) { inclusive = false }
-                    }
-                },
-                onCancel = { navController.popBackStack() }
-            )
-        }
-
-
-        /* =========================================================================
-         * 3. PALMPRINT MANAGEMENT (손바닥 관리)
-         * ========================================================================= */
-
-        /** 3-1. Palmprint 리스트 */
-        composable(
-            route = AdminRoutes.PALMPRINT_LIST,
-            arguments = listOf(
-                navArgument("userId") { type = NavType.IntType }
-            )
-        ) { entry ->
-            val userId = entry.arguments!!.getInt("userId")
-
-            PalmprintListScreen(
-                userId = userId,
-
-                onAddPalmprintClick = {
-                    navController.navigate(AdminRoutes.uploadPalmprint(userId))
-                },
-
-                onDeletePalmprintClick = { palmprintId ->
-                    navController.navigate(
-                        AdminRoutes.deletePalmprint(userId, palmprintId)
-                    )
-                },
-
-                onBack = { navController.popBackStack() }
-            )
-        }
-
-        /** 3-2. Palmprint 업로드 화면 */
-        composable(
-            route = AdminRoutes.UPLOAD_PALMPRINT,
-            arguments = listOf(
-                navArgument("userId") { type = NavType.IntType }
-            )
-        ) { entry ->
-            val userId = entry.arguments!!.getInt("userId")
-
-            UploadPalmprintScreen(
-                userId = userId,
-                onUploadSuccess = {
-                    navController.navigate(AdminRoutes.palmprintList(userId)) {
-                        popUpTo(AdminRoutes.palmprintList(userId)) {
+                        popUpTo(AdminRoutes.USER_LIST) {
+                            // true → 기존 USER_LIST도 제거 후 새 USER_LIST를 다시 쌓는다
                             inclusive = true
                         }
                     }
                 },
-                onCancel = { navController.popBackStack() }
+                onCancel = {
+                    // 삭제 취소 → 이전 화면(USER_DETAIL)로 복귀
+                    navController.popBackStack()
+                }
             )
         }
-
-        /** 3-3. Palmprint 삭제 화면 */
-        composable(
-            route = AdminRoutes.DELETE_PALMPRINT,
-            arguments = listOf(
-                navArgument("userId") { type = NavType.IntType },
-                navArgument("palmprintId") { type = NavType.IntType }
-            )
-        ) { entry ->
-            val userId = entry.arguments!!.getInt("userId")
-            val palmprintId = entry.arguments!!.getInt("palmprintId")
-
-            DeletePalmprintScreen(
-                userId = userId,
-                palmprintId = palmprintId,
-
-                onDeleteSuccess = {
-                    navController.navigate(AdminRoutes.palmprintList(userId)) {
-                        popUpTo(AdminRoutes.palmprintList(userId)) {
-                            inclusive = true
-                        }
-                    }
-                },
-
-                onCancel = { navController.popBackStack() }
-            )
-        }
-
-
 
         /* =========================================================================
-         * 4. DEVICE MANAGEMENT (디바이스 관리)
+         * 3. DEVICE MANAGEMENT (디바이스 관리)
          * ========================================================================= */
 
         composable(AdminRoutes.DEVICE_LIST) {
@@ -236,8 +173,17 @@ fun NavGraphBuilder.adminGraph(
         composable(AdminRoutes.ADD_DEVICE) {
             AddDeviceScreen(
                 onAddSuccess = { newDeviceId ->
+                    // 디바이스 추가 성공 시 → 디바이스 상세 화면으로 이동
+                    // 현재 스택 예시:
+                    //   DASHBOARD → DEVICE_LIST → ADD_DEVICE
+                    // popUpTo(DEVICE_LIST, inclusive=false)의 의미:
+                    //   - ADD_DEVICE만 제거하고 DEVICE_LIST는 남김
+                    //   - 결과 스택: DASHBOARD → DEVICE_LIST
+                    //   → 그 위에 DEVICE_DETAIL(newDeviceId)를 쌓음
                     navController.navigate(AdminRoutes.deviceDetail(newDeviceId)) {
-                        popUpTo(AdminRoutes.DEVICE_LIST) { inclusive = false }
+                        popUpTo(AdminRoutes.DEVICE_LIST) {
+                            inclusive = false
+                        }
                     }
                 }
             )
@@ -252,17 +198,26 @@ fun NavGraphBuilder.adminGraph(
             DeleteDeviceScreen(
                 deviceId = deviceId,
                 onConfirmDelete = {
+                    // 삭제 플로우 스택 예시:
+                    //   DASHBOARD → DEVICE_LIST → DEVICE_DETAIL → DELETE_DEVICE
+                    // popUpTo(DEVICE_LIST, inclusive=true)의 의미:
+                    //   - DEVICE_LIST까지 모두 제거 (DEVICE_LIST도 삭제)
+                    //   - 남는 스택: DASHBOARD
+                    // 이후 DEVICE_LIST로 다시 이동 → 새로운 목록 화면
                     navController.navigate(AdminRoutes.DEVICE_LIST) {
-                        popUpTo(AdminRoutes.DEVICE_LIST) { inclusive = false }
+                        popUpTo(AdminRoutes.DEVICE_LIST) {
+                            inclusive = true
+                        }
                     }
                 },
-                onCancel = { navController.popBackStack() }
+                onCancel = {
+                    navController.popBackStack()
+                }
             )
         }
 
-
         /* =========================================================================
-         * 5. REPORT MANAGEMENT (신고 관리)
+         * 4. REPORT MANAGEMENT (신고 관리)
          * ========================================================================= */
 
         composable(AdminRoutes.REPORT_LIST) {
@@ -282,21 +237,29 @@ fun NavGraphBuilder.adminGraph(
             ReportDetailScreen(
                 reportId = reportId,
                 onSaveSuccess = {
+                    // 신고 상세 → 저장 후 목록으로 돌아가기
+                    // 스택 예시:
+                    //   DASHBOARD → REPORT_LIST → REPORT_DETAIL
+                    // popUpTo(REPORT_LIST, inclusive=true)의 의미:
+                    //   - REPORT_LIST까지 제거 (REPORT_LIST + REPORT_DETAIL 제거)
+                    //   - 남는 스택: DASHBOARD
+                    // 이후 REPORT_LIST를 새로 쌓음 → 최신 목록 화면
                     navController.navigate(AdminRoutes.REPORT_LIST) {
-                        popUpTo(AdminRoutes.REPORT_LIST) { inclusive = true }
+                        popUpTo(AdminRoutes.REPORT_LIST) {
+                            inclusive = true
+                        }
                     }
                 }
             )
         }
 
-
         /* =========================================================================
-         * 📌 6. VERIFICATION MANAGEMENT (인증 내역 조회)
+         * 5. VERIFICATION MANAGEMENT (인증 내역 조회)
          * ========================================================================= */
 
         composable(AdminRoutes.VERIFICATION_LIST) {
             VerificationListScreen(
-                onBack = { navController.popBackStack() }
+
             )
         }
     }

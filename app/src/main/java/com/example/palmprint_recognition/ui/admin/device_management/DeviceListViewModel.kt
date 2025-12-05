@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.palmprint_recognition.data.model.DeviceInfo
 import com.example.palmprint_recognition.data.repository.AdminRepository
-import com.example.palmprint_recognition.ui.admin.common.UiState
+import com.example.palmprint_recognition.ui.admin.common.PaginationUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,48 +12,65 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * DeviceListViewModel
- *
- * - AdminRepository 를 통해 디바이스 목록을 조회한다.
- * - UiState<List<DeviceInfo>> 형태로 상태를 관리하여 화면에 전달한다.
+ * DeviceList + TableView 용 ViewModel (무한스크롤 지원)
  */
 @HiltViewModel
 class DeviceListViewModel @Inject constructor(
     private val repository: AdminRepository
 ) : ViewModel() {
 
-    /**
-     * 디바이스 목록의 상태를 저장하는 StateFlow
-     * - Loading
-     * - Success(List<DeviceInfo>)
-     * - Error(message)
-     */
-    private val _deviceListState =
-        MutableStateFlow<UiState<List<DeviceInfo>>>(UiState.Idle)
+    private val _uiState =
+        MutableStateFlow(PaginationUiState<DeviceInfo>(isLoadingInitial = true))
+    val uiState = _uiState.asStateFlow()
 
-    val deviceListState = _deviceListState.asStateFlow()
+    private var currentPage = 1
+    private val pageSize = 10
 
     init {
-        // ViewModel 생성 시 자동으로 목록 불러오기
-        loadDeviceList()
+        loadNextPage()
     }
 
     /**
-     * 디바이스 목록 조회 함수
-     *
-     * @param page 조회할 페이지
-     * @param size 페이지당 항목 수
+     * 디바이스 목록 불러오기 (무한스크롤)
      */
-    fun loadDeviceList(page: Int = 1, size: Int = 10) {
+    fun loadNextPage() {
+        val state = _uiState.value
+
+        if (state.isLoadingInitial || state.isLoadingMore || !state.hasMore) return
+
         viewModelScope.launch {
-            _deviceListState.value = UiState.Loading
+
+            if (currentPage == 1) {
+                _uiState.value = state.copy(isLoadingInitial = true)
+            } else {
+                _uiState.value = state.copy(isLoadingMore = true)
+            }
 
             try {
-                val response = repository.getDeviceList(page, size)
-                _deviceListState.value = UiState.Success(response.items)
+                val response = repository.getDeviceList(
+                    page = currentPage,
+                    size = pageSize
+                )
+
+                val newItems = response.items
+                val updatedList = state.items + newItems
+                val hasMore = newItems.isNotEmpty()
+
+                _uiState.value = state.copy(
+                    items = updatedList,
+                    isLoadingInitial = false,
+                    isLoadingMore = false,
+                    hasMore = hasMore
+                )
+
+                if (hasMore) currentPage++
+
             } catch (e: Exception) {
-                _deviceListState.value = UiState.Error(
-                    e.message ?: "디바이스 목록을 불러오는 중 오류 발생"
+                _uiState.value = state.copy(
+                    isLoadingInitial = false,
+                    isLoadingMore = false,
+                    errorMessage = e.message ?: "오류 발생",
+                    hasMore = false
                 )
             }
         }
