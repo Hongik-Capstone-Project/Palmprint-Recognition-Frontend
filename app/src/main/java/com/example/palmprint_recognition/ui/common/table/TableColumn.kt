@@ -1,4 +1,4 @@
-package com.example.palmprint_recognition.ui.common.components.table
+package com.example.palmprint_recognition.ui.common.table
 
 import androidx.compose.runtime.Immutable
 

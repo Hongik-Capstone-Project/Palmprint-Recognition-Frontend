@@ -1,6 +1,7 @@
-package com.example.palmprint_recognition.ui.common.theme
+package com.example.palmprint_recognition.ui.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -12,7 +13,7 @@ val Typography = Typography(
         fontSize = 14.sp,
         fontWeight = FontWeight.Medium,
         lineHeight = 15.sp,
-        color = androidx.compose.ui.graphics.Color(0xFF21272A)
+        color = Color(0xFF21272A)
     ),
 
     // UserCard 이름 (Subtitle/M)
@@ -20,7 +21,7 @@ val Typography = Typography(
         fontSize = 16.sp,
         fontWeight = FontWeight.Medium,
         lineHeight = 18.sp,
-        color = androidx.compose.ui.graphics.Color(0xFF21272A)
+        color = Color(0xFF21272A)
     ),
 
     // UserCard 이메일 (Body/M)
@@ -28,7 +29,7 @@ val Typography = Typography(
         fontSize = 16.sp,
         fontWeight = FontWeight.Normal,
         lineHeight = 22.sp,
-        color = androidx.compose.ui.graphics.Color(0xFF697077)
+        color = Color(0xFF697077)
     ),
 
     // Table Header (Subtitle/S)
@@ -36,7 +37,7 @@ val Typography = Typography(
         fontSize = 14.sp,
         fontWeight = FontWeight.Medium,
         lineHeight = 15.sp,
-        color = androidx.compose.ui.graphics.Color(0xFF121619)
+        color = Color(0xFF121619)
     ),
 
     // Table Row (Body/S)
@@ -44,6 +45,6 @@ val Typography = Typography(
         fontSize = 14.sp,
         fontWeight = FontWeight.Normal,
         lineHeight = 20.sp,
-        color = androidx.compose.ui.graphics.Color(0xFF121619)
+        color = Color(0xFF121619)
     )
 )

@@ -1,4 +1,4 @@
-package com.example.palmprint_recognition.ui.common.components.table
+package com.example.palmprint_recognition.ui.common.table
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,9 +12,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/**
- * 테이블 헤더(UI 고정)
- */
 @Composable
 fun TableHeader(
     columns: List<TableColumn>,
@@ -22,13 +19,14 @@ fun TableHeader(
 ) {
     Row(
         modifier = modifier
-            .width(360.dp)
+            .fillMaxWidth()                         // ✅ [수정] 화면 너비 대응
             .height(48.dp)
-            .background(Color(0xFFF2F4F8))    // CoolGray/10
-            .border(1.dp, Color(0xFFDDE1E6)), // CoolGray/20
+            .background(Color(0xFFF2F4F8))
+            .border(1.dp, Color(0xFFDDE1E6)),
         verticalAlignment = Alignment.CenterVertically
     ) {
         columns.forEach { col ->
+
             val cellModifier = when {
                 col.width != null -> Modifier.width(col.width.dp)
                 else -> Modifier.weight(col.weight)

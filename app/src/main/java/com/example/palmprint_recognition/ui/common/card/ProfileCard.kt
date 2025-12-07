@@ -1,4 +1,4 @@
-package com.example.palmprint_recognition.ui.common.components
+package com.example.palmprint_recognition.ui.common.card
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.palmprint_recognition.R
@@ -20,36 +21,35 @@ import com.example.palmprint_recognition.R
 fun ProfileCard(
     name: String,
     email: String,
-    modifier: Modifier = Modifier
+
+    modifier: Modifier = Modifier,       // ✅ [유지] 상대 위치 제어
+
+    width: Dp = 368.dp,                  // ✅ [추가] 크기 제어
+    height: Dp = 48.dp                   // ✅ [추가]
 ) {
     Row(
         modifier = modifier
-            .width(368.dp)
-            .height(48.dp),
+            .width(width)              // ✅ [수정]
+            .height(height),           // ✅ [수정]
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        // Thumb background (48x48)
         Box(
             modifier = Modifier
-                .size(48.dp)
+                .size(height)
                 .background(Color(0xFFF2F4F8), CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Image(
                 painter = painterResource(id = R.drawable.profile_card),
                 contentDescription = "Profile Icon",
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(height / 2)
             )
         }
 
         Spacer(Modifier.width(16.dp))
 
-        // Text column
-        Column(
-            modifier = Modifier.height(40.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
+        Column {
             Text(
                 text = name,
                 fontSize = 16.sp,
@@ -65,7 +65,7 @@ fun ProfileCard(
     }
 }
 
-@Preview(showBackground = true, widthDp = 412, heightDp = 120)
+@Preview(showBackground = true)
 @Composable
 fun PreviewProfileCard() {
     ProfileCard(
@@ -74,4 +74,3 @@ fun PreviewProfileCard() {
         modifier = Modifier.padding(20.dp)
     )
 }
-

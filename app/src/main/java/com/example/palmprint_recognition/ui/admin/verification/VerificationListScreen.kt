@@ -16,9 +16,8 @@ import com.example.palmprint_recognition.data.model.VerificationRecord
 import com.example.palmprint_recognition.ui.admin.common.PaginationUiState
 import com.example.palmprint_recognition.ui.common.components.LogoPalmAI
 import com.example.palmprint_recognition.ui.common.components.ProfileCard
-import com.example.palmprint_recognition.ui.common.components.table.TableColumn
-import com.example.palmprint_recognition.ui.common.components.table.TableView
-import com.example.palmprint_recognition.ui.common.theme.Typography
+import com.example.palmprint_recognition.ui.common.table.TableColumn
+import com.example.palmprint_recognition.ui.common.table.TableView
 
 /**
  * ViewModel + 상태 연결

@@ -1,4 +1,4 @@
-package com.example.palmprint_recognition.ui.common.theme
+package com.example.palmprint_recognition.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
