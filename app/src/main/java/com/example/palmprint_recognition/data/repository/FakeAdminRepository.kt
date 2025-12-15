@@ -1,19 +1,19 @@
 package com.example.palmprint_recognition.data.repository
 
 import com.example.palmprint_recognition.data.model.AddUserResponse
+import com.example.palmprint_recognition.data.model.AdminUserDetail
 import com.example.palmprint_recognition.data.model.AdminUserInfo
 import com.example.palmprint_recognition.data.model.DeviceListResponse
 import com.example.palmprint_recognition.data.model.DeviceInfo
 import com.example.palmprint_recognition.data.model.LoginResponse
 import com.example.palmprint_recognition.data.model.LogoutResponse
-import com.example.palmprint_recognition.data.model.PalmprintListResponse
-import com.example.palmprint_recognition.data.model.PalmprintUploadResponse
 import com.example.palmprint_recognition.data.model.ReportInfo
 import com.example.palmprint_recognition.data.model.ReportListResponse
 import com.example.palmprint_recognition.data.model.SignUpResponse
-import com.example.palmprint_recognition.data.model.UpdateReportStatusResponse
+import com.example.palmprint_recognition.data.model.UserInstitutionSimple
 import com.example.palmprint_recognition.data.model.UserListResponse
 import com.example.palmprint_recognition.data.model.VerificationListResponse
+import com.example.palmprint_recognition.data.model.VerificationSummaryResponse
 import java.io.File
 import javax.inject.Inject
 
@@ -25,69 +25,65 @@ class FakeAdminRepository @Inject constructor() : AdminRepository, AuthRepositor
     // --- AdminRepository 구현 ---
     override suspend fun getUserList(page: Int, size: Int): UserListResponse {
         val fakeUsers = listOf(
-            AdminUserInfo(1, "2025-12-01T10:00:00Z", "chulsoo.kim@example.com", "김철수 (가짜)", "010-1234-5678"),
-            AdminUserInfo(2, "2025-12-01T11:00:00Z", "younghee.lee@example.com", "이영희 (가짜)", "010-2345-6789"),
-            AdminUserInfo(3, "2025-12-01T12:00:00Z", "minjun.park@example.com", "박민준 (가짜)", "010-3456-7890")
+            AdminUserInfo(1, "2025-12-01T10:00:00Z", "chulsoo.kim@example.com", "김철수 (가짜)", null),
+            AdminUserInfo(2, "2025-12-01T11:00:00Z", "younghee.lee@example.com", "이영희 (가짜)", null),
+            AdminUserInfo(3, "2025-12-01T12:00:00Z", "minjun.park@example.com", "박민준 (가짜)", null)
         )
         return UserListResponse(fakeUsers, fakeUsers.size, 1, 10, 1)
     }
 
-    override suspend fun getUserById(userId: Int): AdminUserInfo {
-        return AdminUserInfo(userId, "", "fake.user@example.com", "가짜 사용자", "")
+    override suspend fun getUserById(userId: Int): AdminUserDetail {
+        // 가짜 사용자 상세 정보 생성
+        return AdminUserDetail(
+            id = userId,
+            name = "가짜 사용자 상세",
+            email = "fake.detail@example.com",
+            isPalmRegistered = true,
+            userInstitutions = listOf(
+                UserInstitutionSimple("inst_112", "Hongik University"),
+                UserInstitutionSimple("inst_113", "LG")
+            )
+        )
     }
 
-    override suspend fun addUser(name: String, email: String, password: String): AddUserResponse {
-        return AddUserResponse(999)
-    }
-
-    override suspend fun updateUser(userId: Int, name: String?, email: String?): AdminUserInfo {
-        return AdminUserInfo(userId, "", email ?: "sujung@example.com", name ?: "수정된 이름", "")
+    override suspend fun addUser(name: String, email: String, password: String, isAdmin: Boolean): AddUserResponse {
+        return AddUserResponse(999, "Fake user created successfully.")
     }
 
     override suspend fun deleteUser(userId: Int) {}
 
-    override suspend fun getUserPalmprints(userId: Int): PalmprintListResponse {
-        return PalmprintListResponse(emptyList())
-    }
-
-    override suspend fun uploadPalmprint(imageFile: File): PalmprintUploadResponse {
-        throw NotImplementedError("Fake uploadPalmprint is not implemented")
-    }
-
-    override suspend fun deletePalmprint(userId: Int, palmprintId: Int) {}
-
     override suspend fun getDeviceList(page: Int, size: Int): DeviceListResponse {
         val fakeDevices = listOf(
-            DeviceInfo(1, "2025-12-01T10:00:00Z", 1, "1.0.0", "Lobby", "active"),
-            DeviceInfo(2, "2025-12-01T11:00:00Z", 1, "1.0.2", "Office", "inactive")
+            DeviceInfo(1, "Hongik University", "Lobby", "2025-12-01T10:00:00Z"),
+            DeviceInfo(2, "LG CNS", "Office", "2025-12-01T11:00:00Z")
         )
         return DeviceListResponse(fakeDevices, fakeDevices.size, 1, 10, 1)
     }
 
     override suspend fun getDeviceById(deviceId: Int): DeviceInfo {
-        return DeviceInfo(deviceId, "", 1, "1.0.0", "Fake Location", "active")
+        return DeviceInfo(deviceId, "Fake Institution", "Fake Location", "")
     }
 
-    override suspend fun updateDevice(deviceId: Int, identifier: String?, memo: String?): DeviceInfo {
-        // Note: This fake implementation does not use identifier and memo.
-        return DeviceInfo(deviceId, "", 1, "1.0.1", "Updated Location", "active")
-    }
-
-    override suspend fun registerDevice(identifier: String, memo: String): DeviceInfo {
-        // Note: This fake implementation does not use identifier and memo.
-        return DeviceInfo(999, "", 1, "1.0.0", "New Device", "active")
+    override suspend fun registerDevice(id: Int, institutionName: String, location: String): DeviceInfo {
+        return DeviceInfo(id, institutionName, location, "")
     }
 
     override suspend fun deleteDevice(deviceId: Int) {}
 
     override suspend fun getVerificationList(
         page: Int,
-        size: Int,
-        userId: Int?,
-        status: String?,
-        sort: String?
+        size: Int
     ): VerificationListResponse {
-        return VerificationListResponse(emptyList(), 0, 1, 10, 1, null, null)
+        return VerificationListResponse(emptyList(), 0, 1, 10, 1)
+    }
+
+    override suspend fun getVerificationSummary(): VerificationSummaryResponse {
+        return VerificationSummaryResponse(
+            totalUsers = 150,
+            registeredPalms = 120,
+            totalVerifications = 3500,
+            successRate = 98.5
+        )
     }
 
     override suspend fun getReportList(page: Int, size: Int): ReportListResponse {
@@ -102,8 +98,8 @@ class FakeAdminRepository @Inject constructor() : AdminRepository, AuthRepositor
         return ReportInfo(reportId, "", 1, "fake_type", "Fake description", "pending")
     }
 
-    override suspend fun updateReportStatus(reportId: Int, status: String): UpdateReportStatusResponse {
-        throw NotImplementedError("Fake updateReportStatus is not implemented")
+    override suspend fun updateReportStatus(reportId: Int, status: String): ReportInfo {
+        return ReportInfo(reportId, "", 1, "fake_type", "Fake description", status)
     }
 
     // --- AuthRepository 구현 ---

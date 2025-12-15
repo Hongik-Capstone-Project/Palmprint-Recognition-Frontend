@@ -3,22 +3,18 @@ package com.example.palmprint_recognition.data.repository
 import com.example.palmprint_recognition.data.api.AdminApi
 import com.example.palmprint_recognition.data.model.AddUserRequest
 import com.example.palmprint_recognition.data.model.AddUserResponse
-import com.example.palmprint_recognition.data.model.AdminUserInfo
+import com.example.palmprint_recognition.data.model.AdminUserDetail
 import com.example.palmprint_recognition.data.model.ApiException
 import com.example.palmprint_recognition.data.model.DeviceListResponse
 import com.example.palmprint_recognition.data.model.DeviceInfo
 import com.example.palmprint_recognition.data.model.ErrorResponse
-import com.example.palmprint_recognition.data.model.PalmprintListResponse
-import com.example.palmprint_recognition.data.model.PalmprintUploadResponse
 import com.example.palmprint_recognition.data.model.RegisterDeviceRequest
 import com.example.palmprint_recognition.data.model.ReportInfo
 import com.example.palmprint_recognition.data.model.ReportListResponse
-import com.example.palmprint_recognition.data.model.UpdateDeviceRequest
 import com.example.palmprint_recognition.data.model.UpdateReportStatusRequest
-import com.example.palmprint_recognition.data.model.UpdateReportStatusResponse
-import com.example.palmprint_recognition.data.model.UpdateUserRequest
 import com.example.palmprint_recognition.data.model.UserListResponse
 import com.example.palmprint_recognition.data.model.VerificationListResponse
+import com.example.palmprint_recognition.data.model.VerificationSummaryResponse
 import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -51,7 +47,7 @@ class AdminRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getUserById(userId: Int): AdminUserInfo {
+    override suspend fun getUserById(userId: Int): AdminUserDetail {
         return try {
             adminApi.getUserById(userId)
         } catch (e: HttpException) {
@@ -59,19 +55,10 @@ class AdminRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun addUser(name: String, email: String, password: String): AddUserResponse {
+    override suspend fun addUser(name: String, email: String, password: String, isAdmin: Boolean): AddUserResponse {
         return try {
-            val request = AddUserRequest(name, email, password)
+            val request = AddUserRequest(name, email, password, isAdmin)
             adminApi.addUser(request)
-        } catch (e: HttpException) {
-            throw parseError(e)
-        }
-    }
-
-    override suspend fun updateUser(userId: Int, name: String?, email: String?): AdminUserInfo {
-        return try {
-            val request = UpdateUserRequest(name, email)
-            adminApi.updateUser(userId, request)
         } catch (e: HttpException) {
             throw parseError(e)
         }
@@ -85,31 +72,6 @@ class AdminRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getUserPalmprints(userId: Int): PalmprintListResponse {
-        return try {
-            adminApi.getUserPalmprints(userId)
-        } catch (e: HttpException) {
-            throw parseError(e)
-        }
-    }
-
-    override suspend fun uploadPalmprint(imageFile: File): PalmprintUploadResponse {
-        return try {
-            val requestFile = imageFile.asRequestBody("image/*".toMediaTypeOrNull())
-            val body = MultipartBody.Part.createFormData("palmprint", imageFile.name, requestFile)
-            adminApi.uploadPalmprint(body)
-        } catch (e: HttpException) {
-            throw parseError(e)
-        }
-    }
-
-    override suspend fun deletePalmprint(userId: Int, palmprintId: Int) {
-        try {
-            adminApi.deletePalmprint(userId, palmprintId)
-        } catch (e: HttpException) {
-            throw parseError(e)
-        }
-    }
 
     override suspend fun getDeviceList(page: Int, size: Int): DeviceListResponse {
         return try {
@@ -127,18 +89,9 @@ class AdminRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateDevice(deviceId: Int, identifier: String?, memo: String?): DeviceInfo {
+    override suspend fun registerDevice(id: Int, institutionName: String, location: String): DeviceInfo {
         return try {
-            val request = UpdateDeviceRequest(identifier, memo)
-            adminApi.updateDevice(deviceId, request)
-        } catch (e: HttpException) {
-            throw parseError(e)
-        }
-    }
-
-    override suspend fun registerDevice(identifier: String, memo: String): DeviceInfo {
-        return try {
-            val request = RegisterDeviceRequest(identifier, memo)
+            val request = RegisterDeviceRequest(id, institutionName, location)
             adminApi.registerDevice(request)
         } catch (e: HttpException) {
             throw parseError(e)
@@ -146,7 +99,7 @@ class AdminRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteDevice(deviceId: Int) {
-        return try {
+        try {
             adminApi.deleteDevice(deviceId)
         } catch (e: HttpException) {
             throw parseError(e)
@@ -155,13 +108,18 @@ class AdminRepositoryImpl @Inject constructor(
 
     override suspend fun getVerificationList(
         page: Int,
-        size: Int,
-        userId: Int?,
-        status: String?,
-        sort: String?
+        size: Int
     ): VerificationListResponse {
         return try {
-            adminApi.getVerificationList(page, size, userId, status, sort)
+            adminApi.getVerificationList(page, size)
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun getVerificationSummary(): VerificationSummaryResponse {
+        return try {
+            adminApi.getVerificationSummary()
         } catch (e: HttpException) {
             throw parseError(e)
         }
@@ -183,7 +141,7 @@ class AdminRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateReportStatus(reportId: Int, status: String): UpdateReportStatusResponse {
+    override suspend fun updateReportStatus(reportId: Int, status: String): ReportInfo {
         return try {
             val request = UpdateReportStatusRequest(status)
             adminApi.updateReportStatus(reportId, request)

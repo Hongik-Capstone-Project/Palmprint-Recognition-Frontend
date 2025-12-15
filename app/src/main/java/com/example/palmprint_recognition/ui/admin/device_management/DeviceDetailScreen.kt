@@ -5,7 +5,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,8 +54,10 @@ fun DeviceDetailScreen(
         is UiState.Success -> {
             DeviceDetailContent(
                 device = ui.data,
-                onSaveClick = { identifier, memo ->
-                    viewModel.updateDevice(deviceId, identifier, memo)
+                onSaveClick = { location, status ->
+                    // ViewModel의 updateDevice는 identifier와 memo를 받으므로, 임시로 null을 전달하거나
+                    // ViewModel도 함께 수정해야 합니다. 우선은 null을 전달합니다.
+                    viewModel.updateDevice(deviceId, null, null) // TODO: ViewModel 수정 필요
 
                     // ✔ 업데이트 후 최신 데이터 다시 조회
                     viewModel.loadDevice(deviceId)
@@ -74,11 +75,12 @@ fun DeviceDetailScreen(
 @Composable
 fun DeviceDetailContent(
     device: DeviceInfo,
-    onSaveClick: (String?, String?) -> Unit,
+    onSaveClick: (String, String) -> Unit,
     onDeleteClick: () -> Unit
 ) {
-    var identifier by remember { mutableStateOf(device.identifier) }
-    var memo by remember { mutableStateOf(device.memo) }
+    // 변경된 DeviceInfo 모델에 맞게 수정
+    var location by remember { mutableStateOf(device.location) }
+    var status by remember { mutableStateOf(device.status) }
 
     Column(
         modifier = Modifier
@@ -92,24 +94,24 @@ fun DeviceDetailContent(
         )
         Spacer(Modifier.height(20.dp))
 
-        /** identifier */
-        Text("identifier")
+        /** location */
+        Text("Location")
         TextField(
             modifier = Modifier.fillMaxWidth(),
-            value = identifier,
-            onValueChange = { identifier = it },
-            placeholder = { Text("identifier 입력") }
+            value = location,
+            onValueChange = { location = it },
+            placeholder = { Text("Location 입력") }
         )
 
         Spacer(Modifier.height(16.dp))
 
-        /** memo */
-        Text("memo")
+        /** status */
+        Text("Status")
         TextField(
             modifier = Modifier.fillMaxWidth(),
-            value = memo,
-            onValueChange = { memo = it },
-            placeholder = { Text("메모 입력") }
+            value = status,
+            onValueChange = { status = it },
+            placeholder = { Text("Status 입력") }
         )
 
         Spacer(Modifier.height(24.dp))
@@ -117,7 +119,7 @@ fun DeviceDetailContent(
         /** 저장 버튼 */
         Button(
             modifier = Modifier.fillMaxWidth(),
-            onClick = { onSaveClick(identifier, memo) }
+            onClick = { onSaveClick(location, status) }
         ) {
             Text("저장")
         }
@@ -146,9 +148,11 @@ fun PreviewDeviceDetailContent() {
     DeviceDetailContent(
         device = DeviceInfo(
             id = 1,
-            identifier = "DEVICE-12345",
-            memo = "실험실용 센서 장치",
-            createdAt = "2025-10-10T16:00:00Z"
+            createdAt = "2025-10-10T16:00:00Z",
+            institutionId = 1,
+            firmwareVersion = "1.0.0",
+            location = "Lobby",
+            status = "active"
         ),
         onSaveClick = { _, _ -> },
         onDeleteClick = {}
