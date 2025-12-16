@@ -25,9 +25,9 @@ class FakeAdminRepository @Inject constructor() : AdminRepository, AuthRepositor
     // --- AdminRepository 구현 ---
     override suspend fun getUserList(page: Int, size: Int): UserListResponse {
         val fakeUsers = listOf(
-            AdminUserInfo(1, "2025-12-01T10:00:00Z", "chulsoo.kim@example.com", "김철수 (가짜)", null),
-            AdminUserInfo(2, "2025-12-01T11:00:00Z", "younghee.lee@example.com", "이영희 (가짜)", null),
-            AdminUserInfo(3, "2025-12-01T12:00:00Z", "minjun.park@example.com", "박민준 (가짜)", null)
+            AdminUserInfo(1, "2025-12-01T10:00:00Z", "chulsoo.kim@example.com", "김철수 (가짜)"),
+            AdminUserInfo(2, "2025-12-01T11:00:00Z", "younghee.lee@example.com", "이영희 (가짜)"),
+            AdminUserInfo(3, "2025-12-01T12:00:00Z", "minjun.park@example.com", "박민준 (가짜)")
         )
         return UserListResponse(fakeUsers, fakeUsers.size, 1, 10, 1)
     }

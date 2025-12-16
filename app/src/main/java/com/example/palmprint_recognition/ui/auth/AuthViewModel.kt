@@ -3,7 +3,7 @@ package com.example.palmprint_recognition.ui.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.palmprint_recognition.data.repository.AuthRepository
-import com.example.palmprint_recognition.ui.admin.common.UiState
+import com.example.palmprint_recognition.ui.core.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

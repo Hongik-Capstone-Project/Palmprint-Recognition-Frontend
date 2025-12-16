@@ -1,68 +1,38 @@
 package com.example.palmprint_recognition.ui.admin.navigation
 
-/**
- * AdminRoutes
- *
- * - AdminNavigation 에서 사용할 모든 네비게이션 Route 문자열을 중앙에서 관리한다.
- * - 화면 전환 시 문자열을 직접 입력하지 않도록 하여 오타 오류를 방지한다.
- */
 object AdminRoutes {
 
-    /* ------------------------------------------------------------------------
-     * Dashboard
-     * ------------------------------------------------------------------------ */
     const val DASHBOARD = "admin_dashboard"
 
-    /* ------------------------------------------------------------------------
-     * USER MANAGEMENT
-     * ------------------------------------------------------------------------ */
+    // USER
     const val USER_LIST = "admin_user_list"
-
     const val USER_DETAIL = "admin_user_detail/{userId}"
-    fun userDetail(userId: Int) = "admin_user_detail/$userId"
-
     const val ADD_USER = "admin_add_user"
-
     const val DELETE_USER = "admin_delete_user/{userId}"
+
+    fun userDetail(userId: Int) = "admin_user_detail/$userId"
     fun deleteUser(userId: Int) = "admin_delete_user/$userId"
 
-    /* ------------------------------------------------------------------------
-     * PALMPRINT MANAGEMENT
-     * ------------------------------------------------------------------------ */
-    const val PALMPRINT_LIST = "admin_palmprint_list/{userId}"
-    fun palmprintList(userId: Int) = "admin_palmprint_list/$userId"
-
-    const val UPLOAD_PALMPRINT = "admin_upload_palmprint/{userId}"
-    fun uploadPalmprint(userId: Int) = "admin_upload_palmprint/$userId"
-
-    const val DELETE_PALMPRINT = "admin_delete_palmprint/{userId}/{palmprintId}"
-    fun deletePalmprint(userId: Int, palmprintId: Int) =
-        "admin_delete_palmprint/$userId/$palmprintId"
-
-
-    /* ------------------------------------------------------------------------
-     * DEVICE MANAGEMENT
-     * ------------------------------------------------------------------------ */
+    // DEVICE
     const val DEVICE_LIST = "admin_device_list"
-
     const val DEVICE_DETAIL = "admin_device_detail/{deviceId}"
-    fun deviceDetail(deviceId: Int) = "admin_device_detail/$deviceId"
-
-    const val ADD_DEVICE = "admin_add_device"
-
+    const val REGISTER_DEVICE = "admin_register_device"
     const val DELETE_DEVICE = "admin_delete_device/{deviceId}"
+
+    fun deviceDetail(deviceId: Int) = "admin_device_detail/$deviceId"
     fun deleteDevice(deviceId: Int) = "admin_delete_device/$deviceId"
 
-    /* ------------------------------------------------------------------------
-     * REPORT MANAGEMENT
-     * ------------------------------------------------------------------------ */
+    // REPORT
     const val REPORT_LIST = "admin_report_list"
-
     const val REPORT_DETAIL = "admin_report_detail/{reportId}"
+
     fun reportDetail(reportId: Int) = "admin_report_detail/$reportId"
 
-    /* ------------------------------------------------------------------------
-     * VERIFICATION MANAGEMENT (인증 내역 조회)
-     * ------------------------------------------------------------------------ */
-    const val VERIFICATION_LIST = "admin_verification_list"
+    // VERIFICATION
+    const val VERIFICATION = "admin_verification"
+
+    //  args key 상수
+    const val ARG_USER_ID = "userId"
+    const val ARG_DEVICE_ID = "deviceId"
+    const val ARG_REPORT_ID = "reportId"
 }
