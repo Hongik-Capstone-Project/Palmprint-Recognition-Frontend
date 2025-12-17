@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.palmprint_recognition.ui.auth.AuthViewModel
@@ -76,10 +77,11 @@ private fun LoginContent(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 24.dp),
-                verticalArrangement = Arrangement.Center
+                    .padding(top = 40.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Logo(width = 180.dp)
+                Logo(width = 200.dp)
             }
         },
 

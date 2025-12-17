@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.palmprint_recognition.ui.auth.features.sign_up.viewmodel.SignUpViewModel
@@ -91,7 +92,8 @@ private fun SignUpContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(top = 24.dp),
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Logo(width = 180.dp)
             }
