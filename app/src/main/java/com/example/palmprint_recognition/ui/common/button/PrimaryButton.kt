@@ -27,8 +27,8 @@ fun PrimaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 
-    width: Dp? = 356.dp,     // ✅ nullable 지원
-    height: Dp? = 56.dp,     // ✅ nullable 지원
+    width: Dp? = 356.dp,     // nullable 지원
+    height: Dp? = 56.dp,     // nullable 지원
 
     backgroundColor: Color = Color(0xFFC1C7CD),
     borderColor: Color = Color(0xFFC1C7CD),

@@ -115,10 +115,11 @@ class FakeAdminRepository @Inject constructor() : AdminRepository, AuthRepositor
     override suspend fun login(email: String, password: String): LoginResponse {
         loggedIn = true
         return LoginResponse(
-            status = "success",
-            userId = "fake_user_id",
             accessToken = "fake_access_token",
-            refreshToken = "fake_refresh_token"
+            refreshToken = "fake_refresh_token",
+            tokenType = "bearer",
+            expiresIn = 43200,
+            refreshExpiresIn = 1209458
         )
     }
 

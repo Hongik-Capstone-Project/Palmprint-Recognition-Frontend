@@ -13,28 +13,23 @@ import com.example.palmprint_recognition.ui.common.card.ProfileCard
 fun Header(
     userName: String,
     userEmail: String,
-
-    modifier: Modifier = Modifier // 상대 위치 제어
+    userRole: String? = null, // ✅ 필요하면 사용
+    modifier: Modifier = Modifier
 ) {
-
-    // Row → Column 으로 변경 (상단: 로고 / 하단: 프로필)
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 10.dp),
-
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+        Logo(width = 180.dp)
 
+        // 역할 표시가 필요하면 name에 붙이거나, ProfileCard를 확장하세요.
+        val displayName = if (!userRole.isNullOrBlank()) "$userName ($userRole)" else userName
 
-        Logo(
-            width = 180.dp
-        )
-
-        // 하단 프로필 카드
         ProfileCard(
-            name = userName,
+            name = displayName,
             email = userEmail,
             width = 368.dp,
             height = 48.dp
@@ -47,6 +42,7 @@ fun Header(
 fun PreviewPalmHeader() {
     Header(
         userName = "OO",
-        userEmail = "email"
+        userEmail = "email",
+        userRole = "ADMIN"
     )
 }

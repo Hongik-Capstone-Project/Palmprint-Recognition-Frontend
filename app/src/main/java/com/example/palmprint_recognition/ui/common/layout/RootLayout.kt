@@ -13,7 +13,7 @@ fun RootLayout(
     bodyWeight: Float = 1f,
     footerWeight: Float = 0f,
 
-    sectionGapWeight: Float = 0.05f,  // ✅ 전체 화면 기준 간격 비율
+    sectionGapWeight: Float = 0.05f,  // 전체 화면 기준 간격 비율
 
     header: (@Composable () -> Unit)? = null,
     body: @Composable () -> Unit,

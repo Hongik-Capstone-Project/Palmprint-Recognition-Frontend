@@ -40,23 +40,29 @@ data class LoginRequest(
 /**
  * 로그인 응답을 나타내는 데이터 클래스
  *
- * @property status 성공/실패 상태
- * @property userId 유저 식별자
  * @property accessToken 액세스 토큰
  * @property refreshToken 리프레시 토큰
+ * @property tokenType
+ * @property expiresIn
+ * @property refreshExpiresIn
  */
 data class LoginResponse(
-    val status: String,
-
-    @SerializedName("user_id")
-    val userId: String,
-
     @SerializedName("access_token")
     val accessToken: String,
 
     @SerializedName("refresh_token")
-    val refreshToken: String
+    val refreshToken: String,
+
+    @SerializedName("token_type")
+    val tokenType: String,
+
+    @SerializedName("expires_in")
+    val expiresIn: Long,
+
+    @SerializedName("refresh_expires_in")
+    val refreshExpiresIn: Long? = null
 )
+
 
 /**
  * 로그아웃 응답 모델
