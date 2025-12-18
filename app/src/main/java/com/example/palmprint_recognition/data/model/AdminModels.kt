@@ -64,8 +64,7 @@ data class AddUserRequest(
  */
 data class AddUserResponse(
     val id: Int,
-    val name: String?,
-    val message: String
+    val name: String
 )
 
 
