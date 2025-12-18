@@ -12,7 +12,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.palmprint_recognition.ui.admin.features.device_management.viewmodel.RegisterDeviceViewModel
 import com.example.palmprint_recognition.ui.common.button.SingleCenterButton
-import com.example.palmprint_recognition.ui.common.checkbox.CheckBox
 import com.example.palmprint_recognition.ui.common.field.LabeledField
 import com.example.palmprint_recognition.ui.common.layout.Footer
 import com.example.palmprint_recognition.ui.common.layout.Header
@@ -22,7 +21,6 @@ import com.example.palmprint_recognition.ui.core.state.UiState
 /**
  * 디바이스 등록 Screen
  * @param onAddSuccess 디바이스 등록 성공 시 newDeviceId 전달
- * @param viewModel RegisterDeviceViewModel
  */
 @Composable
 fun RegisterDeviceScreen(
@@ -41,8 +39,8 @@ fun RegisterDeviceScreen(
 
     RegisterDeviceContent(
         uiState = uiState,
-        onRegisterDevice = { id, institutionName, location ->
-            viewModel.registerDevice(id, institutionName, location)
+        onRegisterDevice = { institutionId, location ->
+            viewModel.registerDevice(institutionId, location)
         }
     )
 }
@@ -50,10 +48,9 @@ fun RegisterDeviceScreen(
 @Composable
 private fun RegisterDeviceContent(
     uiState: UiState<*> = UiState.Idle,
-    onRegisterDevice: (Int, String, String) -> Unit
+    onRegisterDevice: (Int, String) -> Unit
 ) {
-    var idText by remember { mutableStateOf("") }
-    var institutionName by remember { mutableStateOf("") }
+    var institutionIdText by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
 
     var localErrorMessage by remember { mutableStateOf<String?>(null) }
@@ -76,11 +73,9 @@ private fun RegisterDeviceContent(
                     .padding(horizontal = 20.dp)
             ) {
                 RegisterDeviceFieldSection(
-                    idText = idText,
-                    institutionName = institutionName,
+                    institutionIdText = institutionIdText,
                     location = location,
-                    onIdChange = { idText = it },
-                    onInstitutionNameChange = { institutionName = it },
+                    onInstitutionIdChange = { institutionIdText = it },
                     onLocationChange = { location = it }
                 )
 
@@ -113,21 +108,18 @@ private fun RegisterDeviceContent(
                     onClick = {
                         localErrorMessage = null
 
-                        val id = idText.trim().toIntOrNull()
-                        if (id == null) {
-                            localErrorMessage = "device_id는 숫자만 입력해주세요."
+                        val institutionId = institutionIdText.trim().toIntOrNull()
+                        if (institutionId == null) {
+                            localErrorMessage = "institution_id는 숫자만 입력해주세요."
                             return@SingleCenterButton
                         }
-                        if (institutionName.isBlank()) {
-                            localErrorMessage = "기관명을 입력해주세요."
-                            return@SingleCenterButton
-                        }
+
                         if (location.isBlank()) {
                             localErrorMessage = "위치를 입력해주세요."
                             return@SingleCenterButton
                         }
 
-                        onRegisterDevice(id, institutionName.trim(), location.trim())
+                        onRegisterDevice(institutionId, location.trim())
                     }
                 )
             }
@@ -137,26 +129,18 @@ private fun RegisterDeviceContent(
 
 @Composable
 private fun RegisterDeviceFieldSection(
-    idText: String,
-    institutionName: String,
+    institutionIdText: String,
     location: String,
-    onIdChange: (String) -> Unit,
-    onInstitutionNameChange: (String) -> Unit,
+    onInstitutionIdChange: (String) -> Unit,
     onLocationChange: (String) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(text = "디바이스 정보 추가")
 
         LabeledField(
-            label = "device_id",
-            value = idText,
-            onValueChange = onIdChange
-        )
-
-        LabeledField(
-            label = "기관명",
-            value = institutionName,
-            onValueChange = onInstitutionNameChange
+            label = "institution_id",
+            value = institutionIdText,
+            onValueChange = onInstitutionIdChange
         )
 
         LabeledField(
@@ -172,6 +156,6 @@ private fun RegisterDeviceFieldSection(
 private fun PreviewRegisterDeviceContent() {
     RegisterDeviceContent(
         uiState = UiState.Idle,
-        onRegisterDevice = { _, _, _ -> }
+        onRegisterDevice = { _, _ -> }
     )
 }

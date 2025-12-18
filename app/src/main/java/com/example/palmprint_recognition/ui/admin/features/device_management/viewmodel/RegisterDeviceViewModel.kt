@@ -2,7 +2,7 @@ package com.example.palmprint_recognition.ui.admin.features.device_management.vi
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.palmprint_recognition.data.model.DeviceInfo
+import com.example.palmprint_recognition.data.model.RegisterDeviceResponse
 import com.example.palmprint_recognition.data.repository.AdminRepository
 import com.example.palmprint_recognition.ui.core.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,17 +16,17 @@ class RegisterDeviceViewModel @Inject constructor(
     private val adminRepository: AdminRepository
 ) : ViewModel() {
 
-    private val _registerDeviceState = MutableStateFlow<UiState<DeviceInfo>>(UiState.Idle)
+    private val _registerDeviceState =
+        MutableStateFlow<UiState<RegisterDeviceResponse>>(UiState.Idle)
     val registerDeviceState = _registerDeviceState.asStateFlow()
 
-    fun registerDevice(id: Int, institutionName: String, location: String) {
+    fun registerDevice(institutionId: Int, location: String) {
         viewModelScope.launch {
             _registerDeviceState.value = UiState.Loading
 
             runCatching {
                 adminRepository.registerDevice(
-                    id = id,
-                    institutionName = institutionName,
+                    institutionId = institutionId,
                     location = location
                 )
             }.onSuccess { result ->

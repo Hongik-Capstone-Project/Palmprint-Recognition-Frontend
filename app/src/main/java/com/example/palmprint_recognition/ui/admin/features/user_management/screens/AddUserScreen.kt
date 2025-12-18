@@ -43,12 +43,11 @@ fun AddUserScreen(
 
     AddUserContent(
         uiState = uiState,
-        onAddUser = { name, email, password, isAdmin ->
+        onAddUser = { name, email, password ->
             viewModel.addUser(
                 name = name,
                 email = email,
-                password = password,
-                isAdmin = isAdmin
+                password = password
             )
         }
     )
@@ -58,19 +57,18 @@ fun AddUserScreen(
  * 유저 추가 UI
  *
  * @param uiState 유저 추가 API 상태
- * @param onAddUser 유저 추가 요청 이벤트 (isAdmin 포함)
+ * @param onAddUser 유저 추가 요청 이벤트
  */
 @Composable
 private fun AddUserContent(
     uiState: UiState<*> = UiState.Idle,
-    onAddUser: (String, String, String, Boolean) -> Unit
+    onAddUser: (String, String, String) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
-    var isAdminAccount by remember { mutableStateOf(false) }
     var localErrorMessage by remember { mutableStateOf<String?>(null) }
 
     val isLoading = uiState is UiState.Loading
@@ -108,14 +106,6 @@ private fun AddUserContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                AdminAccountCheckSection(
-                    isAdminAccount = isAdminAccount,
-                    enabled = !isLoading,
-                    onCheckedChange = { isAdminAccount = it }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
                 if (localErrorMessage != null) {
                     Text(text = localErrorMessage!!)
                     Spacer(modifier = Modifier.height(8.dp))
@@ -149,13 +139,14 @@ private fun AddUserContent(
                             return@SingleCenterButton
                         }
 
-                        onAddUser(name, email, password, isAdminAccount) // ✅ isAdmin 전달
+                        onAddUser(name, email, password) // isAdmin 제거
                     }
                 )
             }
         }
     )
 }
+
 
 /**
  * 유저 입력 필드 Section
@@ -204,28 +195,13 @@ private fun AddUserFieldSection(
     }
 }
 
-/**
- * 관리자 계정 체크 Section
- */
-@Composable
-private fun AdminAccountCheckSection(
-    isAdminAccount: Boolean,
-    enabled: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    CheckBox(
-        checked = isAdminAccount,
-        text = "관리자 계정",
-        readOnly = !enabled,
-        onCheckedChange = { if (enabled) onCheckedChange(it) }
-    )
-}
+
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun PreviewAddUserContent() {
     AddUserContent(
         uiState = UiState.Idle,
-        onAddUser = { _, _, _, _ -> }
+        onAddUser = { _, _, _ -> }
     )
 }

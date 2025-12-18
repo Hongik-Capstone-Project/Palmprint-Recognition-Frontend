@@ -22,8 +22,7 @@ class AddUserViewModel @Inject constructor(
     fun addUser(
         name: String,
         email: String,
-        password: String,
-        isAdmin: Boolean = false
+        password: String
     ) {
         viewModelScope.launch {
             _addUserState.value = UiState.Loading
@@ -32,8 +31,7 @@ class AddUserViewModel @Inject constructor(
                 adminRepository.addUser(
                     name = name,
                     email = email,
-                    password = password,
-                    isAdmin = isAdmin
+                    password = password
                 )
             }.onSuccess { result ->
                 _addUserState.value = UiState.Success(result)

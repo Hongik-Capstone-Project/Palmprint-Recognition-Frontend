@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.example.palmprint_recognition.data.model.AdminInstitution
 import com.example.palmprint_recognition.data.model.DeviceInfo
 import com.example.palmprint_recognition.ui.admin.features.device_management.viewmodel.DeviceDetailViewModel
 import com.example.palmprint_recognition.ui.admin.navigation.AdminRoutes
@@ -22,17 +23,15 @@ import com.example.palmprint_recognition.ui.common.field.LabeledField
 import com.example.palmprint_recognition.ui.common.layout.Footer
 import com.example.palmprint_recognition.ui.common.layout.Header
 import com.example.palmprint_recognition.ui.common.layout.RootLayout
-import com.example.palmprint_recognition.ui.common.table.TableColumn
-import com.example.palmprint_recognition.ui.common.table.TableView
 import com.example.palmprint_recognition.ui.core.state.UiState
 
 /**
- * 유저 상세 Screen
+ * 디바이스 상세 Screen
  *
- * @param userId 조회할 디바이스 ID
+ * @param deviceId 조회할 디바이스 ID
  * @param navController 뒤로가기 처리용 NavController
  * @param onDeleteClick 삭제 버튼 클릭 이벤트
- * @param viewModel UserDetailViewModel
+ * @param viewModel DeviceDetailViewModel
  */
 @Composable
 fun DeviceDetailScreen(
@@ -82,10 +81,7 @@ fun DeviceDetailScreen(
 }
 
 /**
- * 유저 상세 UI
- *
- * @param user 유저 상세 정보
- * @param onDeleteClick 삭제 버튼 클릭 이벤트
+ * 디바이스 상세 UI
  */
 @Composable
 private fun DeviceDetailContent(
@@ -116,8 +112,7 @@ private fun DeviceDetailContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
-        }
-        ,
+        },
         footer = {
             Footer {
                 SingleCenterButton(
@@ -130,11 +125,7 @@ private fun DeviceDetailContent(
 }
 
 /**
- * 디바이스 정보 필드 Section
- * - LabeledField를 읽기 전용으로 사용한다.
- *
- * @param device 디바이스 상세 정보
- * @param modifier 외부 레이아웃 제어용 Modifier
+ * 디바이스 정보 필드 Section (읽기 전용)
  */
 @Composable
 private fun DeviceInfoFieldSection(
@@ -157,7 +148,7 @@ private fun DeviceInfoFieldSection(
 
         LabeledField(
             label = "기관명",
-            value = device.institutionName,
+            value = device.institution.name, // 변경 (institutionName -> institution.name)
             onValueChange = {},
             readOnly = true,
             enabled = false
@@ -179,9 +170,14 @@ private fun PreviewDeviceDetailContent() {
     DeviceDetailContent(
         device = DeviceInfo(
             id = 1,
-            institutionName = "홍익대학교",
-            location = "T동 3층",
-            createdAt = "2025-12-06T09:55:50.741Z"
+            createdAt = "2025-12-06T09:55:50.741Z",
+            institution = AdminInstitution(
+                id = 10,
+                createdAt = "2025-12-01T00:00:00.000Z",
+                name = "홍익대학교",
+                address = null
+            ),
+            location = "T동 3층"
         ),
         onDeleteClick = {}
     )

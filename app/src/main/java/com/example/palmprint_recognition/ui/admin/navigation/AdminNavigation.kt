@@ -99,11 +99,10 @@ fun NavGraphBuilder.adminGraph(
             DeleteUserScreen(
                 userId = userId,
                 onConfirmDelete = {
-                    navController.navigateAndClearUpTo(
-                        destination = AdminRoutes.USER_LIST,
-                        popUpToRoute = AdminRoutes.USER_LIST,
-                        inclusive = true
-                    )
+                    navController.navigate(AdminRoutes.USER_LIST) {
+                        popUpTo(AdminRoutes.USER_LIST) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 },
                 onCancel = { navController.popBackStack() }
             )
@@ -155,11 +154,11 @@ fun NavGraphBuilder.adminGraph(
             DeleteDeviceScreen(
                 deviceId = deviceId,
                 onConfirmDelete = {
-                    navController.navigateAndClearUpTo(
-                        destination = AdminRoutes.DEVICE_LIST,
-                        popUpToRoute = AdminRoutes.DEVICE_LIST,
-                        inclusive = true
-                    )
+                    navController.navigate(AdminRoutes.DEVICE_LIST) {
+                        popUpTo(AdminRoutes.DEVICE_LIST) { inclusive = true }
+                        launchSingleTop = true
+                    }
+
                 },
                 onCancel = { navController.popBackStack() }
             )

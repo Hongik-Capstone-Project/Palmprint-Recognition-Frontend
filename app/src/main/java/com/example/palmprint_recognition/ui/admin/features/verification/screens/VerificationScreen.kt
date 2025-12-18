@@ -6,6 +6,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -13,10 +14,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.palmprint_recognition.data.model.VerificationDevice
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.Lifecycle
 import com.example.palmprint_recognition.data.model.VerificationRecord
 import com.example.palmprint_recognition.data.model.VerificationSummaryResponse
-import com.example.palmprint_recognition.data.model.VerificationUser
 import com.example.palmprint_recognition.ui.admin.features.verification.viewmodel.VerificationViewModel
 import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
 import com.example.palmprint_recognition.ui.common.layout.RootLayout
@@ -24,6 +26,7 @@ import com.example.palmprint_recognition.ui.common.table.TableColumn
 import com.example.palmprint_recognition.ui.common.table.TableView
 import com.example.palmprint_recognition.ui.core.state.PaginationUiState
 import com.example.palmprint_recognition.ui.core.state.UiState
+import java.util.Locale
 
 @Composable
 fun VerificationScreen(
@@ -31,6 +34,13 @@ fun VerificationScreen(
 ) {
     val summaryState by viewModel.summaryState.collectAsStateWithLifecycle()
     val listState by viewModel.listState.collectAsStateWithLifecycle()
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.refresh()
+        }
+    }
 
     VerificationContent(
         summaryState = summaryState,
@@ -51,9 +61,7 @@ private fun VerificationContent(
         footerWeight = 0f,
         sectionGapWeight = 0.4f,
 
-        header = {
-            HeaderContainer()
-        },
+        header = { HeaderContainer() },
 
         body = {
             Column(
@@ -76,7 +84,7 @@ private fun VerificationContent(
 }
 
 /**
- * 상단 요약 섹션 (박스 + 텍스트 4줄)
+ * 상단 요약 섹션
  */
 @Composable
 private fun VerificationSummarySection(
@@ -128,13 +136,12 @@ private fun VerificationSummarySection(
 }
 
 private fun formatPercent(value: Double): String {
-    // 서버가 0~100을 주든 0~1을 주든 대응(안전)
     val v = if (value in 0.0..1.0) value * 100.0 else value
-    return String.format("%.0f%%", v)
+    return String.format(Locale.KOREA, "%.0f%%", v)
 }
 
 /**
- * 하단 목록 섹션 (DeviceList와 동일 구조 + 텍스트만 변경)
+ * 하단 목록 섹션
  */
 @Composable
 private fun VerificationListSection(
@@ -154,10 +161,10 @@ private fun VerificationListSection(
         columns = columns,
         rows = listState.items.map { record ->
             listOf(
-                record.user.id.toString(),
-                record.device.institutionName,
-                record.device.location,
-                if (record.success) "성공" else "실패"
+                record.userId.toString(),
+                record.institutionName,
+                record.location,
+                if (record.isSuccess) "성공" else "실패"
             )
         },
         hasMoreData = listState.hasMore,
@@ -167,7 +174,6 @@ private fun VerificationListSection(
         onLoadMore = onLoadMore
     )
 
-    // 필요하면 에러 메시지 표시(선택)
     listState.errorMessage?.let {
         Spacer(Modifier.height(8.dp))
         Text(text = it)
@@ -190,10 +196,13 @@ private fun PreviewVerificationScreen() {
         items = listOf(
             VerificationRecord(
                 id = "abc",
-                user = VerificationUser(1, "Alice", "alice@example.com"),
-                device = VerificationDevice(10, "홍익대학교", "T동 3층"),
-                success = true,
-                createdAt = "2025-12-06"
+                createdAt = "2025-12-06T10:00:00.000Z",
+                userId = 1,
+                institutionId = 10,
+                institutionName = "홍익대학교",
+                location = "T동 3층",
+                isSuccess = true,
+                authType = "PALM"
             )
         ),
         isLoadingInitial = false,

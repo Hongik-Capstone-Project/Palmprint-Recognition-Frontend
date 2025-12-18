@@ -11,11 +11,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * 유저 목록 ViewModel
- * - 페이지네이션 기반 목록 조회
- * - 무한 스크롤 지원
- */
 @HiltViewModel
 class UserListViewModel @Inject constructor(
     private val adminRepository: AdminRepository
@@ -27,25 +22,24 @@ class UserListViewModel @Inject constructor(
     private var currentPage = 1
     private val pageSize = 10
 
+    // 로딩 중복 방지용 (특히 TableView가 연속으로 onLoadMore를 쏘는 경우)
+    private var isRequestInFlight = false
+
     init {
         refresh()
     }
 
-    /**
-     * 다음 페이지 로딩 (무한스크롤)
-     */
     fun loadNextPage() {
         val state = _uiState.value
 
-        // 첫 페이지 로딩 중이거나, 추가 로딩 중이면 중복 요청 방지
+        if (isRequestInFlight) return
         if (state.isLoadingInitial || state.isLoadingMore) return
-
-        // 더 이상 데이터가 없으면 요청하지 않음
         if (!state.hasMore) return
 
         viewModelScope.launch {
-            val isFirstPage = currentPage == 1
+            isRequestInFlight = true
 
+            val isFirstPage = currentPage == 1
             _uiState.value = if (isFirstPage) {
                 state.copy(isLoadingInitial = true, errorMessage = null)
             } else {
@@ -55,9 +49,22 @@ class UserListViewModel @Inject constructor(
             runCatching {
                 adminRepository.getUserList(page = currentPage, size = pageSize)
             }.onSuccess { response ->
-                val newItems = response.items
+                // items가 nullable로 바뀌는 경우까지 대비 (현재는 non-null일 가능성이 큼)
+                val newItems = try {
+                    @Suppress("UNCHECKED_CAST")
+                    (response.items as? List<AdminUserInfo>).orEmpty()
+                } catch (e: Exception) {
+                    emptyList()
+                }
+
                 val updatedList = if (isFirstPage) newItems else _uiState.value.items + newItems
-                val hasMore = currentPage < response.pages
+
+                // pages가 0이거나 이상한 값으로 오는 경우도 방어
+                val totalPages = response.pages
+                val hasMore = when {
+                    totalPages > 0 -> currentPage < totalPages
+                    else -> newItems.size >= pageSize // fallback
+                }
 
                 _uiState.value = _uiState.value.copy(
                     items = updatedList,
@@ -76,15 +83,21 @@ class UserListViewModel @Inject constructor(
                     hasMore = false
                 )
             }
+
+            isRequestInFlight = false
         }
     }
 
-    /**
-     * 목록 새로고침
-     */
     fun refresh() {
         currentPage = 1
-        _uiState.value = PaginationUiState(isLoadingInitial = false, hasMore = true)
+        isRequestInFlight = false
+        _uiState.value = PaginationUiState(
+            items = emptyList(),
+            isLoadingInitial = false,
+            isLoadingMore = false,
+            hasMore = true,
+            errorMessage = null
+        )
         loadNextPage()
     }
 }

@@ -15,11 +15,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.palmprint_recognition.data.model.AdminUserDetail
-import com.example.palmprint_recognition.data.model.UserInstitutionSimple
+import com.example.palmprint_recognition.data.model.AdminUserInstitution
 import com.example.palmprint_recognition.ui.admin.features.user_management.viewmodel.UserDetailViewModel
 import com.example.palmprint_recognition.ui.admin.navigation.AdminRoutes
 import com.example.palmprint_recognition.ui.common.button.SingleCenterButton
-import com.example.palmprint_recognition.ui.common.checkbox.CheckBox
 import com.example.palmprint_recognition.ui.common.field.LabeledField
 import com.example.palmprint_recognition.ui.common.layout.Footer
 import com.example.palmprint_recognition.ui.common.layout.Header
@@ -122,15 +121,10 @@ private fun UserDetailContent(
                     institutions = user.userInstitutions,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f) // 남은 영역 전부
+                        .weight(1f)
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                AdminAccountCheckSection(
-                    isAdmin = false, // TODO(): api 수정되면 isAdmin으로 수정
-                    modifier = Modifier.fillMaxWidth()
-                )
+                // 관리자 여부 표시 체크박스 섹션 제거
             }
         },
         footer = {
@@ -145,11 +139,7 @@ private fun UserDetailContent(
 }
 
 /**
- * 유저 정보 필드 Section
- * - LabeledField를 읽기 전용으로 사용한다.
- *
- * @param user 유저 상세 정보
- * @param modifier 외부 레이아웃 제어용 Modifier
+ * 유저 정보 필드 Section (읽기 전용)
  */
 @Composable
 private fun UserInfoFieldSection(
@@ -190,15 +180,12 @@ private fun UserInfoFieldSection(
 
 /**
  * 인증 기관 목록 테이블 Section (읽기 전용)
- * - ViewModel이 기관 리스트 전체를 보관한다.
- * - Screen에서 테이블 높이를 지정하고 스크롤로 확인한다.
  *
- * @param institutions 기관 목록
- * @param modifier 외부 레이아웃 제어용 Modifier
+ * 기존(UserInstitutionSimple) -> 변경(AdminUserInstitution) 기준으로 수정
  */
 @Composable
 private fun InstitutionListTableSection(
-    institutions: List<UserInstitutionSimple>,
+    institutions: List<AdminUserInstitution>,
     modifier: Modifier = Modifier
 ) {
     val columns = listOf(
@@ -206,10 +193,9 @@ private fun InstitutionListTableSection(
     )
 
     val rows = institutions.map { inst ->
-        listOf(inst.institutionName)
+        listOf(inst.institution.name)
     }
 
-    // weight로 받은 높이를 그대로 사용하도록
     Box(modifier = modifier) {
         TableView(
             title = "인증 기관 목록",
@@ -224,26 +210,6 @@ private fun InstitutionListTableSection(
     }
 }
 
-/**
- * 관리자 계정 체크 Section (읽기 전용)
- *
- * @param isAdmin 관리자 계정 여부
- * @param modifier 외부 레이아웃 제어용 Modifier
- */
-@Composable
-private fun AdminAccountCheckSection(
-    isAdmin: Boolean,
-    modifier: Modifier = Modifier
-) {
-    CheckBox(
-        checked = isAdmin,
-        text = "관리자 계정",
-        readOnly = true,
-        modifier = modifier,
-        onCheckedChange = {}
-    )
-}
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun PreviewUserDetailContent() {
@@ -252,14 +218,38 @@ private fun PreviewUserDetailContent() {
             id = 1,
             name = "Alice",
             email = "alice@example.com",
+            createdAt = "2025-12-18T09:09:22.503Z",
             isPalmRegistered = true,
+            paymentMethods = emptyList(),
+            reports = emptyList(),
             userInstitutions = listOf(
-                UserInstitutionSimple("inst_112", "Hongik University"),
-                UserInstitutionSimple("inst_113", "LG")
-            )
+                AdminUserInstitution(
+                    id = 1,
+                    createdAt = "2025-12-18T09:09:22.504Z",
+                    userId = 1,
+                    institution = com.example.palmprint_recognition.data.model.AdminInstitution(
+                        id = 10,
+                        createdAt = "2025-12-18T09:09:22.504Z",
+                        name = "Hongik University",
+                        address = null
+                    ),
+                    institutionUserId = "inst_112"
+                ),
+                AdminUserInstitution(
+                    id = 2,
+                    createdAt = "2025-12-18T09:09:22.504Z",
+                    userId = 1,
+                    institution = com.example.palmprint_recognition.data.model.AdminInstitution(
+                        id = 11,
+                        createdAt = "2025-12-18T09:09:22.504Z",
+                        name = "LG",
+                        address = null
+                    ),
+                    institutionUserId = "inst_113"
+                )
+            ),
+            userInstitutionRoles = emptyList()
         ),
         onDeleteClick = {}
     )
 }
-
-

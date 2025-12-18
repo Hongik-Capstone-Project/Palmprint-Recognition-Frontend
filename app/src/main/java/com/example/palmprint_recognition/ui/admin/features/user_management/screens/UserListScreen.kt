@@ -3,11 +3,15 @@ package com.example.palmprint_recognition.ui.admin.features.user_management.scre
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.Lifecycle
 import com.example.palmprint_recognition.data.model.AdminUserInfo
 import com.example.palmprint_recognition.ui.admin.features.user_management.viewmodel.UserListViewModel
 import com.example.palmprint_recognition.ui.common.button.SingleCenterButton
@@ -32,6 +36,13 @@ fun UserListScreen(
     viewModel: UserListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.refresh()
+        }
+    }
 
     UserListContent(
         uiState = uiState,
@@ -144,7 +155,7 @@ private fun UserListTableSection(
             )
         },
         hasMoreData = uiState.hasMore,
-        isLoading = uiState.isLoadingMore,
+        isLoading = uiState.isLoadingInitial || uiState.isLoadingMore,
         modifier = modifier.fillMaxWidth(),
         onRowClick = { index ->
             onUserClick(uiState.items[index].id)

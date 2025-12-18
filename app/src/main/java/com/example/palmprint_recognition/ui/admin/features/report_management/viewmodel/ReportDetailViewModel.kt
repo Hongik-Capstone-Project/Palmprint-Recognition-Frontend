@@ -18,7 +18,7 @@ class ReportDetailViewModel @Inject constructor(
 
     companion object {
         val STATUS_OPTIONS = listOf("처리 전", "승인", "기각")
-        private val STATUS_API_VALUES = listOf("pending", "approved", "rejected")
+        private val STATUS_API_VALUES = listOf("PENDING", "APPROVED", "REJECTED")
     }
 
     private val _reportState = MutableStateFlow<UiState<ReportInfo>>(UiState.Idle)

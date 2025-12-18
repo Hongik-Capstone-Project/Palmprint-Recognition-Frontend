@@ -3,11 +3,15 @@ package com.example.palmprint_recognition.ui.admin.features.report_management.sc
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.Lifecycle
 import com.example.palmprint_recognition.data.model.ReportInfo
 import com.example.palmprint_recognition.ui.admin.features.report_management.viewmodel.ReportListViewModel
 import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
@@ -28,6 +32,13 @@ fun ReportListScreen(
     viewModel: ReportListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.refresh()
+        }
+    }
 
     ReportListContent(
         uiState = uiState,

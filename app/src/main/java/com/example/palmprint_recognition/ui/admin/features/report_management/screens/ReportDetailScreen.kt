@@ -40,12 +40,14 @@ fun ReportDetailScreen(
         viewModel.loadReport(reportId)
     }
 
-    LaunchedEffect(saveState) {
-        if (saveState is UiState.Success) {
+    val isSaveSuccess = saveState is UiState.Success
+    LaunchedEffect(isSaveSuccess) {
+        if (isSaveSuccess) {
             onSaveSuccess?.invoke()
             viewModel.clearSaveState()
         }
     }
+
 
     BackHandler {
         navController.navigate(AdminRoutes.REPORT_LIST) {

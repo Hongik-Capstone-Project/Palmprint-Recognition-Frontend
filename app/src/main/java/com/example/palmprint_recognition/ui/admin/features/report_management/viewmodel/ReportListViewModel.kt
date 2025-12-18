@@ -47,7 +47,12 @@ class ReportListViewModel @Inject constructor(
                 val updatedList =
                     if (isFirstPage) newItems else _uiState.value.items + newItems
 
-                val hasMore = currentPage < response.pages
+                val totalPages = response.pages
+                val hasMore = when {
+                    totalPages > 0 -> currentPage < totalPages
+                    else -> newItems.size >= pageSize
+                }
+
 
                 _uiState.value = _uiState.value.copy(
                     items = updatedList,

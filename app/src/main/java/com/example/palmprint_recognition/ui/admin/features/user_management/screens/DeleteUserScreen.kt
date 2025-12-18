@@ -34,13 +34,15 @@ fun DeleteUserScreen(
     viewModel: DeleteUserViewModel = hiltViewModel()
 ) {
     val deleteState by viewModel.deleteState.collectAsStateWithLifecycle()
+    val isSuccess = deleteState is UiState.Success
 
-    LaunchedEffect(deleteState) {
-        if (deleteState is UiState.Success) {
+    LaunchedEffect(isSuccess) {
+        if (isSuccess) {
             onConfirmDelete()
             viewModel.clearState()
         }
     }
+
 
     DeleteUserContent(
         uiState = deleteState,

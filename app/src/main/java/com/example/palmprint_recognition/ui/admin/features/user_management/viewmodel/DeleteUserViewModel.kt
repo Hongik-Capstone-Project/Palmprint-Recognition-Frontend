@@ -17,9 +17,12 @@ class DeleteUserViewModel @Inject constructor(
 
     private val _deleteState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val deleteState = _deleteState.asStateFlow()
+    private var inFlight = false
 
     fun deleteUser(userId: Int) {
+        if (inFlight) return
         viewModelScope.launch {
+            inFlight = true
             _deleteState.value = UiState.Loading
 
             runCatching {
@@ -29,10 +32,13 @@ class DeleteUserViewModel @Inject constructor(
             }.onFailure { e ->
                 _deleteState.value = UiState.Error(e.message ?: "유저 삭제 중 오류가 발생했습니다.")
             }
+
+            inFlight = false
         }
     }
 
     fun clearState() {
+        inFlight = false
         _deleteState.value = UiState.Idle
     }
 }

@@ -34,9 +34,10 @@ fun DeleteDeviceScreen(
     viewModel: DeleteDeviceViewModel = hiltViewModel()
 ) {
     val deleteState by viewModel.deleteState.collectAsStateWithLifecycle()
+    val isSuccess = deleteState is UiState.Success
 
-    LaunchedEffect(deleteState) {
-        if (deleteState is UiState.Success) {
+    LaunchedEffect(isSuccess) {
+        if (isSuccess) {
             onConfirmDelete()
             viewModel.clearState()
         }
