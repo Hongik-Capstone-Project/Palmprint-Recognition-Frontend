@@ -68,7 +68,7 @@ fun DashboardFooterButtonsSection(
             modifier = Modifier.fillMaxWidth(),
             width = null,
             height = 56.dp,
-            backgroundColor = Color(0xF5F5F5),
+            backgroundColor = Color(0xFFF5F5F5),
             borderColor = Color(0xFFC1C7CD),
             textColor = Color.Black,
             textSize = 20

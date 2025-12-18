@@ -6,6 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import androidx.navigation.navArgument
+import com.example.palmprint_recognition.ui.auth.AuthViewModel
 
 /* Dashboard */
 import com.example.palmprint_recognition.ui.admin.features.dashboard.screens.AdminDashboardScreen
@@ -31,10 +32,10 @@ import com.example.palmprint_recognition.ui.admin.features.verification.screens.
 
 import com.example.palmprint_recognition.ui.core.navigation.navigateAndClearUpTo
 
-
 fun NavGraphBuilder.adminGraph(
     navController: NavController,
-    route: String
+    route: String,
+    authViewModel: AuthViewModel // 추가
 ) {
     navigation(
         startDestination = AdminRoutes.DASHBOARD,
@@ -48,10 +49,7 @@ fun NavGraphBuilder.adminGraph(
                 onDeviceManageClick = { navController.navigate(AdminRoutes.DEVICE_LIST) },
                 onReportManageClick = { navController.navigate(AdminRoutes.REPORT_LIST) },
                 onVerificationClick = { navController.navigate(AdminRoutes.VERIFICATION) },
-                onLogoutClick = {
-                    // TODO: 로그아웃 처리(토큰 삭제/상위 그래프로 이동 등)
-                    // 예: navController.navigate("login") { popUpTo(route){inclusive=true} }
-                }
+                        authViewModel = authViewModel // 전달
             )
         }
 
@@ -85,7 +83,6 @@ fun NavGraphBuilder.adminGraph(
         composable(AdminRoutes.ADD_USER) {
             AddUserScreen(
                 onAddSuccess = { newUserId ->
-                    // add -> detail, add screen 제거
                     navController.navigate(AdminRoutes.userDetail(newUserId)) {
                         popUpTo(AdminRoutes.ADD_USER) { inclusive = true }
                     }
@@ -102,7 +99,6 @@ fun NavGraphBuilder.adminGraph(
             DeleteUserScreen(
                 userId = userId,
                 onConfirmDelete = {
-                    // 삭제 성공 -> USER_LIST 새로
                     navController.navigateAndClearUpTo(
                         destination = AdminRoutes.USER_LIST,
                         popUpToRoute = AdminRoutes.USER_LIST,
@@ -133,7 +129,7 @@ fun NavGraphBuilder.adminGraph(
 
             DeviceDetailScreen(
                 deviceId = deviceId,
-                navController = navController, // 현재 DeviceDetailScreen은 navController 사용(BackHandler)
+                navController = navController,
                 onDeleteClick = {
                     navController.navigate(AdminRoutes.deleteDevice(deviceId))
                 }
@@ -143,7 +139,6 @@ fun NavGraphBuilder.adminGraph(
         composable(AdminRoutes.REGISTER_DEVICE) {
             RegisterDeviceScreen(
                 onAddSuccess = { newDeviceId ->
-                    // register -> detail, 목록은 유지
                     navController.navigate(AdminRoutes.deviceDetail(newDeviceId)) {
                         popUpTo(AdminRoutes.DEVICE_LIST) { inclusive = false }
                     }
@@ -187,7 +182,7 @@ fun NavGraphBuilder.adminGraph(
 
             ReportDetailScreen(
                 reportId = reportId,
-                navController = navController, // ✅ ReportDetailScreen에서 BackHandler 사용 중
+                navController = navController,
                 onSaveSuccess = {
                     navController.navigateAndClearUpTo(
                         destination = AdminRoutes.REPORT_LIST,
@@ -200,10 +195,7 @@ fun NavGraphBuilder.adminGraph(
 
         // 5) VERIFICATION
         composable(AdminRoutes.VERIFICATION) {
-            VerificationScreen(
-                // navController = navController
-                // 필요 시 콜백 추가
-            )
+            VerificationScreen()
         }
     }
 }

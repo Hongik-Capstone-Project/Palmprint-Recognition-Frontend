@@ -5,6 +5,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.palmprint_recognition.ui.auth.AuthViewModel
@@ -15,30 +16,21 @@ import com.example.palmprint_recognition.ui.common.layout.Footer
 import com.example.palmprint_recognition.ui.common.layout.RootLayout
 import com.example.palmprint_recognition.ui.common.logo.Logo
 import com.example.palmprint_recognition.ui.core.state.UiState
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.palmprint_recognition.ui.theme.PalmprintRecognitionTheme
+import androidx.compose.material3.Text
 
-/**
- * 로그인 Screen
- *
- * - 로그인 성공 후 navigate는 하지 않습니다.
- *   (AuthViewModel.authState가 갱신되면 AppNavHost가 자동 분기)
- */
 @Composable
 fun LoginScreen(
     onSignUpClick: () -> Unit,
-    viewModel: LoginViewModel = hiltViewModel(),
-    authViewModel: AuthViewModel = hiltViewModel()
+    authViewModel: AuthViewModel,                 // ✅ AppNavHost에서 내려받음
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
     val form by viewModel.form.collectAsStateWithLifecycle()
     val uiState by viewModel.loginState.collectAsStateWithLifecycle()
 
     LaunchedEffect(uiState) {
         if (uiState is UiState.Success) {
-            // 전역 authState 갱신 → AppNavHost 자동 분기
-            authViewModel.refreshAuthState()
-
-            // 로그인 화면 state 초기화(선택)
+            authViewModel.refreshAuthState()      // ✅ “같은 인스턴스” 갱신
             viewModel.resetLoginState()
         }
     }
@@ -49,7 +41,7 @@ fun LoginScreen(
         password = form.password,
         onEmailChange = viewModel::onEmailChange,
         onPasswordChange = viewModel::onPasswordChange,
-        onLoginClick = viewModel::login,
+        onLoginClick = { viewModel.login() },
         onSignUpClick = onSignUpClick
     )
 }
@@ -101,7 +93,7 @@ private fun LoginContent(
 
                 if (!errorMessage.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(12.dp))
-                    androidx.compose.material3.Text(text = errorMessage)
+                    Text(text = errorMessage)
                 }
             }
         },
@@ -126,9 +118,7 @@ private fun LoginFieldSection(
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         LabeledField(
             label = "이메일",
             value = email,
@@ -144,7 +134,9 @@ private fun LoginFieldSection(
     }
 }
 
-
+/**
+ * ✅ Preview는 hiltViewModel()을 못 쓰므로, LoginContent만 Preview하는 방식 유지
+ */
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun PreviewLoginContent_Idle() {

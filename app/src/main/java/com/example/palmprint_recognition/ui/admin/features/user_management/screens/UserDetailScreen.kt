@@ -30,11 +30,6 @@ import com.example.palmprint_recognition.ui.core.state.UiState
 
 /**
  * 유저 상세 Screen
- *
- * @param userId 조회할 유저 ID
- * @param navController 뒤로가기 처리용 NavController
- * @param onDeleteClick 삭제 버튼 클릭 이벤트
- * @param viewModel UserDetailViewModel
  */
 @Composable
 fun UserDetailScreen(
@@ -43,118 +38,129 @@ fun UserDetailScreen(
     onDeleteClick: () -> Unit,
     viewModel: UserDetailViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(userId) {
         viewModel.loadUser(userId)
     }
 
-    when (val ui = state) {
-        UiState.Idle -> {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("사용자 정보를 준비 중...")
-            }
-        }
-
-        UiState.Loading -> {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        }
-
-        is UiState.Error -> {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("오류 발생: ${ui.message}")
-            }
-        }
-
-        is UiState.Success -> {
-            UserDetailContent(
-                user = ui.data,
-                onDeleteClick = onDeleteClick
-            )
-        }
-    }
-
-    BackHandler {
+    val onBackToList: () -> Unit = {
         navController.navigate(AdminRoutes.USER_LIST) {
             popUpTo(AdminRoutes.USER_LIST) { inclusive = true }
         }
     }
+
+    BackHandler { onBackToList() }
+
+    UserDetailContent(
+        uiState = uiState,
+        onRetry = { viewModel.loadUser(userId) },
+        onDeleteClick = onDeleteClick,
+        onBackToList = onBackToList
+    )
 }
 
 /**
- * 유저 상세 UI
- *
- * @param user 유저 상세 정보
- * @param onDeleteClick 삭제 버튼 클릭 이벤트
+ * UI Only (Preview 가능)
  */
 @Composable
 private fun UserDetailContent(
-    user: AdminUserDetail,
-    onDeleteClick: () -> Unit
+    uiState: UiState<AdminUserDetail>,
+    onRetry: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onBackToList: () -> Unit
 ) {
     RootLayout(
         headerWeight = 2f,
         bodyWeight = 6.5f,
         footerWeight = 1.5f,
         sectionGapWeight = 0.4f,
-        header = {
-            HeaderContainer()
-        },
+
+        header = { HeaderContainer() },
+
         body = {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp)
-            ) {
-                UserInfoFieldSection(
-                    user = user,
-                    modifier = Modifier.fillMaxWidth()
-                )
+            when (uiState) {
+                UiState.Idle -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("사용자 정보를 준비 중...")
+                    }
+                }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                UiState.Loading -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
 
-                InstitutionListTableSection(
-                    institutions = user.userInstitutions,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f) // 남은 영역 전부
-                )
+                is UiState.Error -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 20.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(text = uiState.message ?: "오류가 발생했습니다.")
+                        Spacer(modifier = Modifier.height(12.dp))
+                        SingleCenterButton(text = "다시 시도", onClick = onRetry)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        SingleCenterButton(text = "목록으로", onClick = onBackToList)
+                    }
+                }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                is UiState.Success -> {
+                    val user = uiState.data
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 20.dp)
+                    ) {
+                        UserInfoFieldSection(user = user)
 
-                AdminAccountCheckSection(
-                    isAdmin = false, // TODO(): api 수정되면 isAdmin으로 수정
-                    modifier = Modifier.fillMaxWidth()
-                )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        InstitutionListTableSection(
+                            institutions = user.userInstitutions,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        AdminAccountCheckSection(
+                            isAdmin = false, // TODO: 상세 API에 is_admin 내려오면 연결
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
             }
         },
+
         footer = {
-            Footer {
-                SingleCenterButton(
-                    text = "삭제",
-                    onClick = onDeleteClick
-                )
+            // ✅ 성공 상태일 때만 삭제 버튼 노출 (그 외에는 비워둠)
+            if (uiState is UiState.Success) {
+                Footer {
+                    SingleCenterButton(
+                        text = "삭제",
+                        onClick = onDeleteClick
+                    )
+                }
+            } else {
+                Footer { /* empty */ }
             }
         }
     )
 }
 
 /**
- * 유저 정보 필드 Section
- * - LabeledField를 읽기 전용으로 사용한다.
- *
- * @param user 유저 상세 정보
- * @param modifier 외부 레이아웃 제어용 Modifier
+ * 유저 정보 필드 Section (읽기 전용)
  */
 @Composable
 private fun UserInfoFieldSection(
-    user: AdminUserDetail,
-    modifier: Modifier = Modifier
+    user: AdminUserDetail
 ) {
     Column(
-        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(text = "유저 정보")
@@ -187,26 +193,15 @@ private fun UserInfoFieldSection(
 
 /**
  * 인증 기관 목록 테이블 Section (읽기 전용)
- * - ViewModel이 기관 리스트 전체를 보관한다.
- * - Screen에서 테이블 높이를 지정하고 스크롤로 확인한다.
- *
- * @param institutions 기관 목록
- * @param modifier 외부 레이아웃 제어용 Modifier
  */
 @Composable
 private fun InstitutionListTableSection(
     institutions: List<UserInstitutionSimple>,
     modifier: Modifier = Modifier
 ) {
-    val columns = listOf(
-        TableColumn(title = "기관명", weight = 1f)
-    )
+    val columns = listOf(TableColumn(title = "기관명", weight = 1f))
+    val rows = institutions.map { listOf(it.institutionName) }
 
-    val rows = institutions.map { inst ->
-        listOf(inst.institutionName)
-    }
-
-    // weight로 받은 높이를 그대로 사용하도록
     Box(modifier = modifier) {
         TableView(
             title = "인증 기관 목록",
@@ -215,17 +210,14 @@ private fun InstitutionListTableSection(
             hasMoreData = false,
             isLoading = false,
             modifier = Modifier.fillMaxSize(),
-            onRowClick = {},     // 읽기 전용
-            onLoadMore = {}      // 읽기 전용
+            onRowClick = {},
+            onLoadMore = {}
         )
     }
 }
 
 /**
- * 관리자 계정 체크 Section (읽기 전용)
- *
- * @param isAdmin 관리자 계정 여부
- * @param modifier 외부 레이아웃 제어용 Modifier
+ * 관리자 계정 체크 (읽기 전용)
  */
 @Composable
 private fun AdminAccountCheckSection(
@@ -243,21 +235,22 @@ private fun AdminAccountCheckSection(
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-private fun PreviewUserDetailContent() {
+private fun PreviewUserDetailContent_Success() {
     UserDetailContent(
-        user = AdminUserDetail(
-            id = 1,
-            name = "Alice",
-            email = "alice@example.com",
-            isPalmRegistered = true,
-            userInstitutions = listOf(
-                UserInstitutionSimple("inst_112", "Hongik University"),
-                UserInstitutionSimple("inst_113", "LG")
+        uiState = UiState.Success(
+            AdminUserDetail(
+                id = 1,
+                name = "Alice",
+                email = "alice@example.com",
+                isPalmRegistered = true,
+                userInstitutions = listOf(
+                    UserInstitutionSimple("inst_112", "Hongik University"),
+                    UserInstitutionSimple("inst_113", "LG")
+                )
             )
         ),
-        onDeleteClick = {}
+        onRetry = {},
+        onDeleteClick = {},
+        onBackToList = {}
     )
 }
-
-
-

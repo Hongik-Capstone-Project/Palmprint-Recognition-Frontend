@@ -1,4 +1,4 @@
-package com.example.palmprint_recognition.ui.admin.features.user_management.screens
+package com.example.palmprint_recognition.ui.auth.features.logout.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
@@ -14,37 +14,38 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.palmprint_recognition.ui.admin.features.user_management.viewmodel.DeleteUserViewModel
+import com.example.palmprint_recognition.ui.auth.AuthViewModel
+import com.example.palmprint_recognition.ui.auth.features.logout.viewmodel.LogoutViewModel
 import com.example.palmprint_recognition.ui.common.button.VerticalTwoButtons
 import com.example.palmprint_recognition.ui.common.layout.Footer
 import com.example.palmprint_recognition.ui.common.layout.RootLayout
 import com.example.palmprint_recognition.ui.core.state.UiState
 
 /**
- * 유저 삭제 Screen
+ * 로그아웃 확인 Screen
  *
- * - "예" → deleteUser() 호출 → 성공 시 USER_LIST로 이동(onConfirmDelete)
- * - "아니오" → USER_DETAIL로 복귀(onCancel)
+ * - "예" → 로컬 로그아웃 → 성공 시 AuthViewModel.refreshAuthState() → AppNavHost가 Login으로 분기
+ * - "아니오" → 이전 화면으로 복귀(onCancel)
  */
 @Composable
-fun DeleteUserScreen(
-    userId: Int,
-    onConfirmDelete: () -> Unit,
+fun LogoutScreen(
     onCancel: () -> Unit,
-    viewModel: DeleteUserViewModel = hiltViewModel()
+    authViewModel: AuthViewModel,
+    viewModel: LogoutViewModel = hiltViewModel()
 ) {
-    val deleteState by viewModel.deleteState.collectAsStateWithLifecycle()
+    val logoutState by viewModel.logoutState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(deleteState) {
-        if (deleteState is UiState.Success) {
-            onConfirmDelete()
+    LaunchedEffect(logoutState) {
+        if (logoutState is UiState.Success) {
+            // ✅ 전역 상태 갱신(필수) → AppNavHost가 즉시 Auth 그래프로 교체
+            authViewModel.refreshAuthState()
             viewModel.clearState()
         }
     }
 
-    DeleteUserContent(
-        uiState = deleteState,
-        onYesClick = { viewModel.deleteUser(userId) },
+    LogoutContent(
+        uiState = logoutState,
+        onYesClick = { viewModel.logoutLocal() },
         onNoClick = onCancel
     )
 }
@@ -53,7 +54,7 @@ fun DeleteUserScreen(
  * UI Only (Preview 가능)
  */
 @Composable
-internal fun DeleteUserContent(
+internal fun LogoutContent(
     uiState: UiState<Unit>,
     onYesClick: () -> Unit,
     onNoClick: () -> Unit,
@@ -65,10 +66,12 @@ internal fun DeleteUserContent(
         footerWeight = 6f,
         sectionGapWeight = 0.4f,
 
-        header = { /* empty */ },
+        header = {
+            // 헤더 없음 (구조 유지용)
+        },
 
         body = {
-            DeleteUserMessageSection(
+            LogoutMessageSection(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
@@ -77,7 +80,7 @@ internal fun DeleteUserContent(
 
         footer = {
             Footer {
-                DeleteUserActionSection(
+                LogoutActionSection(
                     uiState = uiState,
                     onYesClick = onYesClick,
                     onNoClick = onNoClick,
@@ -87,13 +90,12 @@ internal fun DeleteUserContent(
                         .padding(top = 24.dp)
                 )
             }
-        },
-        modifier = modifier
+        }
     )
 }
 
 @Composable
-private fun DeleteUserMessageSection(
+private fun LogoutMessageSection(
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -101,7 +103,7 @@ private fun DeleteUserMessageSection(
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "해당 유저 정보를\n삭제하시겠습니까?",
+            text = "정말 로그아웃\n하시겠습니까?",
             textAlign = TextAlign.Center,
             fontSize = 26.sp
         )
@@ -109,15 +111,12 @@ private fun DeleteUserMessageSection(
 }
 
 @Composable
-private fun DeleteUserActionSection(
+private fun LogoutActionSection(
     uiState: UiState<Unit>,
     onYesClick: () -> Unit,
     onNoClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isLoading = uiState is UiState.Loading
-    val errorMessage = (uiState as? UiState.Error)?.message
-
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -128,8 +127,8 @@ private fun DeleteUserActionSection(
                 VerticalTwoButtons(
                     firstText = "예",
                     secondText = "아니오",
-                    onFirstClick = { if (!isLoading) onYesClick() },
-                    onSecondClick = { if (!isLoading) onNoClick() }
+                    onFirstClick = onYesClick,
+                    onSecondClick = onNoClick
                 )
             }
 
@@ -138,17 +137,17 @@ private fun DeleteUserActionSection(
             }
 
             is UiState.Error -> {
-                Text(text = errorMessage ?: "삭제 중 오류가 발생했습니다.")
+                Text(text = uiState.message ?: "로그아웃 중 오류가 발생했습니다.")
                 VerticalTwoButtons(
                     firstText = "다시 시도",
                     secondText = "아니오",
-                    onFirstClick = { if (!isLoading) onYesClick() },
-                    onSecondClick = { if (!isLoading) onNoClick() }
+                    onFirstClick = onYesClick,
+                    onSecondClick = onNoClick
                 )
             }
 
             is UiState.Success -> {
-                // 화면 전환은 Screen의 LaunchedEffect에서 처리
+                // 화면 전환/분기는 Screen의 LaunchedEffect에서 처리
             }
         }
     }
@@ -156,29 +155,9 @@ private fun DeleteUserActionSection(
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-private fun PreviewDeleteUserContent_Idle() {
-    DeleteUserContent(
+private fun PreviewLogoutContent() {
+    LogoutContent(
         uiState = UiState.Idle,
-        onYesClick = {},
-        onNoClick = {}
-    )
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun PreviewDeleteUserContent_Error() {
-    DeleteUserContent(
-        uiState = UiState.Error("User with id 1 not found."),
-        onYesClick = {},
-        onNoClick = {}
-    )
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun PreviewDeleteUserContent_Loading() {
-    DeleteUserContent(
-        uiState = UiState.Loading,
         onYesClick = {},
         onNoClick = {}
     )

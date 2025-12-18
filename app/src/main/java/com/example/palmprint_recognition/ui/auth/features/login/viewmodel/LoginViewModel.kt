@@ -48,10 +48,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _loginState.value = UiState.Loading
             try {
-                // Repository에서 토큰 저장 + JWT 디코딩 + profile 저장까지 끝남(4단계)
-                authRepository.login(email, password)
-
-                // 여기서는 "성공"만 알림
+                authRepository.login(email, password) // 토큰 저장 + jwt decode + profile 저장
                 _loginState.value = UiState.Success(Unit)
             } catch (e: ApiException) {
                 _loginState.value = UiState.Error(e.errorResponse.message)

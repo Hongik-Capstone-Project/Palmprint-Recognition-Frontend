@@ -34,15 +34,14 @@ class AuthViewModel @Inject constructor(
             val profile = prefs.getProfile()
             _authState.value = AuthState(
                 isInitialized = true,
-                isLoggedIn = prefs.isLoggedIn(), // (권장) 토큰 존재 + 만료 전
-                role = profile?.role,            // Repository에서 "ADMIN"/"USER"로 저장됨
+                isLoggedIn = prefs.isLoggedIn(),
+                role = profile?.role,
                 name = profile?.name,
                 email = profile?.email
             )
         }
     }
 
-    // (선택) 화면에서 로그아웃 버튼 붙일 때 유용
     fun logoutLocal() {
         viewModelScope.launch {
             prefs.clearAllAuth()

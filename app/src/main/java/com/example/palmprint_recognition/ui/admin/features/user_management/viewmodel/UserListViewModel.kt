@@ -32,35 +32,52 @@ class UserListViewModel @Inject constructor(
     }
 
     /**
+     * 첫 로드/새로고침
+     */
+    fun refresh() {
+        currentPage = 1
+        _uiState.value = PaginationUiState(
+            items = emptyList(),
+            isLoadingInitial = true,
+            isLoadingMore = false,
+            hasMore = true,
+            errorMessage = null
+        )
+        loadNextPage()
+    }
+
+    /**
      * 다음 페이지 로딩 (무한스크롤)
      */
     fun loadNextPage() {
         val state = _uiState.value
 
-        // 첫 페이지 로딩 중이거나, 추가 로딩 중이면 중복 요청 방지
+        // 로딩 중이면 중복 요청 방지
         if (state.isLoadingInitial || state.isLoadingMore) return
 
         // 더 이상 데이터가 없으면 요청하지 않음
         if (!state.hasMore) return
 
+        val isFirstPage = currentPage == 1
+
+        _uiState.value = if (isFirstPage) {
+            state.copy(isLoadingInitial = true, errorMessage = null)
+        } else {
+            state.copy(isLoadingMore = true, errorMessage = null)
+        }
+
         viewModelScope.launch {
-            val isFirstPage = currentPage == 1
-
-            _uiState.value = if (isFirstPage) {
-                state.copy(isLoadingInitial = true, errorMessage = null)
-            } else {
-                state.copy(isLoadingMore = true, errorMessage = null)
-            }
-
             runCatching {
                 adminRepository.getUserList(page = currentPage, size = pageSize)
             }.onSuccess { response ->
                 val newItems = response.items
-                val updatedList = if (isFirstPage) newItems else _uiState.value.items + newItems
+                val merged = if (isFirstPage) newItems else state.items + newItems
+
+                // pages 기준: currentPage < pages 이면 다음 페이지 존재
                 val hasMore = currentPage < response.pages
 
                 _uiState.value = _uiState.value.copy(
-                    items = updatedList,
+                    items = merged,
                     isLoadingInitial = false,
                     isLoadingMore = false,
                     hasMore = hasMore,
@@ -69,22 +86,15 @@ class UserListViewModel @Inject constructor(
 
                 if (hasMore) currentPage++
             }.onFailure { e ->
+                // 에러라고 해서 hasMore=false로 막아버리면 "재시도"가 불가능해짐
                 _uiState.value = _uiState.value.copy(
                     isLoadingInitial = false,
                     isLoadingMore = false,
                     errorMessage = e.message ?: "오류 발생",
-                    hasMore = false
+                    // hasMore는 그대로 유지 (재시도 가능)
+                    hasMore = state.hasMore
                 )
             }
         }
-    }
-
-    /**
-     * 목록 새로고침
-     */
-    fun refresh() {
-        currentPage = 1
-        _uiState.value = PaginationUiState(isLoadingInitial = false, hasMore = true)
-        loadNextPage()
     }
 }

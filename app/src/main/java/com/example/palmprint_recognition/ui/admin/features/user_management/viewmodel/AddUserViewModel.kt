@@ -3,6 +3,7 @@ package com.example.palmprint_recognition.ui.admin.features.user_management.view
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.palmprint_recognition.data.model.AddUserResponse
+import com.example.palmprint_recognition.data.model.ApiException
 import com.example.palmprint_recognition.data.repository.AdminRepository
 import com.example.palmprint_recognition.ui.core.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,34 +17,38 @@ class AddUserViewModel @Inject constructor(
     private val adminRepository: AdminRepository
 ) : ViewModel() {
 
-    private val _addUserState = MutableStateFlow<UiState<AddUserResponse>>(UiState.Idle)
-    val addUserState = _addUserState.asStateFlow()
+    private val _uiState = MutableStateFlow<UiState<AddUserResponse>>(UiState.Idle)
+    val uiState = _uiState.asStateFlow()
 
     fun addUser(
         name: String,
         email: String,
         password: String,
-        isAdmin: Boolean = false
+        isAdmin: Boolean
     ) {
-        viewModelScope.launch {
-            _addUserState.value = UiState.Loading
+        // 중복 클릭 방지
+        if (_uiState.value is UiState.Loading) return
 
-            runCatching {
-                adminRepository.addUser(
-                    name = name,
-                    email = email,
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            try {
+                val res = adminRepository.addUser(
+                    name = name.trim(),
+                    email = email.trim(),
                     password = password,
                     isAdmin = isAdmin
                 )
-            }.onSuccess { result ->
-                _addUserState.value = UiState.Success(result)
-            }.onFailure { e ->
-                _addUserState.value = UiState.Error(e.message ?: "유저 생성 중 오류가 발생했습니다.")
+                _uiState.value = UiState.Success(res)
+            } catch (e: ApiException) {
+                // 서버 에러 메시지 우선 노출 (409/400 등)
+                _uiState.value = UiState.Error(e.errorResponse.message)
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error(e.message ?: "유저 생성 중 오류가 발생했습니다.")
             }
         }
     }
 
     fun clearState() {
-        _addUserState.value = UiState.Idle
+        _uiState.value = UiState.Idle
     }
 }

@@ -91,14 +91,14 @@ class AuthRepositoryImpl @Inject constructor(
     // Logout
     // ----------------------------
     override suspend fun logout(): LogoutResponse {
-        return try {
-            val res = authApi.logout()
-            prefs.clearAllAuth()
-            res
-        } catch (e: HttpException) {
-            throw parseError(e)
-        }
+        // 현재 설계: 서버 로그아웃 미사용 → 로컬에서만 정리
+        prefs.clearAllAuth()
+        return LogoutResponse(
+            status = "ok",
+            message = "Logged out locally"
+        )
     }
+
 
     override suspend fun signout() {
         try {

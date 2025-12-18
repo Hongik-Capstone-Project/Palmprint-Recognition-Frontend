@@ -30,6 +30,7 @@ data class AdminUserDetail(
     val id: Int,
     val name: String,
     val email: String,
+    @SerializedName(value = "isPalmRegistered", alternate = ["is_palm_registered"])
     val isPalmRegistered: Boolean,
     @SerializedName("user_institutions")
     val userInstitutions: List<UserInstitutionSimple>
@@ -63,6 +64,7 @@ data class AddUserRequest(
  */
 data class AddUserResponse(
     val id: Int,
+    val name: String?,
     val message: String
 )
 
