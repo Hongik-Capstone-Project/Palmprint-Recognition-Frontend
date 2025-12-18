@@ -18,7 +18,7 @@ import com.example.palmprint_recognition.data.model.VerificationRecord
 import com.example.palmprint_recognition.data.model.VerificationSummaryResponse
 import com.example.palmprint_recognition.data.model.VerificationUser
 import com.example.palmprint_recognition.ui.admin.features.verification.viewmodel.VerificationViewModel
-import com.example.palmprint_recognition.ui.common.layout.Header
+import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
 import com.example.palmprint_recognition.ui.common.layout.RootLayout
 import com.example.palmprint_recognition.ui.common.table.TableColumn
 import com.example.palmprint_recognition.ui.common.table.TableView
@@ -52,10 +52,7 @@ private fun VerificationContent(
         sectionGapWeight = 0.4f,
 
         header = {
-            Header(
-                userName = "Alice",
-                userEmail = "alice@example.com"
-            )
+            HeaderContainer()
         },
 
         body = {

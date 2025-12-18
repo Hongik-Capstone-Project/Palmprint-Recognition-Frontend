@@ -11,7 +11,7 @@ import com.example.palmprint_recognition.ui.admin.features.dashboard.components.
 import com.example.palmprint_recognition.ui.admin.features.dashboard.components.DashboardManagementSection
 import com.example.palmprint_recognition.ui.common.button.VerticalTwoButtons
 import com.example.palmprint_recognition.ui.common.layout.Footer
-import com.example.palmprint_recognition.ui.common.layout.Header
+import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
 import com.example.palmprint_recognition.ui.common.layout.RootLayout
 
 @Composable
@@ -29,10 +29,7 @@ fun AdminDashboardScreen(
         sectionGapWeight = 0.4f,
 
         header = {
-            Header(
-                userName = "Alice",
-                userEmail = "alice@example.com"
-            )
+            HeaderContainer()
         },
 
         body = {

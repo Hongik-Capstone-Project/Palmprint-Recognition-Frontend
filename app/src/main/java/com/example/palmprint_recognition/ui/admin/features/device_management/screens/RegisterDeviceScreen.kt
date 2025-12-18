@@ -15,7 +15,7 @@ import com.example.palmprint_recognition.ui.common.button.SingleCenterButton
 import com.example.palmprint_recognition.ui.common.checkbox.CheckBox
 import com.example.palmprint_recognition.ui.common.field.LabeledField
 import com.example.palmprint_recognition.ui.common.layout.Footer
-import com.example.palmprint_recognition.ui.common.layout.Header
+import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
 import com.example.palmprint_recognition.ui.common.layout.RootLayout
 import com.example.palmprint_recognition.ui.core.state.UiState
 
@@ -67,7 +67,7 @@ private fun RegisterDeviceContent(
         footerWeight = 1f,
         sectionGapWeight = 0.4f,
         header = {
-            Header(userName = "Alice", userEmail = "Alice@example.com")
+            HeaderContainer()
         },
         body = {
             Column(

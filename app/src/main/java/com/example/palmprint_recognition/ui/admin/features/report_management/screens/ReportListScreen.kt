@@ -10,7 +10,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.palmprint_recognition.data.model.ReportInfo
 import com.example.palmprint_recognition.ui.admin.features.report_management.viewmodel.ReportListViewModel
-import com.example.palmprint_recognition.ui.common.layout.Header
+import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
 import com.example.palmprint_recognition.ui.common.layout.RootLayout
 import com.example.palmprint_recognition.ui.common.table.TableColumn
 import com.example.palmprint_recognition.ui.common.table.TableView
@@ -54,10 +54,7 @@ private fun ReportListContent(
         sectionGapWeight = 0.4f,
 
         header = {
-            Header(
-                userName = "OO",
-                userEmail = "email"
-            )
+            HeaderContainer()
         },
 
         body = {
