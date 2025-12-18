@@ -1,6 +1,11 @@
 package com.example.palmprint_recognition.ui.admin.features.device_management.screens
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,8 +28,8 @@ import com.example.palmprint_recognition.ui.core.state.UiState
 /**
  * 디바이스 삭제 Screen
  *
- * - "예" → deleteDevice() 호출 → 성공 시 DEVICE_LIST로 이동(onConfirmDelete)
- * - "아니오" → DEVICE_DETAIL로 복귀(onCancel)
+ * - "예" → deleteDevice(deviceId) 호출 → 성공 시 onConfirmDelete()
+ * - "아니오" → onCancel()
  */
 @Composable
 fun DeleteDeviceScreen(
@@ -33,17 +38,18 @@ fun DeleteDeviceScreen(
     onCancel: () -> Unit,
     viewModel: DeleteDeviceViewModel = hiltViewModel()
 ) {
-    val deleteState by viewModel.deleteState.collectAsStateWithLifecycle()
+    val uiState by viewModel.deleteState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(deleteState) {
-        if (deleteState is UiState.Success) {
+    // ✅ 성공 시 1회만 처리 + 상태 초기화
+    LaunchedEffect(uiState) {
+        if (uiState is UiState.Success) {
             onConfirmDelete()
             viewModel.clearState()
         }
     }
 
     DeleteDeviceContent(
-        uiState = deleteState,
+        uiState = uiState,
         onYesClick = { viewModel.deleteDevice(deviceId) },
         onNoClick = onCancel
     )
@@ -54,20 +60,21 @@ fun DeleteDeviceScreen(
  */
 @Composable
 internal fun DeleteDeviceContent(
-    uiState: UiState<Unit>,
+    uiState: UiState<Unit> = UiState.Idle,
     onYesClick: () -> Unit,
     onNoClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isLoading = uiState is UiState.Loading
+    val errorMessage = (uiState as? UiState.Error)?.message
+
     RootLayout(
         headerWeight = 2f,
         bodyWeight = 4f,
         footerWeight = 6f,
         sectionGapWeight = 0.4f,
 
-        header = {
-            // 헤더 없음 (구조 유지용)
-        },
+        header = { /* 헤더 없음 */ },
 
         body = {
             DeleteDeviceMessageSection(
@@ -80,10 +87,11 @@ internal fun DeleteDeviceContent(
         footer = {
             Footer {
                 DeleteDeviceActionSection(
-                    uiState = uiState,
+                    isLoading = isLoading,
+                    errorMessage = errorMessage,
                     onYesClick = onYesClick,
                     onNoClick = onNoClick,
-                    modifier = Modifier
+                    modifier = modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .padding(top = 24.dp)
@@ -111,7 +119,8 @@ private fun DeleteDeviceMessageSection(
 
 @Composable
 private fun DeleteDeviceActionSection(
-    uiState: UiState<Unit>,
+    isLoading: Boolean,
+    errorMessage: String?,
     onYesClick: () -> Unit,
     onNoClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -121,32 +130,22 @@ private fun DeleteDeviceActionSection(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        when (uiState) {
-            UiState.Idle -> {
-                VerticalTwoButtons(
-                    firstText = "예",
-                    secondText = "아니오",
-                    onFirstClick = onYesClick,
-                    onSecondClick = onNoClick
-                )
-            }
+        if (!errorMessage.isNullOrBlank()) {
+            Text(text = errorMessage)
+        }
 
-            UiState.Loading -> {
+        when {
+            isLoading -> {
                 CircularProgressIndicator()
             }
 
-            is UiState.Error -> {
-                Text(text = uiState.message ?: "디바이스 삭제 중 오류가 발생했습니다.")
+            else -> {
                 VerticalTwoButtons(
-                    firstText = "다시 시도",
+                    firstText = if (errorMessage.isNullOrBlank()) "예" else "다시 시도",
                     secondText = "아니오",
                     onFirstClick = onYesClick,
                     onSecondClick = onNoClick
                 )
-            }
-
-            is UiState.Success -> {
-                // 화면 전환은 Screen의 LaunchedEffect에서 처리
             }
         }
     }

@@ -26,14 +26,26 @@ class DeviceListViewModel @Inject constructor(
         refresh()
     }
 
+    fun refresh() {
+        currentPage = 1
+        _uiState.value = PaginationUiState(
+            items = emptyList(),
+            isLoadingInitial = false,
+            isLoadingMore = false,
+            errorMessage = null,
+            hasMore = true
+        )
+        loadNextPage()
+    }
+
     fun loadNextPage() {
         val state = _uiState.value
         if (state.isLoadingInitial || state.isLoadingMore) return
         if (!state.hasMore) return
 
-        viewModelScope.launch {
-            val isFirstPage = currentPage == 1
+        val isFirstPage = currentPage == 1
 
+        viewModelScope.launch {
             _uiState.value = if (isFirstPage) {
                 state.copy(isLoadingInitial = true, errorMessage = null)
             } else {
@@ -44,11 +56,14 @@ class DeviceListViewModel @Inject constructor(
                 adminRepository.getDeviceList(page = currentPage, size = pageSize)
             }.onSuccess { response ->
                 val newItems = response.items
-                val updatedList = if (isFirstPage) newItems else _uiState.value.items + newItems
+                val updatedItems =
+                    if (isFirstPage) newItems
+                    else _uiState.value.items + newItems
+
                 val hasMore = currentPage < response.pages
 
                 _uiState.value = _uiState.value.copy(
-                    items = updatedList,
+                    items = updatedItems,
                     isLoadingInitial = false,
                     isLoadingMore = false,
                     hasMore = hasMore,
@@ -60,22 +75,10 @@ class DeviceListViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     isLoadingInitial = false,
                     isLoadingMore = false,
-                    errorMessage = e.message ?: "오류 발생",
-                    hasMore = false
+                    errorMessage = e.message ?: "디바이스 목록 조회 중 오류가 발생했습니다."
+                    // ✅ hasMore는 유지 (네트워크 오류 후 스크롤 재시도 가능)
                 )
             }
         }
-    }
-
-    fun refresh() {
-        currentPage = 1
-        _uiState.value = PaginationUiState(
-            items = emptyList(),
-            isLoadingInitial = false,
-            isLoadingMore = false,
-            errorMessage = null,
-            hasMore = true
-        )
-        loadNextPage()
     }
 }

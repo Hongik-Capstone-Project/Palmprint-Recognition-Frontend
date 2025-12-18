@@ -19,16 +19,19 @@ class DeleteDeviceViewModel @Inject constructor(
     val deleteState = _deleteState.asStateFlow()
 
     fun deleteDevice(deviceId: Int) {
+        // 중복 삭제 방지
+        if (_deleteState.value is UiState.Loading) return
+
         viewModelScope.launch {
             _deleteState.value = UiState.Loading
 
             runCatching {
-                adminRepository.deleteDevice(deviceId) // 핵심 수정
+                adminRepository.deleteDevice(deviceId)
             }.onSuccess {
                 _deleteState.value = UiState.Success(Unit)
             }.onFailure { e ->
                 _deleteState.value =
-                    UiState.Error(e.message ?: "디바이스 삭제 중 오류가 발생했습니다.") // ✅ 메시지 수정
+                    UiState.Error(e.message ?: "디바이스 삭제 중 오류가 발생했습니다.")
             }
         }
     }
@@ -37,4 +40,3 @@ class DeleteDeviceViewModel @Inject constructor(
         _deleteState.value = UiState.Idle
     }
 }
-

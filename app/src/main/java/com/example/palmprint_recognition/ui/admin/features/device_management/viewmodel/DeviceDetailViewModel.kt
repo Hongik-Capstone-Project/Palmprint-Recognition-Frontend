@@ -20,6 +20,9 @@ class DeviceDetailViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     fun loadDevice(deviceId: Int) {
+        // 연속 호출 방지(특히 recomposition/빠른 탭)
+        if (_state.value is UiState.Loading) return
+
         viewModelScope.launch {
             _state.value = UiState.Loading
 
@@ -28,7 +31,7 @@ class DeviceDetailViewModel @Inject constructor(
             }.onSuccess { result ->
                 _state.value = UiState.Success(result)
             }.onFailure { e ->
-                _state.value = UiState.Error(e.message ?: "오류가 발생했습니다.")
+                _state.value = UiState.Error(e.message ?: "디바이스 정보를 불러오는 중 오류가 발생했습니다.")
             }
         }
     }
