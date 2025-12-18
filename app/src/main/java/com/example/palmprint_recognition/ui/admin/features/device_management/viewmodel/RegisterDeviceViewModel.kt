@@ -19,43 +19,7 @@ class RegisterDeviceViewModel @Inject constructor(
     private val _registerDeviceState = MutableStateFlow<UiState<DeviceInfo>>(UiState.Idle)
     val registerDeviceState = _registerDeviceState.asStateFlow()
 
-    /**
-     * ✅ UI에서 받은 raw input을 여기서 검증 + API 호출
-     */
-    fun submit(
-        idText: String,
-        institutionName: String,
-        location: String
-    ) {
-        // ✅ 중복 요청 방지
-        if (_registerDeviceState.value is UiState.Loading) return
-
-        val id = idText.trim().toIntOrNull()
-        if (id == null) {
-            _registerDeviceState.value = UiState.Error("device_id는 숫자만 입력해주세요.")
-            return
-        }
-        if (institutionName.isBlank()) {
-            _registerDeviceState.value = UiState.Error("기관명을 입력해주세요.")
-            return
-        }
-        if (location.isBlank()) {
-            _registerDeviceState.value = UiState.Error("위치를 입력해주세요.")
-            return
-        }
-
-        registerDevice(
-            id = id,
-            institutionName = institutionName.trim(),
-            location = location.trim()
-        )
-    }
-
-    private fun registerDevice(
-        id: Int,
-        institutionName: String,
-        location: String
-    ) {
+    fun registerDevice(id: Int, institutionName: String, location: String) {
         viewModelScope.launch {
             _registerDeviceState.value = UiState.Loading
 

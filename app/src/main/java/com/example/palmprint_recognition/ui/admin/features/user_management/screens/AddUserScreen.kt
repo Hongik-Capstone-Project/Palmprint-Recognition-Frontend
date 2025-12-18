@@ -15,7 +15,7 @@ import com.example.palmprint_recognition.ui.common.button.SingleCenterButton
 import com.example.palmprint_recognition.ui.common.checkbox.CheckBox
 import com.example.palmprint_recognition.ui.common.field.LabeledField
 import com.example.palmprint_recognition.ui.common.layout.Footer
-import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
+import com.example.palmprint_recognition.ui.common.layout.Header
 import com.example.palmprint_recognition.ui.common.layout.RootLayout
 import com.example.palmprint_recognition.ui.core.state.UiState
 
@@ -23,17 +23,18 @@ import com.example.palmprint_recognition.ui.core.state.UiState
  * 유저 추가 Screen
  *
  * @param onAddSuccess 유저 생성 성공 시 newUserId 전달
+ * @param viewModel AddUserViewModel
  */
 @Composable
 fun AddUserScreen(
     onAddSuccess: (Int) -> Unit,
     viewModel: AddUserViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.addUserState.collectAsStateWithLifecycle()
 
     LaunchedEffect(uiState) {
-        val success = uiState as? UiState.Success
-        val newUserId = (success?.data)?.id
+        val success = uiState as? UiState.Success<*>
+        val newUserId = (success?.data as? com.example.palmprint_recognition.data.model.AddUserResponse)?.id
         if (newUserId != null) {
             onAddSuccess(newUserId)
             viewModel.clearState()
@@ -42,7 +43,7 @@ fun AddUserScreen(
 
     AddUserContent(
         uiState = uiState,
-        onSubmit = { name, email, password, isAdmin ->
+        onAddUser = { name, email, password, isAdmin ->
             viewModel.addUser(
                 name = name,
                 email = email,
@@ -55,11 +56,14 @@ fun AddUserScreen(
 
 /**
  * 유저 추가 UI
+ *
+ * @param uiState 유저 추가 API 상태
+ * @param onAddUser 유저 추가 요청 이벤트 (isAdmin 포함)
  */
 @Composable
 private fun AddUserContent(
     uiState: UiState<*> = UiState.Idle,
-    onSubmit: (String, String, String, Boolean) -> Unit
+    onAddUser: (String, String, String, Boolean) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -67,26 +71,10 @@ private fun AddUserContent(
     var confirmPassword by remember { mutableStateOf("") }
 
     var isAdminAccount by remember { mutableStateOf(false) }
-    var localError by remember { mutableStateOf<String?>(null) }
+    var localErrorMessage by remember { mutableStateOf<String?>(null) }
 
     val isLoading = uiState is UiState.Loading
-    val serverError = (uiState as? UiState.Error)?.message
-
-    fun validateAndSubmit() {
-        localError = null
-
-        val n = name.trim()
-        val e = email.trim()
-
-        when {
-            n.isBlank() -> localError = "이름을 입력해주세요."
-            e.isBlank() -> localError = "이메일을 입력해주세요."
-            password.isBlank() -> localError = "비밀번호를 입력해주세요."
-            password.length < 8 -> localError = "비밀번호는 8자 이상이어야 합니다."
-            password != confirmPassword -> localError = "비밀번호가 일치하지 않습니다."
-            else -> onSubmit(n, e, password, isAdminAccount)
-        }
-    }
+    val serverErrorMessage = (uiState as? UiState.Error)?.message
 
     RootLayout(
         headerWeight = 2f,
@@ -94,7 +82,12 @@ private fun AddUserContent(
         footerWeight = 1f,
         sectionGapWeight = 0.4f,
 
-        header = { HeaderContainer() },
+        header = {
+            Header(
+                userName = "OO",
+                userEmail = "email"
+            )
+        },
 
         body = {
             Column(
@@ -107,7 +100,6 @@ private fun AddUserContent(
                     email = email,
                     password = password,
                     confirmPassword = confirmPassword,
-                    enabled = !isLoading,
                     onNameChange = { name = it },
                     onEmailChange = { email = it },
                     onPasswordChange = { password = it },
@@ -124,13 +116,13 @@ private fun AddUserContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                if (!localError.isNullOrBlank()) {
-                    Text(text = localError!!)
+                if (localErrorMessage != null) {
+                    Text(text = localErrorMessage!!)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                if (!serverError.isNullOrBlank()) {
-                    Text(text = serverError)
+                if (serverErrorMessage != null) {
+                    Text(text = serverErrorMessage)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
@@ -148,8 +140,17 @@ private fun AddUserContent(
         footer = {
             Footer {
                 SingleCenterButton(
-                    text = if (isLoading) "추가 중..." else "추가",
-                    onClick = { if (!isLoading) validateAndSubmit() }
+                    text = "추가",
+                    onClick = {
+                        localErrorMessage = null
+
+                        if (password != confirmPassword) {
+                            localErrorMessage = "비밀번호가 일치하지 않습니다."
+                            return@SingleCenterButton
+                        }
+
+                        onAddUser(name, email, password, isAdminAccount) // ✅ isAdmin 전달
+                    }
                 )
             }
         }
@@ -165,7 +166,6 @@ private fun AddUserFieldSection(
     email: String,
     password: String,
     confirmPassword: String,
-    enabled: Boolean,
     onNameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
@@ -179,26 +179,26 @@ private fun AddUserFieldSection(
         LabeledField(
             label = "이름",
             value = name,
-            onValueChange = { if (enabled) onNameChange(it) }
+            onValueChange = onNameChange
         )
 
         LabeledField(
             label = "이메일",
             value = email,
-            onValueChange = { if (enabled) onEmailChange(it) }
+            onValueChange = onEmailChange
         )
 
         LabeledField(
             label = "비밀번호",
             value = password,
-            onValueChange = { if (enabled) onPasswordChange(it) },
+            onValueChange = onPasswordChange,
             isPassword = true
         )
 
         LabeledField(
             label = "비밀번호 확인",
             value = confirmPassword,
-            onValueChange = { if (enabled) onConfirmPasswordChange(it) },
+            onValueChange = onConfirmPasswordChange,
             isPassword = true
         )
     }
@@ -226,6 +226,6 @@ private fun AdminAccountCheckSection(
 private fun PreviewAddUserContent() {
     AddUserContent(
         uiState = UiState.Idle,
-        onSubmit = { _, _, _, _ -> }
+        onAddUser = { _, _, _, _ -> }
     )
 }

@@ -1,11 +1,8 @@
 package com.example.palmprint_recognition.ui.admin.features.device_management.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -15,12 +12,19 @@ import com.example.palmprint_recognition.data.model.DeviceInfo
 import com.example.palmprint_recognition.ui.admin.features.device_management.viewmodel.DeviceListViewModel
 import com.example.palmprint_recognition.ui.common.button.SingleCenterButton
 import com.example.palmprint_recognition.ui.common.layout.Footer
-import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
+import com.example.palmprint_recognition.ui.common.layout.Header
 import com.example.palmprint_recognition.ui.common.layout.RootLayout
 import com.example.palmprint_recognition.ui.common.table.TableColumn
 import com.example.palmprint_recognition.ui.common.table.TableView
 import com.example.palmprint_recognition.ui.core.state.PaginationUiState
 
+/**
+ * 디바이스 목록 Screen
+ *
+ * @param onDeviceClick 디바이스 클릭 시 상세 화면 이동
+ * @param onRegisterDeviceClick 디바이스 추가 버튼 클릭 이벤트
+ * @param viewModel UserListViewModel
+ */
 @Composable
 fun DeviceListScreen(
     onDeviceClick: (Int) -> Unit,
@@ -33,10 +37,20 @@ fun DeviceListScreen(
         uiState = uiState,
         onDeviceClick = onDeviceClick,
         onRegisterDeviceClick = onRegisterDeviceClick,
-        onLoadMore = viewModel::loadNextPage
+        onLoadMore = {
+            viewModel.loadNextPage()
+        }
     )
 }
 
+/**
+ * 디바이스 목록 화면 UI
+ *
+ * @param uiState 디바이스 목록 Pagination 상태
+ * @param onDeviceClick 디바이스 클릭 이벤트
+ * @param onRegisterDeviceClick 디바이스 추가 버튼 클릭 이벤트
+ * @param onLoadMore 다음 페이지 로드 이벤트
+ */
 @Composable
 private fun DeviceListContent(
     uiState: PaginationUiState<DeviceInfo>,
@@ -44,39 +58,33 @@ private fun DeviceListContent(
     onRegisterDeviceClick: () -> Unit,
     onLoadMore: () -> Unit
 ) {
-    val errorMessage = uiState.errorMessage
-
     RootLayout(
+
+        // 화면 비율 설정
         headerWeight = 2f,
         bodyWeight = 6f,
         footerWeight = 2f,
         sectionGapWeight = 0.4f,
 
-        header = { HeaderContainer() },
+        // ===============================
+        // HEADER
+        // ===============================
+        header = {
+            Header(
+                userName = "Alice",
+                userEmail = "alice@example.com"
+            )
+        },
 
+        // ===============================
+        // BODY
+        // ===============================
         body = {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 20.dp)
             ) {
-                // ✅ 초기 로딩은 화면 중앙 로딩이 더 깔끔함
-                if (uiState.isLoadingInitial && uiState.items.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                    return@Column
-                }
-
-                // ✅ 에러 표시(초기 로딩 실패 포함)
-                if (!errorMessage.isNullOrBlank()) {
-                    Text(text = errorMessage)
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-
                 DeviceListTableSection(
                     uiState = uiState,
                     onDeviceClick = onDeviceClick,
@@ -86,6 +94,9 @@ private fun DeviceListContent(
             }
         },
 
+        // ===============================
+        // FOOTER
+        // ===============================
         footer = {
             Footer {
                 SingleCenterButton(
@@ -97,6 +108,14 @@ private fun DeviceListContent(
     )
 }
 
+/**
+ * 디바이스 목록 테이블 Section
+ *
+ * @param uiState Pagination 상태
+ * @param onDeviceClick 디바이스 클릭 이벤트
+ * @param onLoadMore 다음 페이지 로드
+ * @param modifier 외부 레이아웃 제어용 Modifier
+ */
 @Composable
 private fun DeviceListTableSection(
     uiState: PaginationUiState<DeviceInfo>,
@@ -105,9 +124,18 @@ private fun DeviceListTableSection(
     modifier: Modifier = Modifier
 ) {
     val columns = listOf(
-        TableColumn(title = "device_id", width = 80),
-        TableColumn(title = "기관명", weight = 1f),
-        TableColumn(title = "위치", weight = 1f)
+        TableColumn(
+            title = "device_id",
+            width = 80
+        ),
+        TableColumn(
+            title = "기관명",
+            weight = 1f
+        ),
+        TableColumn(
+            title = "위치",
+            weight = 1f
+        )
     )
 
     TableView(
@@ -121,16 +149,20 @@ private fun DeviceListTableSection(
             )
         },
         hasMoreData = uiState.hasMore,
-        // ✅ 테이블 하단 로딩은 "추가 로딩"에만 매칭
-        isLoading = uiState.isLoadingMore,
+        isLoading = uiState.isLoadingInitial || uiState.isLoadingMore,
         modifier = modifier.fillMaxWidth(),
         onRowClick = { index ->
             onDeviceClick(uiState.items[index].id)
         },
         onLoadMore = onLoadMore
     )
+
+
 }
 
+/**
+ * DeviceListScreen Preview
+ */
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun PreviewDeviceListScreen() {
@@ -145,8 +177,7 @@ private fun PreviewDeviceListScreen() {
         ),
         isLoadingInitial = false,
         isLoadingMore = false,
-        hasMore = true,
-        errorMessage = null
+        hasMore = true
     )
 
     DeviceListContent(

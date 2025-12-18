@@ -65,7 +65,9 @@ internal fun DeleteUserContent(
         footerWeight = 6f,
         sectionGapWeight = 0.4f,
 
-        header = { /* empty */ },
+        header = {
+
+        },
 
         body = {
             DeleteUserMessageSection(
@@ -87,8 +89,7 @@ internal fun DeleteUserContent(
                         .padding(top = 24.dp)
                 )
             }
-        },
-        modifier = modifier
+        }
     )
 }
 
@@ -97,7 +98,8 @@ private fun DeleteUserMessageSection(
     modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -115,9 +117,6 @@ private fun DeleteUserActionSection(
     onNoClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isLoading = uiState is UiState.Loading
-    val errorMessage = (uiState as? UiState.Error)?.message
-
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -128,8 +127,8 @@ private fun DeleteUserActionSection(
                 VerticalTwoButtons(
                     firstText = "예",
                     secondText = "아니오",
-                    onFirstClick = { if (!isLoading) onYesClick() },
-                    onSecondClick = { if (!isLoading) onNoClick() }
+                    onFirstClick = onYesClick,
+                    onSecondClick = onNoClick
                 )
             }
 
@@ -138,17 +137,18 @@ private fun DeleteUserActionSection(
             }
 
             is UiState.Error -> {
-                Text(text = errorMessage ?: "삭제 중 오류가 발생했습니다.")
+                Text(text = uiState.message ?: "삭제 중 오류가 발생했습니다.")
                 VerticalTwoButtons(
                     firstText = "다시 시도",
                     secondText = "아니오",
-                    onFirstClick = { if (!isLoading) onYesClick() },
-                    onSecondClick = { if (!isLoading) onNoClick() }
+                    onFirstClick = onYesClick,
+                    onSecondClick = onNoClick
                 )
             }
 
             is UiState.Success -> {
                 // 화면 전환은 Screen의 LaunchedEffect에서 처리
+                // Preview에서도 성공 상태를 굳이 표시할 UI는 없음
             }
         }
     }
@@ -156,29 +156,9 @@ private fun DeleteUserActionSection(
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-private fun PreviewDeleteUserContent_Idle() {
+private fun PreviewDeleteUserContent() {
     DeleteUserContent(
         uiState = UiState.Idle,
-        onYesClick = {},
-        onNoClick = {}
-    )
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun PreviewDeleteUserContent_Error() {
-    DeleteUserContent(
-        uiState = UiState.Error("User with id 1 not found."),
-        onYesClick = {},
-        onNoClick = {}
-    )
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun PreviewDeleteUserContent_Loading() {
-    DeleteUserContent(
-        uiState = UiState.Loading,
         onYesClick = {},
         onNoClick = {}
     )
