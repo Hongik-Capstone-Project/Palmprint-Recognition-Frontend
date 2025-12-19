@@ -21,18 +21,12 @@ import com.example.palmprint_recognition.ui.admin.navigation.AdminRoutes
 import com.example.palmprint_recognition.ui.common.button.SingleCenterButton
 import com.example.palmprint_recognition.ui.common.field.LabeledField
 import com.example.palmprint_recognition.ui.common.layout.Footer
-import com.example.palmprint_recognition.ui.common.layout.Header
 import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
-import com.example.palmprint_recognition.ui.common.layout.RootLayoutWeighted
+import com.example.palmprint_recognition.ui.common.layout.RootLayoutScrollable
 import com.example.palmprint_recognition.ui.core.state.UiState
 
 /**
  * 디바이스 상세 Screen
- *
- * @param deviceId 조회할 디바이스 ID
- * @param navController 뒤로가기 처리용 NavController
- * @param onDeleteClick 삭제 버튼 클릭 이벤트
- * @param viewModel DeviceDetailViewModel
  */
 @Composable
 fun DeviceDetailScreen(
@@ -48,26 +42,20 @@ fun DeviceDetailScreen(
     }
 
     when (val ui = state) {
-        UiState.Idle -> {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("디바이스 정보를 준비 중...")
-            }
+        UiState.Idle -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("디바이스 정보를 준비 중...")
         }
 
-        UiState.Loading -> {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+        UiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
         }
 
-        is UiState.Error -> {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("오류 발생: ${ui.message}")
-            }
+        is UiState.Error -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("오류 발생: ${ui.message}")
         }
 
         is UiState.Success -> {
-            DeviceDetailContent(
+            DeviceDetailContentScrollable(
                 device = ui.data,
                 onDeleteClick = onDeleteClick
             )
@@ -82,25 +70,22 @@ fun DeviceDetailScreen(
 }
 
 /**
- * 디바이스 상세 UI
+ * 디바이스 상세 UI (Scrollable)
+ * - 헤더/바디/푸터 전부 같이 스크롤
  */
 @Composable
-private fun DeviceDetailContent(
+private fun DeviceDetailContentScrollable(
     device: DeviceInfo,
     onDeleteClick: () -> Unit
 ) {
-    RootLayoutWeighted(
-        headerWeight = 2f,
-        bodyWeight = 7f,
-        footerWeight = 1f,
-        header = {
-            HeaderContainer()
-        },
+    RootLayoutScrollable(
+        sectionGap = 12.dp,
+        header = { HeaderContainer() },
         body = {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
                 DeviceInfoFieldSection(
                     device = device,
@@ -145,7 +130,7 @@ private fun DeviceInfoFieldSection(
 
         LabeledField(
             label = "기관명",
-            value = device.institution.name, // 변경 (institutionName -> institution.name)
+            value = device.institution.name,
             onValueChange = {},
             readOnly = true,
             enabled = false
@@ -163,8 +148,8 @@ private fun DeviceInfoFieldSection(
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-private fun PreviewDeviceDetailContent() {
-    DeviceDetailContent(
+private fun PreviewDeviceDetailContentScrollable() {
+    DeviceDetailContentScrollable(
         device = DeviceInfo(
             id = 1,
             createdAt = "2025-12-06T09:55:50.741Z",

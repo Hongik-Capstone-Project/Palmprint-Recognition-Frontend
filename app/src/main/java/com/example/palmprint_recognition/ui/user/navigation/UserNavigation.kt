@@ -5,7 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.example.palmprint_recognition.ui.auth.AuthViewModel
-import com.example.palmprint_recognition.ui.user.main.UserMainScreen
+import com.example.palmprint_recognition.ui.user.features.user_main.screens.UserMainScreen
 
 /**
  * ============================================================================

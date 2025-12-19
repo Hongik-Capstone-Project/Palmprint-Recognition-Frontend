@@ -55,7 +55,7 @@ private fun DeviceListContent(
     onLoadMore: () -> Unit
 ) {
     RootLayoutWeighted(
-        headerWeight = 2f,
+        headerWeight = 2.5f,
         bodyWeight = 6f,
         footerWeight = 2f,
         header = {

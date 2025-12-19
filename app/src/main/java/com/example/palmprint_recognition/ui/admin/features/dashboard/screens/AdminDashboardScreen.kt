@@ -6,7 +6,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import com.example.palmprint_recognition.ui.admin.features.dashboard.components.DashboardFooterButtonsSection
@@ -14,7 +14,7 @@ import com.example.palmprint_recognition.ui.admin.features.dashboard.components.
 import com.example.palmprint_recognition.ui.auth.AuthViewModel
 import com.example.palmprint_recognition.ui.common.layout.Footer
 import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
-import com.example.palmprint_recognition.ui.common.layout.RootLayoutWeighted
+import com.example.palmprint_recognition.ui.common.layout.RootLayoutScrollable
 
 @Composable
 fun AdminDashboardScreen(
@@ -22,10 +22,8 @@ fun AdminDashboardScreen(
     onDeviceManageClick: () -> Unit,
     onReportManageClick: () -> Unit,
     onVerificationClick: () -> Unit,
-    authViewModel: AuthViewModel //추가
+    authViewModel: AuthViewModel
 ) {
-    //val authViewModel: AuthViewModel = hiltViewModel()
-
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     // ✅ 로그아웃 확인 다이얼로그
@@ -38,7 +36,6 @@ fun AdminDashboardScreen(
                 TextButton(
                     onClick = {
                         showLogoutDialog = false
-                        // ✅ 로컬 로그아웃 → authState 갱신 → AppNavHost가 Auth 그래프로 교체
                         authViewModel.logoutLocal()
                     }
                 ) {
@@ -46,27 +43,31 @@ fun AdminDashboardScreen(
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showLogoutDialog = false }
-                ) {
+                TextButton(onClick = { showLogoutDialog = false }) {
                     Text("아니오")
                 }
             }
         )
     }
 
-    RootLayoutWeighted(
-        headerWeight = 2f,
-        bodyWeight = 5f,
-        footerWeight = 3f,
+    RootLayoutScrollable(
+        sectionGap = 12.dp,
 
-        header = { HeaderContainer() },
+        // ===============================
+        // HEADER
+        // ===============================
+        header = {
+            HeaderContainer()
+        },
 
+        // ===============================
+        // BODY
+        // ===============================
         body = {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
                 DashboardManagementSection(
                     onUserManageClick = onUserManageClick,
@@ -76,12 +77,15 @@ fun AdminDashboardScreen(
             }
         },
 
+        // ===============================
+        // FOOTER
+        // ===============================
         footer = {
             Footer {
                 DashboardFooterButtonsSection(
                     onVerificationClick = onVerificationClick,
                     onLogoutClick = {
-                        // ✅ 여기서 바로 logoutLocal() 하지 말고, 다이얼로그 먼저
+                        // 바로 로그아웃 X → 다이얼로그 표시
                         showLogoutDialog = true
                     }
                 )
@@ -89,14 +93,3 @@ fun AdminDashboardScreen(
         }
     )
 }
-
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//private fun PreviewAdminDashboardScreen() {
-//    AdminDashboardScreen(
-//        onUserManageClick = {},
-//        onDeviceManageClick = {},
-//        onReportManageClick = {},
-//        onVerificationClick = {}
-//    )
-//}

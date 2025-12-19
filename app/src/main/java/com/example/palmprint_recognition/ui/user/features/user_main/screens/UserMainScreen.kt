@@ -1,4 +1,4 @@
-package com.example.palmprint_recognition.ui.user.main
+package com.example.palmprint_recognition.ui.user.features.user_main.screens
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -9,14 +9,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.palmprint_recognition.ui.auth.AuthViewModel
 import com.example.palmprint_recognition.ui.common.button.PrimaryButton
 import com.example.palmprint_recognition.ui.common.button.VerticalTwoButtons
 import com.example.palmprint_recognition.ui.common.layout.Footer
-import com.example.palmprint_recognition.ui.common.layout.Header
 import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
 import com.example.palmprint_recognition.ui.common.layout.RootLayoutScrollable
 

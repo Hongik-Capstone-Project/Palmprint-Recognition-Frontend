@@ -187,7 +187,8 @@ private fun InstitutionListTableSectionAll(
             isLoading = false,
             modifier = Modifier.fillMaxWidth(), // 높이 강제하지 않음
             onRowClick = {},     // 읽기 전용
-            onLoadMore = {}      // 호출되지 않음 (안전하게 빈 함수)
+            onLoadMore = {},      // 호출되지 않음 (안전하게 빈 함수)
+            scrollEnabled = false
         )
     }
 }

@@ -73,7 +73,7 @@ private fun UserListContent(
     RootLayoutWeighted(
 
         // 화면 비율 설정
-        headerWeight = 2f,
+        headerWeight = 2.5f,
         bodyWeight = 6f,
         footerWeight = 2f,
 
