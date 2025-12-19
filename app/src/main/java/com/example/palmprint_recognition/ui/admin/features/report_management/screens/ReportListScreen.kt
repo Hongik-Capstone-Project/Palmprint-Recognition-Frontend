@@ -15,7 +15,7 @@ import androidx.lifecycle.Lifecycle
 import com.example.palmprint_recognition.data.model.ReportInfo
 import com.example.palmprint_recognition.ui.admin.features.report_management.viewmodel.ReportListViewModel
 import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
-import com.example.palmprint_recognition.ui.common.layout.RootLayout
+import com.example.palmprint_recognition.ui.common.layout.RootLayoutWeighted
 import com.example.palmprint_recognition.ui.common.table.TableColumn
 import com.example.palmprint_recognition.ui.common.table.TableView
 import com.example.palmprint_recognition.ui.core.state.PaginationUiState
@@ -56,13 +56,12 @@ private fun ReportListContent(
     onReportClick: (Int) -> Unit,
     onLoadMore: () -> Unit
 ) {
-    RootLayout(
+    RootLayoutWeighted(
 
         // DeviceListScreen과 동일한 비율
         headerWeight = 2f,
         bodyWeight = 8f,
         footerWeight = 0f,
-        sectionGapWeight = 0.4f,
 
         header = {
             HeaderContainer()

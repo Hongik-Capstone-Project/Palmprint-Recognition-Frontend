@@ -65,7 +65,8 @@ fun AppNavHost(
             ) {
                 userGraph(
                     navController = navController,
-                    route = "user_root"
+                    route = "user_root",
+                    authViewModel = authViewModel
                 )
             }
         }

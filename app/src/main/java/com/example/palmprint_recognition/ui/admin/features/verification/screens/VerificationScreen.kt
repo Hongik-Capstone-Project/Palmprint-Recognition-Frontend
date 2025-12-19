@@ -21,7 +21,7 @@ import com.example.palmprint_recognition.data.model.VerificationRecord
 import com.example.palmprint_recognition.data.model.VerificationSummaryResponse
 import com.example.palmprint_recognition.ui.admin.features.verification.viewmodel.VerificationViewModel
 import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
-import com.example.palmprint_recognition.ui.common.layout.RootLayout
+import com.example.palmprint_recognition.ui.common.layout.RootLayoutWeighted
 import com.example.palmprint_recognition.ui.common.table.TableColumn
 import com.example.palmprint_recognition.ui.common.table.TableView
 import com.example.palmprint_recognition.ui.core.state.PaginationUiState
@@ -55,11 +55,10 @@ private fun VerificationContent(
     listState: PaginationUiState<VerificationRecord>,
     onLoadMore: () -> Unit
 ) {
-    RootLayout(
+    RootLayoutWeighted(
         headerWeight = 2f,
         bodyWeight = 8f,
         footerWeight = 0f,
-        sectionGapWeight = 0.4f,
 
         header = { HeaderContainer() },
 

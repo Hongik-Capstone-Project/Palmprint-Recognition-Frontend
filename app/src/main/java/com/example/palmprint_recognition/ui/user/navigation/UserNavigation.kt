@@ -4,8 +4,8 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
-import com.example.palmprint_recognition.ui.auth.navigation.AuthRoutes
-import com.example.palmprint_recognition.ui.user.main.MainScreen
+import com.example.palmprint_recognition.ui.auth.AuthViewModel
+import com.example.palmprint_recognition.ui.user.main.UserMainScreen
 
 /**
  * ============================================================================
@@ -17,7 +17,8 @@ import com.example.palmprint_recognition.ui.user.main.MainScreen
  */
 fun NavGraphBuilder.userGraph(
     navController: NavHostController,
-    route: String
+    route: String,
+    authViewModel: AuthViewModel
 ) {
     navigation(
         startDestination = UserRoutes.MAIN,
@@ -29,32 +30,16 @@ fun NavGraphBuilder.userGraph(
          * --------------------------------------------------------------------
          */
         composable(UserRoutes.MAIN) {
-            MainScreen(
-                onLogoutClick = {
-                    // 로그아웃 시 → 로그인 화면으로 이동
-                    // popUpTo(route)의 의미:
-                    //   - route 는 userGraph 의 루트("user_root")를 의미
-                    //   - user_root 그래프 전체를 스택에서 제거하여
-                    //     뒤로가기 했을 때 다시 유저 화면으로 돌아오지 않도록 함
-                    navController.navigate(AuthRoutes.LOGIN) {
-                        popUpTo(route) {
-                            // true → route("user_root")까지 포함해서 제거
-                            // 결과: 유저 네비게이션 그래프가 스택에서 완전히 제거됨
-                            inclusive = true
-                        }
-                    }
-                },
-                onDeleteAccountClick = {
-                    // 회원탈퇴 버튼 클릭 시:
-                    //   - 여기서는 popUpTo를 사용하지 않고
-                    //   - 현재 스택 위에 DeleteAccountScreen 만 하나 더 쌓는다.
-                    //
-                    //   스택 예시:
-                    //     ... → user_root → user_main → delete_account
-                    //   이 상태에서 onCancel 시 popBackStack() 하면
-                    //   자연스럽게 user_main 으로 돌아갈 수 있다.
-                    navController.navigate(UserRoutes.DELETE_ACCOUNT)
-                }
+            UserMainScreen(
+                onInstitutionManageClick = { navController.navigate(UserRoutes.MAIN) },
+                onPaymentManageClick = { navController.navigate(UserRoutes.MAIN) },
+                onRegisterPalmprintClick = { navController.navigate(UserRoutes.MAIN) },
+                onDeletePalmprintClick = { navController.navigate(UserRoutes.MAIN) },
+                onMyVerificationClick = { navController.navigate(UserRoutes.MAIN) },
+                onHowToUseClick = { navController.navigate(UserRoutes.MAIN) },
+                onSignOutClick = { navController.navigate(UserRoutes.MAIN) },
+                authViewModel = authViewModel // 전달
+
             )
         }
 

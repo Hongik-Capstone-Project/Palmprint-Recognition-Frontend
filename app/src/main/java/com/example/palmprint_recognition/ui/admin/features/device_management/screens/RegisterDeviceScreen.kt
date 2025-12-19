@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -15,7 +14,8 @@ import com.example.palmprint_recognition.ui.common.button.SingleCenterButton
 import com.example.palmprint_recognition.ui.common.field.LabeledField
 import com.example.palmprint_recognition.ui.common.layout.Footer
 import com.example.palmprint_recognition.ui.common.layout.Header
-import com.example.palmprint_recognition.ui.common.layout.RootLayout
+import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
+import com.example.palmprint_recognition.ui.common.layout.RootLayoutWeighted
 import com.example.palmprint_recognition.ui.core.state.UiState
 
 /**
@@ -58,13 +58,12 @@ private fun RegisterDeviceContent(
     val isLoading = uiState is UiState.Loading
     val serverErrorMessage = (uiState as? UiState.Error)?.message
 
-    RootLayout(
+    RootLayoutWeighted(
         headerWeight = 2f,
         bodyWeight = 7f,
         footerWeight = 1f,
-        sectionGapWeight = 0.4f,
         header = {
-            Header(userName = "Alice", userEmail = "Alice@example.com")
+            HeaderContainer()
         },
         body = {
             Column(

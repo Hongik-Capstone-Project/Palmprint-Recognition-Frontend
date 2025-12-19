@@ -17,7 +17,8 @@ import com.example.palmprint_recognition.ui.admin.features.user_management.viewm
 import com.example.palmprint_recognition.ui.common.button.SingleCenterButton
 import com.example.palmprint_recognition.ui.common.layout.Footer
 import com.example.palmprint_recognition.ui.common.layout.Header
-import com.example.palmprint_recognition.ui.common.layout.RootLayout
+import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
+import com.example.palmprint_recognition.ui.common.layout.RootLayoutWeighted
 import com.example.palmprint_recognition.ui.common.table.TableColumn
 import com.example.palmprint_recognition.ui.common.table.TableView
 import com.example.palmprint_recognition.ui.core.state.PaginationUiState
@@ -69,22 +70,18 @@ private fun UserListContent(
     onAddUserClick: () -> Unit,
     onLoadMore: () -> Unit
 ) {
-    RootLayout(
+    RootLayoutWeighted(
 
         // 화면 비율 설정
         headerWeight = 2f,
         bodyWeight = 6f,
         footerWeight = 2f,
-        sectionGapWeight = 0.4f,
 
         // ===============================
         // HEADER
         // ===============================
         header = {
-            Header(
-                userName = "Alice",
-                userEmail = "alice@example.com"
-            )
+            HeaderContainer()
         },
 
         // ===============================

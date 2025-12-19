@@ -25,14 +25,15 @@ fun TableView(
     isLoading: Boolean = false,
     modifier: Modifier = Modifier,
     onRowClick: ((Int) -> Unit)? = null,
-    onLoadMore: (() -> Unit)? = null
+    onLoadMore: (() -> Unit)? = null,
+    scrollEnabled: Boolean = true
 ) {
     val listState = rememberLazyListState()
 
     // 무한스크롤은 onLoadMore 있을 때만
     InfiniteScrollHandler(
         listState = listState,
-        enabled = (onLoadMore != null) && hasMoreData && !isLoading
+        enabled = scrollEnabled && (onLoadMore != null) && hasMoreData && !isLoading
     ) {
         onLoadMore?.invoke()
     }
@@ -40,52 +41,65 @@ fun TableView(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(text = title, modifier = Modifier.padding(12.dp))
 
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            stickyHeader { TableHeader(columns) }
+        if (scrollEnabled) {
+            // 스크롤 테이블
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                stickyHeader { TableHeader(columns) }
 
-            if (rows.isEmpty()) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp)
-                    ) {
-                        Text(
-                            text = "데이터 없음",
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
-                        )
+                if (rows.isEmpty()) {
+                    item { EmptyTableItem() }
+                }
+
+                itemsIndexed(rows) { index, list ->
+                    TableRow(
+                        values = list,
+                        columns = columns,
+                        onClick = {
+                            // 클릭 핸들러 있을 때만 동작
+                            onRowClick?.invoke(index)
+                        }
+                    )
+                }
+
+                if (isLoading) {
+                    item {
+                        Box(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
+                            Text("Loading more…")
+                        }
+                    }
+                }
+
+                if (!hasMoreData && rows.isNotEmpty()) {
+                    item {
+                        Box(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
+                            Text("No more data")
+                        }
                     }
                 }
             }
+        } else { // 스크롤 없는 테이블(작은 리스트의 경우): 전부 한 번에 출력
+            Column(modifier = Modifier.fillMaxWidth()) {
+                TableHeader(columns)
 
-            itemsIndexed(rows) { index, list ->
-                TableRow(
-                    values = list,
-                    columns = columns,
-                    onClick = {
-                        // 클릭 핸들러 있을 때만 동작
-                        onRowClick?.invoke(index)
+                if (rows.isEmpty()) {
+                    EmptyTableItem()
+                } else {
+                    rows.forEachIndexed { index, list ->
+                        TableRow(values = list, columns = columns) {
+                            onRowClick?.invoke(index)
+                        }
                     }
-                )
-            }
 
-            if (isLoading) {
-                item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
-                        Text("Loading more…")
+                    if (isLoading) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(12.dp)
+                        ) { Text("Loading more…") }
                     }
-                }
-            }
 
-            if (!hasMoreData && rows.isNotEmpty()) {
-                item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
-                        Text("No more data")
-                    }
+                    // "No more data"는 굳이 필요 없으면 제거해도 됨
                 }
             }
         }
@@ -115,6 +129,21 @@ fun InfiniteScrollHandler(
             .collectLatest { isBottom ->
                 if (isBottom) onLoadMore()
             }
+    }
+}
+
+@Composable
+private fun EmptyTableItem() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp)
+    ) {
+        Text(
+            text = "데이터 없음",
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
     }
 }
 

@@ -13,7 +13,7 @@ import com.example.palmprint_recognition.ui.auth.features.login.viewmodel.LoginV
 import com.example.palmprint_recognition.ui.common.button.VerticalTwoButtons
 import com.example.palmprint_recognition.ui.common.field.LabeledField
 import com.example.palmprint_recognition.ui.common.layout.Footer
-import com.example.palmprint_recognition.ui.common.layout.RootLayout
+import com.example.palmprint_recognition.ui.common.layout.RootLayoutWeighted
 import com.example.palmprint_recognition.ui.common.logo.Logo
 import com.example.palmprint_recognition.ui.core.state.UiState
 import com.example.palmprint_recognition.ui.theme.PalmprintRecognitionTheme
@@ -59,11 +59,10 @@ private fun LoginContent(
     val isLoading = uiState is UiState.Loading
     val errorMessage = (uiState as? UiState.Error)?.message
 
-    RootLayout(
+    RootLayoutWeighted(
         headerWeight = 3f,
         bodyWeight = 3f,
         footerWeight = 4f,
-        sectionGapWeight = 0.4f,
 
         header = {
             Column(

@@ -6,10 +6,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -21,8 +21,9 @@ import com.example.palmprint_recognition.ui.common.button.SingleCenterButton
 import com.example.palmprint_recognition.ui.common.checkbox.CheckBoxGroup
 import com.example.palmprint_recognition.ui.common.field.LabeledField
 import com.example.palmprint_recognition.ui.common.layout.Footer
+import com.example.palmprint_recognition.ui.common.layout.Header
 import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
-import com.example.palmprint_recognition.ui.common.layout.RootLayout
+import com.example.palmprint_recognition.ui.common.layout.RootLayoutScrollable
 import com.example.palmprint_recognition.ui.core.state.UiState
 
 @Composable
@@ -48,7 +49,6 @@ fun ReportDetailScreen(
         }
     }
 
-
     BackHandler {
         navController.navigate(AdminRoutes.REPORT_LIST) {
             popUpTo(AdminRoutes.REPORT_LIST) { inclusive = true }
@@ -70,7 +70,8 @@ fun ReportDetailScreen(
 
         is UiState.Success -> {
             val isSaving = saveState is UiState.Loading
-            ReportDetailContent(
+            ReportDetailContentScrollable(
+                reportId = reportId,
                 report = ui.data,
                 selectedIndex = selectedIndex,
                 isSaving = isSaving,
@@ -83,7 +84,8 @@ fun ReportDetailScreen(
 }
 
 @Composable
-private fun ReportDetailContent(
+private fun ReportDetailContentScrollable(
+    reportId: Int,
     report: ReportInfo,
     selectedIndex: Int,
     isSaving: Boolean,
@@ -91,19 +93,18 @@ private fun ReportDetailContent(
     onSelectStatus: (Int) -> Unit,
     onSaveClick: () -> Unit
 ) {
-    RootLayout(
-        headerWeight = 2f,
-        bodyWeight = 6.5f,
-        footerWeight = 1.5f,
-        sectionGapWeight = 0.4f,
+    RootLayoutScrollable(
+        sectionGap = 12.dp,
         header = {
+            // Header("Alice", "alice@example.com")
             HeaderContainer()
         },
+
         body = {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp),
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 ReportInfoFieldSection(report = report)
@@ -124,13 +125,17 @@ private fun ReportDetailContent(
                         horizontalArrangement = Arrangement.Center
                     ) { CircularProgressIndicator() }
                 }
+
+                // 스크롤 끝 여백(footer랑 붙어 보이면 여백 추가)
+                Spacer(modifier = Modifier.height(8.dp))
             }
         },
+
         footer = {
             Footer {
                 SingleCenterButton(
                     text = if (isSaving) "저장 중..." else "저장",
-                    onClick = onSaveClick
+                    onClick = { if (!isSaving) onSaveClick() }
                 )
             }
         }
@@ -200,8 +205,9 @@ private fun ChangeStatusSection(
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-private fun PreviewReportDetailContent() {
-    ReportDetailContent(
+private fun PreviewReportDetailContentScrollable() {
+    ReportDetailContentScrollable(
+        reportId = 100,
         report = ReportInfo(
             id = 100,
             createdAt = "2025-12-10T10:00:00.000Z",

@@ -5,8 +5,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -16,7 +14,7 @@ import com.example.palmprint_recognition.ui.admin.features.dashboard.components.
 import com.example.palmprint_recognition.ui.auth.AuthViewModel
 import com.example.palmprint_recognition.ui.common.layout.Footer
 import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
-import com.example.palmprint_recognition.ui.common.layout.RootLayout
+import com.example.palmprint_recognition.ui.common.layout.RootLayoutWeighted
 
 @Composable
 fun AdminDashboardScreen(
@@ -57,11 +55,10 @@ fun AdminDashboardScreen(
         )
     }
 
-    RootLayout(
+    RootLayoutWeighted(
         headerWeight = 2f,
         bodyWeight = 5f,
         footerWeight = 3f,
-        sectionGapWeight = 0.4f,
 
         header = { HeaderContainer() },
 

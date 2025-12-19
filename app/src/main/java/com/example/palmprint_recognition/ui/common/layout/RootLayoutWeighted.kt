@@ -4,16 +4,18 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 
 @Composable
-fun RootLayout(
+fun RootLayoutWeighted(
     modifier: Modifier = Modifier,
 
     headerWeight: Float = 0f,
     bodyWeight: Float = 1f,
     footerWeight: Float = 0f,
 
-    sectionGapWeight: Float = 0.05f,  // 전체 화면 기준 간격 비율
+    sectionGap: Dp = 12.dp,  // 전체 화면 기준 간격 비율
 
     header: (@Composable () -> Unit)? = null,
     body: @Composable () -> Unit,
@@ -33,7 +35,7 @@ fun RootLayout(
             }
 
             // Header → Body 간격
-            Spacer(modifier = Modifier.weight(sectionGapWeight))
+            Spacer(modifier = Modifier.height(sectionGap))
         }
 
         Box(
@@ -47,7 +49,7 @@ fun RootLayout(
         if (footer != null && footerWeight > 0f) {
 
             // Body → Footer 간격
-            Spacer(modifier = Modifier.weight(sectionGapWeight))
+            Spacer(modifier = Modifier.height(sectionGap))
 
             Box(
                 modifier = Modifier
@@ -58,7 +60,7 @@ fun RootLayout(
             }
 
             // Footer → 화면 하단 간격
-            Spacer(modifier = Modifier.weight(sectionGapWeight))
+            Spacer(modifier = Modifier.height(sectionGap))
         }
     }
 }
@@ -67,8 +69,8 @@ fun RootLayout(
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewPalmRootLayout_PopupStyle() {
-    RootLayout(
+fun PreviewPalmRootLayout_Weighted_PopupStyle() {
+    RootLayoutWeighted(
         header = null,
         body = { Box(modifier = Modifier.fillMaxSize()) },
         footer = null

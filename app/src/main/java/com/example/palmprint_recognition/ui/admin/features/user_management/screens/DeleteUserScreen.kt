@@ -17,7 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.palmprint_recognition.ui.admin.features.user_management.viewmodel.DeleteUserViewModel
 import com.example.palmprint_recognition.ui.common.button.VerticalTwoButtons
 import com.example.palmprint_recognition.ui.common.layout.Footer
-import com.example.palmprint_recognition.ui.common.layout.RootLayout
+import com.example.palmprint_recognition.ui.common.layout.RootLayoutWeighted
 import com.example.palmprint_recognition.ui.core.state.UiState
 
 /**
@@ -61,11 +61,10 @@ internal fun DeleteUserContent(
     onNoClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    RootLayout(
+    RootLayoutWeighted(
         headerWeight = 2f,
         bodyWeight = 4f,
         footerWeight = 6f,
-        sectionGapWeight = 0.4f,
 
         header = {
 

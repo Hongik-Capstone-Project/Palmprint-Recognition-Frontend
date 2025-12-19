@@ -18,7 +18,7 @@ import com.example.palmprint_recognition.ui.auth.AuthViewModel
 import com.example.palmprint_recognition.ui.auth.features.logout.viewmodel.LogoutViewModel
 import com.example.palmprint_recognition.ui.common.button.VerticalTwoButtons
 import com.example.palmprint_recognition.ui.common.layout.Footer
-import com.example.palmprint_recognition.ui.common.layout.RootLayout
+import com.example.palmprint_recognition.ui.common.layout.RootLayoutWeighted
 import com.example.palmprint_recognition.ui.core.state.UiState
 
 /**
@@ -60,11 +60,10 @@ internal fun LogoutContent(
     onNoClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    RootLayout(
+    RootLayoutWeighted(
         headerWeight = 2f,
         bodyWeight = 4f,
         footerWeight = 6f,
-        sectionGapWeight = 0.4f,
 
         header = {
             // 헤더 없음 (구조 유지용)
