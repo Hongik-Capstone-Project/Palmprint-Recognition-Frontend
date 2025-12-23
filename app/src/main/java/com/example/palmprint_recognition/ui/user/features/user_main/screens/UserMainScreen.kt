@@ -20,7 +20,7 @@ fun UserMainScreen(
     onPaymentManageClick: () -> Unit,
     onRegisterPalmprintClick: () -> Unit,
     onDeletePalmprintClick: () -> Unit,
-    onMyVerificationClick: () -> Unit,
+    onHistoryClick: () -> Unit,
     onHowToUseClick: () -> Unit,
     onSignOutClick: () -> Unit,
     authViewModel: AuthViewModel
@@ -61,7 +61,7 @@ fun UserMainScreen(
                 onPaymentManageClick = onPaymentManageClick,
                 onRegisterPalmprintClick = onRegisterPalmprintClick,
                 onDeletePalmprintClick = onDeletePalmprintClick,
-                onMyVerificationClick = onMyVerificationClick,
+                onMyVerificationClick = onHistoryClick,
                 onHowToUseClick = onHowToUseClick
             )
         },

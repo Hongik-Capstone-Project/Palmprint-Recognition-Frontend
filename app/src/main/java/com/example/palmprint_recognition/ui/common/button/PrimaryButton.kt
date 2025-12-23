@@ -17,42 +17,43 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/**
- * ✅ Primary Button (상대 위치 + 스타일 전부 외부 제어)
- * - width/height가 null이면 modifier에서 지정한 크기(fillMaxWidth 등)를 그대로 사용
- */
 @Composable
 fun PrimaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 
-    width: Dp? = 356.dp,     // nullable 지원
-    height: Dp? = 56.dp,     // nullable 지원
+    width: Dp? = 356.dp,
+    height: Dp? = 56.dp,
 
     backgroundColor: Color = Color(0xFFC1C7CD),
     borderColor: Color = Color(0xFFC1C7CD),
 
     textColor: Color = Color.White,
-    textSize: Int = 20
+    textSize: Int = 20,
+
+    enabled: Boolean = true
 ) {
-    // ✅ width/height가 null이면 적용하지 않음 (fillMaxWidth 등 modifier 우선)
     val sizedModifier = modifier
         .then(if (width != null) Modifier.width(width) else Modifier)
         .then(if (height != null) Modifier.height(height) else Modifier)
 
+    val bg = if (enabled) backgroundColor else Color(0xFFE0E0E0)
+    val br = if (enabled) borderColor else Color(0xFFE0E0E0)
+    val tc = if (enabled) textColor else Color(0xFF9AA0A6)
+
     Box(
         modifier = sizedModifier
-            .background(backgroundColor)
-            .border(2.dp, borderColor)
-            .clickable { onClick() },
+            .background(bg)
+            .border(2.dp, br)
+            .clickable(enabled = enabled) { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
             fontSize = textSize.sp,
             fontWeight = FontWeight.Medium,
-            color = textColor
+            color = tc
         )
     }
 }
@@ -63,8 +64,8 @@ fun PreviewPrimaryButton() {
     PrimaryButton(
         text = "유저 정보 추가",
         onClick = {},
-        modifier = Modifier,     // 여기서 fillMaxWidth 같은 걸 주면 width=null로 반영 가능
         width = 356.dp,
-        height = 56.dp
+        height = 56.dp,
+        enabled = false
     )
 }

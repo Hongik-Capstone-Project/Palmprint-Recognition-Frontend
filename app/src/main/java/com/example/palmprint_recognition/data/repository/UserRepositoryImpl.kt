@@ -1,19 +1,20 @@
 package com.example.palmprint_recognition.data.repository
 
 import com.example.palmprint_recognition.data.api.UserApi
-import com.example.palmprint_recognition.data.model.AddPaymentMethodRequest
-import com.example.palmprint_recognition.data.model.AddPaymentMethodResponse
 import com.example.palmprint_recognition.data.model.AddUserInstitutionRequest
-import com.example.palmprint_recognition.data.model.AddUserInstitutionResponse
 import com.example.palmprint_recognition.data.model.ApiException
 import com.example.palmprint_recognition.data.model.ErrorResponse
 import com.example.palmprint_recognition.data.model.PalmprintRegistrationStatusResponse
-import com.example.palmprint_recognition.data.model.PaymentMethodsResponse
+import com.example.palmprint_recognition.data.model.PaymentMethod
+import com.example.palmprint_recognition.data.model.AddPaymentMethodRequest
 import com.example.palmprint_recognition.data.model.RegisterPalmprintRequest
 import com.example.palmprint_recognition.data.model.RegisterPalmprintResponse
+import com.example.palmprint_recognition.data.model.UserInstitution
+import com.example.palmprint_recognition.data.model.PagedResponse
+import com.example.palmprint_recognition.data.model.UserVerificationLog
 import com.example.palmprint_recognition.data.model.ReportVerificationRequest
-import com.example.palmprint_recognition.data.model.UserInstitutionsResponse
-import com.example.palmprint_recognition.data.model.UserVerificationsResponse
+import com.example.palmprint_recognition.data.model.ReportResponse
+
 import com.google.gson.Gson
 import retrofit2.HttpException
 import javax.inject.Inject
@@ -34,7 +35,7 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getUserInstitutions(): UserInstitutionsResponse {
+    override suspend fun getUserInstitutions(): List<UserInstitution> {
         return try {
             userApi.getUserInstitutions()
         } catch (e: HttpException) {
@@ -42,16 +43,22 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun addUserInstitution(institutionName: String, institutionUserId: String): AddUserInstitutionResponse {
+    override suspend fun addUserInstitution(
+        institutionId: Int,
+        institutionUserId: String
+    ): UserInstitution {
         return try {
-            val request = AddUserInstitutionRequest(institutionName, institutionUserId)
+            val request = AddUserInstitutionRequest(
+                institutionId = institutionId,
+                institutionUserId = institutionUserId
+            )
             userApi.addUserInstitution(request)
         } catch (e: HttpException) {
             throw parseError(e)
         }
     }
 
-    override suspend fun deleteUserInstitution(institutionId: String) {
+    override suspend fun deleteUserInstitution(institutionId: Int) {
         try {
             userApi.deleteUserInstitution(institutionId)
         } catch (e: HttpException) {
@@ -59,7 +66,10 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getPaymentMethods(): PaymentMethodsResponse {
+
+
+
+    override suspend fun getPaymentMethods(): List<PaymentMethod> {
         return try {
             userApi.getPaymentMethods()
         } catch (e: HttpException) {
@@ -67,22 +77,23 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun addPaymentMethod(cardName: String, cardId: String): AddPaymentMethodResponse {
+    override suspend fun addPaymentMethod(cardName: String, cardId: String): PaymentMethod {
         return try {
-            val request = AddPaymentMethodRequest(cardName, cardId)
+            val request = AddPaymentMethodRequest(cardName = cardName, cardId = cardId)
             userApi.addPaymentMethod(request)
         } catch (e: HttpException) {
             throw parseError(e)
         }
     }
 
-    override suspend fun deletePaymentMethod(paymentMethodId: String) {
+    override suspend fun deletePaymentMethod(paymentMethodId: Int) {
         try {
             userApi.deletePaymentMethod(paymentMethodId)
         } catch (e: HttpException) {
             throw parseError(e)
         }
     }
+
 
     override suspend fun getPalmprintRegistrationStatus(): PalmprintRegistrationStatusResponse {
         return try {
@@ -109,20 +120,21 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getUserVerifications(): UserVerificationsResponse {
+    override suspend fun getUserVerifications(page: Int, size: Int): PagedResponse<UserVerificationLog> {
         return try {
-            userApi.getUserVerifications()
+            userApi.getUserVerifications(page = page, size = size)
         } catch (e: HttpException) {
             throw parseError(e)
         }
     }
 
-    override suspend fun reportVerification(logId: String, reason: String) {
-        try {
+    override suspend fun reportVerification(logId: String, reason: String): ReportResponse {
+        return try {
             val request = ReportVerificationRequest(reason)
             userApi.reportVerification(logId, request)
         } catch (e: HttpException) {
             throw parseError(e)
         }
     }
+
 }
