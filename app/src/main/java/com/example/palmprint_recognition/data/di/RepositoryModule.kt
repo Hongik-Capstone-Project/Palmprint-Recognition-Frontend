@@ -4,7 +4,6 @@ import com.example.palmprint_recognition.data.repository.AdminRepository
 import com.example.palmprint_recognition.data.repository.AdminRepositoryImpl
 import com.example.palmprint_recognition.data.repository.AuthRepository
 import com.example.palmprint_recognition.data.repository.AuthRepositoryImpl
-import com.example.palmprint_recognition.data.repository.FakeAdminRepository
 import com.example.palmprint_recognition.data.repository.UserRepository
 import com.example.palmprint_recognition.data.repository.UserRepositoryImpl
 import dagger.Binds

@@ -4,12 +4,12 @@ import com.example.palmprint_recognition.data.model.AddUserResponse
 import com.example.palmprint_recognition.data.model.AdminUserDetail
 import com.example.palmprint_recognition.data.model.DeviceListResponse
 import com.example.palmprint_recognition.data.model.DeviceInfo
+import com.example.palmprint_recognition.data.model.RegisterDeviceResponse
 import com.example.palmprint_recognition.data.model.ReportInfo
 import com.example.palmprint_recognition.data.model.ReportListResponse
 import com.example.palmprint_recognition.data.model.UserListResponse
 import com.example.palmprint_recognition.data.model.VerificationListResponse
 import com.example.palmprint_recognition.data.model.VerificationSummaryResponse
-import java.io.File
 
 /**
  * 관리자 관련 기능에 대한 Repository 인터페이스 (설계도)
@@ -22,7 +22,7 @@ interface AdminRepository {
 
     suspend fun getUserById(userId: Int): AdminUserDetail
 
-    suspend fun addUser(name: String, email: String, password: String, isAdmin: Boolean): AddUserResponse
+    suspend fun addUser(name: String, email: String, password: String): AddUserResponse
 
     suspend fun deleteUser(userId: Int)
 
@@ -33,7 +33,7 @@ interface AdminRepository {
 
     suspend fun getDeviceById(deviceId: Int): DeviceInfo
 
-    suspend fun registerDevice(id: Int, institutionName: String, location: String): DeviceInfo
+    suspend fun registerDevice(institutionId: Int, location: String): RegisterDeviceResponse
 
     suspend fun deleteDevice(deviceId: Int)
 

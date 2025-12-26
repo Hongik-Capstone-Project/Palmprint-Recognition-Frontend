@@ -1,69 +1,59 @@
 package com.example.palmprint_recognition.ui.admin.navigation
 
-import androidx.navigation.*
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navigation
+import androidx.navigation.navArgument
+import com.example.palmprint_recognition.ui.auth.AuthViewModel
 
 /* Dashboard */
-import com.example.palmprint_recognition.ui.admin.dashboard.AdminDashboardScreen
+import com.example.palmprint_recognition.ui.admin.features.dashboard.screens.AdminDashboardScreen
 
-/* User Management */
-import com.example.palmprint_recognition.ui.admin.user_management.*
+/* User */
+import com.example.palmprint_recognition.ui.admin.features.user_management.screens.AddUserScreen
+import com.example.palmprint_recognition.ui.admin.features.user_management.screens.DeleteUserScreen
+import com.example.palmprint_recognition.ui.admin.features.user_management.screens.UserDetailScreen
+import com.example.palmprint_recognition.ui.admin.features.user_management.screens.UserListScreen
 
-/* Device Management */
-import com.example.palmprint_recognition.ui.admin.device_management.*
+/* Device */
+import com.example.palmprint_recognition.ui.admin.features.device_management.screens.RegisterDeviceScreen
+import com.example.palmprint_recognition.ui.admin.features.device_management.screens.DeleteDeviceScreen
+import com.example.palmprint_recognition.ui.admin.features.device_management.screens.DeviceDetailScreen
+import com.example.palmprint_recognition.ui.admin.features.device_management.screens.DeviceListScreen
 
-/* Report Management */
-import com.example.palmprint_recognition.ui.admin.report_management.*
-
-/* Palmprint Management */
-import com.example.palmprint_recognition.ui.admin.palmprint_management.*
+/* Report */
+import com.example.palmprint_recognition.ui.admin.features.report_management.screens.ReportDetailScreen
+import com.example.palmprint_recognition.ui.admin.features.report_management.screens.ReportListScreen
 
 /* Verification */
-import com.example.palmprint_recognition.ui.admin.verification.VerificationListScreen
+import com.example.palmprint_recognition.ui.admin.features.verification.screens.VerificationScreen
 
+import com.example.palmprint_recognition.ui.core.navigation.navigateAndClearUpTo
 
-/**
- * adminGraph()
- *
- * AppNavHost 안에서 불려서,
- * 관리자 전용 모든 화면을 한 개의 Navigation Graph 로 묶는 함수.
- * navigation() 사용하여 “admin_root” 라우트 하위에 모든 화면 구성
- */
 fun NavGraphBuilder.adminGraph(
     navController: NavController,
-    route: String      // 보통 "admin_root" 로 AppNavHost에서 전달됨
+    route: String,
+    authViewModel: AuthViewModel // 추가
 ) {
     navigation(
         startDestination = AdminRoutes.DASHBOARD,
         route = route
     ) {
 
-        /* =========================================================================
-         * 1. ADMIN DASHBOARD (관리자 대시보드)
-         * ========================================================================= */
+        // 1) DASHBOARD
         composable(AdminRoutes.DASHBOARD) {
             AdminDashboardScreen(
-                onUserManagementClick = {
-                    navController.navigate(AdminRoutes.USER_LIST)
-                },
-                onDeviceManagementClick = {
-                    navController.navigate(AdminRoutes.DEVICE_LIST)
-                },
-                onReportManagementClick = {
-                    navController.navigate(AdminRoutes.REPORT_LIST)
-                },
-                onVerificationManagementClick = {
-                    navController.navigate(AdminRoutes.VERIFICATION_LIST)
-                }
+                onUserManageClick = { navController.navigate(AdminRoutes.USER_LIST) },
+                onDeviceManageClick = { navController.navigate(AdminRoutes.DEVICE_LIST) },
+                onReportManageClick = { navController.navigate(AdminRoutes.REPORT_LIST) },
+                onVerificationClick = { navController.navigate(AdminRoutes.VERIFICATION) },
+                        authViewModel = authViewModel // 전달
             )
         }
 
-
-        /* =========================================================================
-         * 2. USER MANAGEMENT (유저 관리)
-         * ========================================================================= */
-
-        /** 2-1. 유저 목록 */
+        // 2) USER
         composable(AdminRoutes.USER_LIST) {
             UserListScreen(
                 onUserClick = { userId ->
@@ -75,166 +65,78 @@ fun NavGraphBuilder.adminGraph(
             )
         }
 
-        /** 2-2. 유저 상세 */
         composable(
             route = AdminRoutes.USER_DETAIL,
-            arguments = listOf(navArgument("userId") { type = NavType.IntType })
+            arguments = listOf(navArgument(AdminRoutes.ARG_USER_ID) { type = NavType.IntType })
         ) { entry ->
-            val userId = entry.arguments!!.getInt("userId")
+            val userId = entry.arguments?.getInt(AdminRoutes.ARG_USER_ID) ?: return@composable
 
             UserDetailScreen(
                 userId = userId,
+                navController = navController,
                 onDeleteClick = {
                     navController.navigate(AdminRoutes.deleteUser(userId))
-                },
-                onPalmprintListClick = {
-                    navController.navigate(AdminRoutes.palmprintList(userId))
                 }
             )
         }
 
-        /** 2-3. 유저 추가 */
         composable(AdminRoutes.ADD_USER) {
             AddUserScreen(
                 onAddSuccess = { newUserId ->
                     navController.navigate(AdminRoutes.userDetail(newUserId)) {
-                        popUpTo(AdminRoutes.USER_LIST) { inclusive = false }
+                        popUpTo(AdminRoutes.ADD_USER) { inclusive = true }
                     }
                 }
             )
         }
 
-        /** 2-4. 유저 삭제 */
         composable(
             route = AdminRoutes.DELETE_USER,
-            arguments = listOf(navArgument("userId") { type = NavType.IntType })
+            arguments = listOf(navArgument(AdminRoutes.ARG_USER_ID) { type = NavType.IntType })
         ) { entry ->
-            val userId = entry.arguments!!.getInt("userId")
+            val userId = entry.arguments?.getInt(AdminRoutes.ARG_USER_ID) ?: return@composable
 
             DeleteUserScreen(
                 userId = userId,
                 onConfirmDelete = {
                     navController.navigate(AdminRoutes.USER_LIST) {
-                        popUpTo(AdminRoutes.USER_LIST) { inclusive = false }
+                        popUpTo(AdminRoutes.USER_LIST) { inclusive = true }
+                        launchSingleTop = true
                     }
                 },
                 onCancel = { navController.popBackStack() }
             )
         }
 
-
-        /* =========================================================================
-         * 3. PALMPRINT MANAGEMENT (손바닥 관리)
-         * ========================================================================= */
-
-        /** 3-1. Palmprint 리스트 */
-        composable(
-            route = AdminRoutes.PALMPRINT_LIST,
-            arguments = listOf(
-                navArgument("userId") { type = NavType.IntType }
-            )
-        ) { entry ->
-            val userId = entry.arguments!!.getInt("userId")
-
-            PalmprintListScreen(
-                userId = userId,
-
-                onAddPalmprintClick = {
-                    navController.navigate(AdminRoutes.uploadPalmprint(userId))
-                },
-
-                onDeletePalmprintClick = { palmprintId ->
-                    navController.navigate(
-                        AdminRoutes.deletePalmprint(userId, palmprintId)
-                    )
-                },
-
-                onBack = { navController.popBackStack() }
-            )
-        }
-
-        /** 3-2. Palmprint 업로드 화면 */
-        composable(
-            route = AdminRoutes.UPLOAD_PALMPRINT,
-            arguments = listOf(
-                navArgument("userId") { type = NavType.IntType }
-            )
-        ) { entry ->
-            val userId = entry.arguments!!.getInt("userId")
-
-            UploadPalmprintScreen(
-                userId = userId,
-                onUploadSuccess = {
-                    navController.navigate(AdminRoutes.palmprintList(userId)) {
-                        popUpTo(AdminRoutes.palmprintList(userId)) {
-                            inclusive = true
-                        }
-                    }
-                },
-                onCancel = { navController.popBackStack() }
-            )
-        }
-
-        /** 3-3. Palmprint 삭제 화면 */
-        composable(
-            route = AdminRoutes.DELETE_PALMPRINT,
-            arguments = listOf(
-                navArgument("userId") { type = NavType.IntType },
-                navArgument("palmprintId") { type = NavType.IntType }
-            )
-        ) { entry ->
-            val userId = entry.arguments!!.getInt("userId")
-            val palmprintId = entry.arguments!!.getInt("palmprintId")
-
-            DeletePalmprintScreen(
-                userId = userId,
-                palmprintId = palmprintId,
-
-                onDeleteSuccess = {
-                    navController.navigate(AdminRoutes.palmprintList(userId)) {
-                        popUpTo(AdminRoutes.palmprintList(userId)) {
-                            inclusive = true
-                        }
-                    }
-                },
-
-                onCancel = { navController.popBackStack() }
-            )
-        }
-
-
-
-        /* =========================================================================
-         * 4. DEVICE MANAGEMENT (디바이스 관리)
-         * ========================================================================= */
-
+        // 3) DEVICE
         composable(AdminRoutes.DEVICE_LIST) {
             DeviceListScreen(
                 onDeviceClick = { deviceId ->
                     navController.navigate(AdminRoutes.deviceDetail(deviceId))
                 },
-                onAddDeviceClick = {
-                    navController.navigate(AdminRoutes.ADD_DEVICE)
+                onRegisterDeviceClick = {
+                    navController.navigate(AdminRoutes.REGISTER_DEVICE)
                 }
             )
         }
 
         composable(
             route = AdminRoutes.DEVICE_DETAIL,
-            arguments = listOf(navArgument("deviceId") { type = NavType.IntType })
+            arguments = listOf(navArgument(AdminRoutes.ARG_DEVICE_ID) { type = NavType.IntType })
         ) { entry ->
-            val deviceId = entry.arguments!!.getInt("deviceId")
+            val deviceId = entry.arguments?.getInt(AdminRoutes.ARG_DEVICE_ID) ?: return@composable
 
             DeviceDetailScreen(
                 deviceId = deviceId,
+                navController = navController,
                 onDeleteClick = {
                     navController.navigate(AdminRoutes.deleteDevice(deviceId))
                 }
             )
         }
 
-        composable(AdminRoutes.ADD_DEVICE) {
-            AddDeviceScreen(
+        composable(AdminRoutes.REGISTER_DEVICE) {
+            RegisterDeviceScreen(
                 onAddSuccess = { newDeviceId ->
                     navController.navigate(AdminRoutes.deviceDetail(newDeviceId)) {
                         popUpTo(AdminRoutes.DEVICE_LIST) { inclusive = false }
@@ -245,26 +147,24 @@ fun NavGraphBuilder.adminGraph(
 
         composable(
             route = AdminRoutes.DELETE_DEVICE,
-            arguments = listOf(navArgument("deviceId") { type = NavType.IntType })
+            arguments = listOf(navArgument(AdminRoutes.ARG_DEVICE_ID) { type = NavType.IntType })
         ) { entry ->
-            val deviceId = entry.arguments!!.getInt("deviceId")
+            val deviceId = entry.arguments?.getInt(AdminRoutes.ARG_DEVICE_ID) ?: return@composable
 
             DeleteDeviceScreen(
                 deviceId = deviceId,
                 onConfirmDelete = {
                     navController.navigate(AdminRoutes.DEVICE_LIST) {
-                        popUpTo(AdminRoutes.DEVICE_LIST) { inclusive = false }
+                        popUpTo(AdminRoutes.DEVICE_LIST) { inclusive = true }
+                        launchSingleTop = true
                     }
+
                 },
                 onCancel = { navController.popBackStack() }
             )
         }
 
-
-        /* =========================================================================
-         * 5. REPORT MANAGEMENT (신고 관리)
-         * ========================================================================= */
-
+        // 4) REPORT
         composable(AdminRoutes.REPORT_LIST) {
             ReportListScreen(
                 onReportClick = { reportId ->
@@ -275,29 +175,26 @@ fun NavGraphBuilder.adminGraph(
 
         composable(
             route = AdminRoutes.REPORT_DETAIL,
-            arguments = listOf(navArgument("reportId") { type = NavType.IntType })
+            arguments = listOf(navArgument(AdminRoutes.ARG_REPORT_ID) { type = NavType.IntType })
         ) { entry ->
-            val reportId = entry.arguments!!.getInt("reportId")
+            val reportId = entry.arguments?.getInt(AdminRoutes.ARG_REPORT_ID) ?: return@composable
 
             ReportDetailScreen(
                 reportId = reportId,
+                navController = navController,
                 onSaveSuccess = {
-                    navController.navigate(AdminRoutes.REPORT_LIST) {
-                        popUpTo(AdminRoutes.REPORT_LIST) { inclusive = true }
-                    }
+                    navController.navigateAndClearUpTo(
+                        destination = AdminRoutes.REPORT_LIST,
+                        popUpToRoute = AdminRoutes.REPORT_LIST,
+                        inclusive = true
+                    )
                 }
             )
         }
 
-
-        /* =========================================================================
-         * 📌 6. VERIFICATION MANAGEMENT (인증 내역 조회)
-         * ========================================================================= */
-
-        composable(AdminRoutes.VERIFICATION_LIST) {
-            VerificationListScreen(
-                onBack = { navController.popBackStack() }
-            )
+        // 5) VERIFICATION
+        composable(AdminRoutes.VERIFICATION) {
+            VerificationScreen()
         }
     }
 }

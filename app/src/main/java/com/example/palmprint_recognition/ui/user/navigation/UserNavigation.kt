@@ -1,14 +1,24 @@
 package com.example.palmprint_recognition.ui.user.navigation
 
-import androidx.compose.runtime.Composable
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
-import com.example.palmprint_recognition.ui.user.main.MainScreen
-import com.example.palmprint_recognition.ui.auth.AuthRoutes
-import com.example.palmprint_recognition.ui.user.main.DeleteAccountScreen
-
+import androidx.navigation.navArgument
+import com.example.palmprint_recognition.ui.auth.AuthViewModel
+import com.example.palmprint_recognition.ui.user.features.user_main.screens.UserMainScreen
+import com.example.palmprint_recognition.ui.user.features.institutions.screens.AddInstitutionScreen
+import com.example.palmprint_recognition.ui.user.features.institutions.screens.DeleteInstitutionScreen
+import com.example.palmprint_recognition.ui.user.features.institutions.screens.InstitutionListScreen
+import com.example.palmprint_recognition.ui.user.features.payments.screens.AddPaymentScreen
+import com.example.palmprint_recognition.ui.user.features.payments.screens.DeletePaymentScreen
+import com.example.palmprint_recognition.ui.user.features.payments.screens.PaymentListScreen
+import com.example.palmprint_recognition.data.model.UserVerificationLog
+import com.example.palmprint_recognition.ui.user.features.histories.screens.HistoryListScreen
+import com.example.palmprint_recognition.ui.user.features.histories.screens.ReportHistoryScreen
+import com.example.palmprint_recognition.ui.user.features.palmprint_management.screens.DeletePalmprintScreen
+import com.example.palmprint_recognition.ui.user.features.palmprint_management.screens.RegisterPalmprintScreen
 
 /**
  * ============================================================================
@@ -16,47 +26,173 @@ import com.example.palmprint_recognition.ui.user.main.DeleteAccountScreen
  * ============================================================================
  *
  * - AppNavHost → userGraph("user_root") 형태로 호출됨
- * - 사용자 전용 화면들(메인, 결제내역, 기관 조회 등)을 모두 이 안에서 관리
- * - 현재는 최소 기능(메인 화면)만 구현
+ * - 사용자 전용 화면(메인, 내 인증기관 관리 등)을 이 안에서 관리
  */
 fun NavGraphBuilder.userGraph(
-    navController: NavHostController,
-    route: String
+    navController: NavController,
+    route: String,
+    authViewModel: AuthViewModel
 ) {
     navigation(
         startDestination = UserRoutes.MAIN,
         route = route
     ) {
-
         /**
          * --------------------------------------------------------------------
-         * 1️. 사용자 메인 화면
-         *  - 사용자가 로그인한 후 처음 보는 메인 페이지
+         * 1) 사용자 메인 화면
          * --------------------------------------------------------------------
          */
         composable(UserRoutes.MAIN) {
-            MainScreen(
-                onLogoutClick = {
-                    navController.navigate(AuthRoutes.ROLE_SELECTION) {
-                        popUpTo(route) { inclusive = true }
-                    }
+            UserMainScreen(
+                onInstitutionManageClick = {
+                    navController.navigate(UserRoutes.INSTITUTION_LIST)
                 },
+                onPaymentManageClick = {
+                    navController.navigate(UserRoutes.PAYMENT_LIST)
+                },
+                onRegisterPalmprintClick = {
+                    navController.navigate(UserRoutes.REGISTER_PALMPRINT)
+                },
+                onDeletePalmprintClick = {
+                    navController.navigate(UserRoutes.DELETE_PALMPRINT)
+                },
+                onHistoryClick = {
+                    navController.navigate(UserRoutes.HISTORY_LIST)
+                },
+                onHowToUseClick = { navController.navigate(UserRoutes.MAIN) },
+                onSignOutClick = { navController.navigate(UserRoutes.MAIN) },
+                authViewModel = authViewModel
+            )
+        }
 
-                /** 회원탈퇴 버튼 누르면 DeleteAccountScreen 으로 이동 */
-                onDeleteAccountClick = {
-                    navController.navigate(UserRoutes.DELETE_ACCOUNT)
+        /**
+         * --------------------------------------------------------------------
+         * 2) 내 인증기관 목록
+         * --------------------------------------------------------------------
+         */
+        composable(UserRoutes.INSTITUTION_LIST) {
+            InstitutionListScreen(
+                onInstitutionClick = { institutionId ->
+                    navController.navigate(UserRoutes.deleteInstitution(institutionId))
+                },
+                onAddInstitutionClick = {
+                    navController.navigate(UserRoutes.ADD_INSTITUTION)
                 }
             )
         }
 
-        /* --------------------------------------------------------------------
-         * 2️. 회원탈퇴 확인 화면
-         * -------------------------------------------------------------------- */
-        composable(UserRoutes.DELETE_ACCOUNT) {
-            DeleteAccountScreen(
-                onDeleteSuccess = {
-                    navController.navigate(AuthRoutes.ROLE_SELECTION) {
-                        popUpTo(0) { inclusive = true }
+        /**
+         * --------------------------------------------------------------------
+         * 3) 내 인증기관 추가
+         * --------------------------------------------------------------------
+         */
+        composable(UserRoutes.ADD_INSTITUTION) {
+            AddInstitutionScreen(
+                onAddSuccess = {
+                    navController.popBackStack()
+                },
+                onCancel = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        /**
+         * --------------------------------------------------------------------
+         * 4) 내 인증기관 삭제
+         * --------------------------------------------------------------------
+         */
+        composable(
+            route = UserRoutes.DELETE_INSTITUTION,
+            arguments = listOf(navArgument("institutionId") { type = NavType.IntType })
+        ) { entry ->
+            val institutionId = entry.arguments?.getInt("institutionId") ?: return@composable
+
+            DeleteInstitutionScreen(
+                institutionId = institutionId,
+                onConfirmDelete = {
+                    // DeleteInstitution 제거하고 InstitutionList로 복귀 (리스트 재조회)
+                    navController.popBackStack()
+                },
+                onCancel = {
+                    // 아니오 → 이전 화면(=InstitutionList)로
+                    navController.popBackStack()
+                }
+            )
+        }
+
+
+        /**
+         * 결제 수단 목록
+         */
+        composable(UserRoutes.PAYMENT_LIST) {
+            PaymentListScreen(
+                onPaymentMethodClick = { paymentMethodId ->
+                    navController.navigate(UserRoutes.deletePayment(paymentMethodId))
+                },
+                onAddPaymentClick = {
+                    navController.navigate(UserRoutes.ADD_PAYMENT)
+                }
+            )
+        }
+
+        /**
+         * 결제 수단 추가
+         */
+        composable(UserRoutes.ADD_PAYMENT) {
+            AddPaymentScreen(
+                onAddSuccess = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() }
+            )
+        }
+
+        /**
+         * 결제 수단 삭제
+         */
+        composable(
+            route = UserRoutes.DELETE_PAYMENT,
+            arguments = listOf(navArgument("paymentMethodId") { type = NavType.IntType })
+        ) { entry ->
+            val paymentMethodId = entry.arguments?.getInt("paymentMethodId") ?: return@composable
+
+            DeletePaymentScreen(
+                paymentMethodId = paymentMethodId,
+                onConfirmDelete = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() }
+            )
+        }
+
+        /**
+         * 히스토리 목록
+         */
+        composable(UserRoutes.HISTORY_LIST) {
+            HistoryListScreen(
+                onHistoryClick = { log ->
+                    // 현재 엔트리에 선택 로그 저장 후 신고 화면 이동
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("selected_log", log)
+
+                    navController.navigate(UserRoutes.REPORT_HISTORY)
+                }
+            )
+        }
+
+        /**
+         * 히스토리 신고
+         */
+        composable(UserRoutes.REPORT_HISTORY) {
+            val log = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<UserVerificationLog>("selected_log")
+                ?: return@composable
+
+            ReportHistoryScreen(
+                log = log,
+                onReportSuccess = {
+                    navController.navigate(UserRoutes.MAIN) {
+                        popUpTo(UserRoutes.MAIN) { inclusive = false }
+                        launchSingleTop = true
                     }
                 },
                 onCancel = { navController.popBackStack() }
@@ -64,24 +200,35 @@ fun NavGraphBuilder.userGraph(
         }
 
         /**
-         * --------------------------------------------------------------------
-         * 3. (추가 예정) 결제 내역 화면
-         * --------------------------------------------------------------------
+         * 손바닥 등록
+         * - 성공 시 CommonResultScreen 내부에서 "메인으로 돌아가기" 버튼 클릭 → MAIN 이동
          */
-        // composable(UserRoutes.PAYMENT_LIST) { ... }
+        composable(UserRoutes.REGISTER_PALMPRINT) {
+            RegisterPalmprintScreen(
+                onGoMain = { navController.navigateToUserMainRefresh() }
+            )
+        }
 
         /**
-         * --------------------------------------------------------------------
-         * 4. (추가 예정) 기관 리스트 화면
-         * --------------------------------------------------------------------
+         * 손바닥 삭제
+         * - 성공 시 CommonResultScreen 내부에서 "메인으로 돌아가기" 버튼 클릭 → MAIN 이동
          */
-        // composable(UserRoutes.INSTITUTION_LIST) { ... }
+        composable(UserRoutes.DELETE_PALMPRINT) {
+            DeletePalmprintScreen(
+                onGoMain = { navController.navigateToUserMainRefresh() },
+                onCancel = { navController.popBackStack() }
+            )
+        }
+    }
+}
 
-        /**
-         * --------------------------------------------------------------------
-         * 5. (추가 예정) 히스토리(출입/인증 기록) 화면
-         * --------------------------------------------------------------------
-         */
-        // composable(UserRoutes.HISTORY_LIST) { ... }
+/**
+ * MAIN으로 "새로 진입"시키는 방식
+ * - MAIN을 재생성하여 UserMainScreen의 LaunchedEffect(Unit) refresh가 확실히 동작
+ */
+private fun NavController.navigateToUserMainRefresh() {
+    navigate(UserRoutes.MAIN) {
+        popUpTo(UserRoutes.MAIN) { inclusive = true }
+        launchSingleTop = true
     }
 }

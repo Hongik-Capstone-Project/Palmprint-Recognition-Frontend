@@ -42,10 +42,10 @@
             </intent-filter>
         </activity>
 
-        <!-- 다른 Activity들은 exported=false로 유지 -->
-        <activity
-            android:name=".ui.admin.dashboard.AdminDashboardActivity"
-            android:exported="false" />
+<!--        &lt;!&ndash; 다른 Activity들은 exported=false로 유지 &ndash;&gt;-->
+<!--        <activity-->
+<!--            android:name=".ui.admin.dashboard.AdminDashboardActivity"-->
+<!--            android:exported="false" />-->
 
         <provider
             android:name="androidx.core.content.FileProvider"

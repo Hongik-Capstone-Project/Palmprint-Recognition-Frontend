@@ -9,18 +9,14 @@ import com.example.palmprint_recognition.data.model.DeviceListResponse
 import com.example.palmprint_recognition.data.model.DeviceInfo
 import com.example.palmprint_recognition.data.model.ErrorResponse
 import com.example.palmprint_recognition.data.model.RegisterDeviceRequest
+import com.example.palmprint_recognition.data.model.RegisterDeviceResponse
 import com.example.palmprint_recognition.data.model.ReportInfo
 import com.example.palmprint_recognition.data.model.ReportListResponse
-import com.example.palmprint_recognition.data.model.UpdateReportStatusRequest
 import com.example.palmprint_recognition.data.model.UserListResponse
 import com.example.palmprint_recognition.data.model.VerificationListResponse
 import com.example.palmprint_recognition.data.model.VerificationSummaryResponse
 import com.google.gson.Gson
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.HttpException
-import java.io.File
 import javax.inject.Inject
 
 class AdminRepositoryImpl @Inject constructor(
@@ -55,9 +51,9 @@ class AdminRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun addUser(name: String, email: String, password: String, isAdmin: Boolean): AddUserResponse {
+    override suspend fun addUser(name: String, email: String, password: String): AddUserResponse {
         return try {
-            val request = AddUserRequest(name, email, password, isAdmin)
+            val request = AddUserRequest(name, email, password)
             adminApi.addUser(request)
         } catch (e: HttpException) {
             throw parseError(e)
@@ -89,9 +85,9 @@ class AdminRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun registerDevice(id: Int, institutionName: String, location: String): DeviceInfo {
+    override suspend fun registerDevice(institutionId: Int, location: String): RegisterDeviceResponse {
         return try {
-            val request = RegisterDeviceRequest(id, institutionName, location)
+            val request = RegisterDeviceRequest(institutionId, location)
             adminApi.registerDevice(request)
         } catch (e: HttpException) {
             throw parseError(e)
@@ -143,8 +139,7 @@ class AdminRepositoryImpl @Inject constructor(
 
     override suspend fun updateReportStatus(reportId: Int, status: String): ReportInfo {
         return try {
-            val request = UpdateReportStatusRequest(status)
-            adminApi.updateReportStatus(reportId, request)
+            adminApi.updateReportStatus(reportId, status)
         } catch (e: HttpException) {
             throw parseError(e)
         }
