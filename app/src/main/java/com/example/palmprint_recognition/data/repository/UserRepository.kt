@@ -32,7 +32,11 @@ interface UserRepository {
 
     suspend fun getPalmprintRegistrationStatus(): PalmprintRegistrationStatusResponse
 
-    suspend fun registerPalmprint(palmprintData: String): RegisterPalmprintResponse
+    /**
+     * @param palmprintData Base64 string
+     * @param userId 서버가 user_id를 요구할 때만 사용 (그 외 null)
+     */
+    suspend fun registerPalmprint(palmprintData: String, userId: Int? = null): RegisterPalmprintResponse
 
     suspend fun deletePalmprint()
 

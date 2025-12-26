@@ -67,57 +67,58 @@ data class AddPaymentMethodRequest(
 
 
 /**
- * 손바닥 등록 여부 조회 API의 성공 응답 모델
- *
- * @property status 응답 상태
- * @property userId 사용자 ID
- * @property isPalmprintRegistered 손바닥 등록 여부
+ * 손바닥 등록 여부 조회 응답 (백엔드 미완성 대비: 필드 nullable)
  */
 data class PalmprintRegistrationStatusResponse(
-    val status: String,
+    // 서버가 status/message를 줄 수도, 안 줄 수도 있어서 nullable
+    val status: String? = null,
+
     @SerializedName("user_id")
-    val userId: String,
+    val userId: Int? = null,
+
+    // 서버가 palmprint_registered 또는 is_registered 등으로 바뀔 수 있어 현재는 하나로 유지
     @SerializedName("palmprint_registered")
-    val isPalmprintRegistered: Boolean
+    val isPalmprintRegistered: Boolean = false,
+
+    // 추후 서버에서 palmprint_id 같은 걸 내려주면 받을 수 있게 확장 포인트
+    @SerializedName("palmprint_id")
+    val palmprintId: String? = null
 )
 
 /**
- * 손바닥 등록 API의 요청 모델
- *
- * @property palmprintData Base64 인코딩된 손바닥 데이터
+ * 손바닥 등록 요청
+ * - 지금은 base64로 보낸다고 가정
+ * - 추후 서버가 user_id를 요구하면 userId 사용
  */
 data class RegisterPalmprintRequest(
+    @SerializedName("user_id")
+    val userId: Int? = null,
+
     @SerializedName("palmprint_data")
     val palmprintData: String
 )
 
 /**
- * 손바닥 등록 API 응답의 palmprint 필드 모델
- *
- * @property palmprintId 등록된 손바닥의 ID
- * @property createdAt 등록 시각
- */
-data class RegisteredPalmprintInfo(
-    @SerializedName("palmprint_id")
-    val palmprintId: String,
-    @SerializedName("created_at")
-    val createdAt: String
-)
-
-/**
- * 손바닥 등록 API의 전체 성공 응답 모델
- *
- * @property status 응답 상태
- * @property userId 사용자 ID
- * @property palmprint 등록된 손바닥 정보
- * @property message 성공 메시지
+ * 손바닥 등록 응답 (백엔드 미완성 대비: 모두 nullable)
  */
 data class RegisterPalmprintResponse(
-    val status: String,
+    val status: String? = null,
+
     @SerializedName("user_id")
-    val userId: String,
-    val palmprint: RegisteredPalmprintInfo,
-    val message: String
+    val userId: Int? = null,
+
+    // 서버가 palmprint 객체를 줄 수도 / 안 줄 수도 있음
+    val palmprint: RegisteredPalmprintInfo? = null,
+
+    val message: String? = null
+)
+
+data class RegisteredPalmprintInfo(
+    @SerializedName("palmprint_id")
+    val palmprintId: String? = null,
+
+    @SerializedName("created_at")
+    val createdAt: String? = null
 )
 
 

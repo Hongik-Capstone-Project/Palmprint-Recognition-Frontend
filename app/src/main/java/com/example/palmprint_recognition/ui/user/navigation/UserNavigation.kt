@@ -17,6 +17,8 @@ import com.example.palmprint_recognition.ui.user.features.payments.screens.Payme
 import com.example.palmprint_recognition.data.model.UserVerificationLog
 import com.example.palmprint_recognition.ui.user.features.histories.screens.HistoryListScreen
 import com.example.palmprint_recognition.ui.user.features.histories.screens.ReportHistoryScreen
+import com.example.palmprint_recognition.ui.user.features.palmprint_management.screens.DeletePalmprintScreen
+import com.example.palmprint_recognition.ui.user.features.palmprint_management.screens.RegisterPalmprintScreen
 
 /**
  * ============================================================================
@@ -48,8 +50,12 @@ fun NavGraphBuilder.userGraph(
                 onPaymentManageClick = {
                     navController.navigate(UserRoutes.PAYMENT_LIST)
                 },
-                onRegisterPalmprintClick = { navController.navigate(UserRoutes.MAIN) },
-                onDeletePalmprintClick = { navController.navigate(UserRoutes.MAIN) },
+                onRegisterPalmprintClick = {
+                    navController.navigate(UserRoutes.REGISTER_PALMPRINT)
+                },
+                onDeletePalmprintClick = {
+                    navController.navigate(UserRoutes.DELETE_PALMPRINT)
+                },
                 onHistoryClick = {
                     navController.navigate(UserRoutes.HISTORY_LIST)
                 },
@@ -83,7 +89,6 @@ fun NavGraphBuilder.userGraph(
         composable(UserRoutes.ADD_INSTITUTION) {
             AddInstitutionScreen(
                 onAddSuccess = {
-                    // AddInstitution 제거하고 InstitutionList로 복귀 (리스트 재조회)
                     navController.popBackStack()
                 },
                 onCancel = {
@@ -163,7 +168,7 @@ fun NavGraphBuilder.userGraph(
         composable(UserRoutes.HISTORY_LIST) {
             HistoryListScreen(
                 onHistoryClick = { log ->
-                    // ✅ 현재 엔트리에 선택 로그 저장 후 신고 화면 이동
+                    // 현재 엔트리에 선택 로그 저장 후 신고 화면 이동
                     navController.currentBackStackEntry
                         ?.savedStateHandle
                         ?.set("selected_log", log)
@@ -184,16 +189,46 @@ fun NavGraphBuilder.userGraph(
 
             ReportHistoryScreen(
                 log = log,
-                onReportSuccess = { navController.popBackStack() },
+                onReportSuccess = {
+                    navController.navigate(UserRoutes.MAIN) {
+                        popUpTo(UserRoutes.MAIN) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
                 onCancel = { navController.popBackStack() }
             )
         }
 
-        // --------------------------------------------------------------------
-        // 추가 예정 화면들
-        // --------------------------------------------------------------------
-        // composable(UserRoutes.PAYMENT_LIST) { ... }
-        // composable(UserRoutes.HISTORY_LIST) { ... }
-        // composable(UserRoutes.DELETE_ACCOUNT) { ... }
+        /**
+         * 손바닥 등록
+         * - 성공 시 CommonResultScreen 내부에서 "메인으로 돌아가기" 버튼 클릭 → MAIN 이동
+         */
+        composable(UserRoutes.REGISTER_PALMPRINT) {
+            RegisterPalmprintScreen(
+                onGoMain = { navController.navigateToUserMainRefresh() }
+            )
+        }
+
+        /**
+         * 손바닥 삭제
+         * - 성공 시 CommonResultScreen 내부에서 "메인으로 돌아가기" 버튼 클릭 → MAIN 이동
+         */
+        composable(UserRoutes.DELETE_PALMPRINT) {
+            DeletePalmprintScreen(
+                onGoMain = { navController.navigateToUserMainRefresh() },
+                onCancel = { navController.popBackStack() }
+            )
+        }
+    }
+}
+
+/**
+ * MAIN으로 "새로 진입"시키는 방식
+ * - MAIN을 재생성하여 UserMainScreen의 LaunchedEffect(Unit) refresh가 확실히 동작
+ */
+private fun NavController.navigateToUserMainRefresh() {
+    navigate(UserRoutes.MAIN) {
+        popUpTo(UserRoutes.MAIN) { inclusive = true }
+        launchSingleTop = true
     }
 }

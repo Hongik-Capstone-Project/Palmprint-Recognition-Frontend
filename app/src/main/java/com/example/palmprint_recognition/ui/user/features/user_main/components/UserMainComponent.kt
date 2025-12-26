@@ -16,6 +16,7 @@ import com.example.palmprint_recognition.ui.auth.AuthViewModel
 @Composable
 fun MainManagementSection(
     userName: String, // 추가
+    palmSubtitle: String, // 추가
     onInstitutionManageClick: () -> Unit,
     onPaymentManageClick: () -> Unit,
     onRegisterPalmprintClick: () -> Unit,
@@ -42,7 +43,7 @@ fun MainManagementSection(
 
         InfoCard(
             title = "손바닥 관리",
-            subtitle = "현재 손바닥이 정상적으로 등록되어있어요.",
+            subtitle = palmSubtitle, // 변경
             leftButtonText = "손바닥 등록",
             rightButtonText = "손바닥 삭제",
             onLeftClick = onRegisterPalmprintClick,
@@ -53,7 +54,7 @@ fun MainManagementSection(
 
         VerticalTwoButtons(
             firstText = "인증 내역 조회하기",
-            secondText = "MODEN AI 사용설명",
+            secondText = "PALM AI 사용설명",
             onFirstClick = onMyVerificationClick,
             onSecondClick = onHowToUseClick,
             width = null,

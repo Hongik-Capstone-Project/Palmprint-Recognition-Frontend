@@ -10,7 +10,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -21,25 +20,31 @@ import com.example.palmprint_recognition.ui.common.button.SingleCenterButton
 import com.example.palmprint_recognition.ui.common.layout.Footer
 import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
 import com.example.palmprint_recognition.ui.common.layout.RootLayoutScrollable
+import com.example.palmprint_recognition.ui.common.screens.ResultScreen
 import com.example.palmprint_recognition.ui.core.state.UiState
 import com.example.palmprint_recognition.ui.user.features.histories.viewmodel.ReportHistoryViewModel
 
 @Composable
 fun ReportHistoryScreen(
     log: UserVerificationLog,
-    onReportSuccess: () -> Unit,
+    onReportSuccess: () -> Unit, // 보통 "메인으로 돌아가기"
     onCancel: () -> Unit = onReportSuccess,
     viewModel: ReportHistoryViewModel = hiltViewModel()
 ) {
     val reportState by viewModel.reportState.collectAsStateWithLifecycle()
     val alreadyReported by viewModel.alreadyReported.collectAsStateWithLifecycle()
 
-    val isSuccess = reportState is UiState.Success
-    LaunchedEffect(isSuccess) {
-        if (isSuccess) {
-            onReportSuccess()
-            viewModel.clearState()
-        }
+    // 성공 시: 결과 화면(공용)으로 전환
+    if (reportState is UiState.Success) {
+        ResultScreen(
+            message = "신고가 접수되었습니다.\n불편을 드려 죄송합니다",
+            buttonText = "메인으로 돌아가기",
+            onButtonClick = {
+                viewModel.clearState()
+                onReportSuccess()
+            }
+        )
+        return
     }
 
     ReportHistoryContent(
@@ -79,7 +84,7 @@ private fun ReportHistoryContent(
             ) {
                 ReportHistoryLogSection(log = log)
 
-                // ✅ (1) 이미 신고된 상태로 진입하면 ReportReasonSection 숨김
+                // (1) 이미 신고된 상태로 진입하면 ReportReasonSection 숨김
                 if (!alreadyReported) {
                     ReportReasonSection(
                         reason = reason,
@@ -88,7 +93,6 @@ private fun ReportHistoryContent(
                     )
                 }
 
-                // 로컬/서버 에러
                 localErrorMessage?.let { Text(text = it) }
                 serverErrorMessage?.let { Text(text = it) }
 
@@ -102,7 +106,6 @@ private fun ReportHistoryContent(
         },
         footer = {
             Footer {
-                // ✅ (2) 이미 신고된 상태면 버튼 텍스트 변경 + 비활성화
                 val buttonText = if (alreadyReported) "이미 신고된 내역입니다" else "신고하기"
 
                 SingleCenterButton(
@@ -121,6 +124,10 @@ private fun ReportHistoryContent(
                         onReport(trimmed)
                     }
                 )
+
+                // 필요하면 취소 버튼도 추가 가능 (현재는 onCancel 파라미터만 유지)
+                // Spacer(Modifier.height(8.dp))
+                // SingleCenterButton(text = "취소", enabled = !isLoading, onClick = onCancel)
             }
         }
     )
@@ -149,12 +156,6 @@ private fun ReportHistoryLogSection(
     }
 }
 
-/**
- * ✅ 화면 전용 입력 박스
- * - ReportHistoryLogSection과 "동일한 박스 스타일" 적용
- * - multiline + 내용이 길어지면 height가 자연스럽게 늘어나도록 minHeight만 지정
- * - LabeledField 사용 안 함
- */
 @Composable
 private fun ReportReasonSection(
     reason: String,
@@ -218,29 +219,6 @@ private fun PreviewReportHistoryContent_NotReported() {
         log = log,
         reportState = UiState.Idle,
         alreadyReported = false,
-        onReport = {},
-        onCancel = {}
-    )
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun PreviewReportHistoryContent_AlreadyReported() {
-    val log = UserVerificationLog(
-        id = "694318c3afdd0d1fc2943a25",
-        createdAt = "2025-12-17T20:54:46.606000Z",
-        userId = 10,
-        institutionId = 1,
-        institutionName = "string",
-        location = "string",
-        isSuccess = false,
-        authType = "entry"
-    )
-
-    ReportHistoryContent(
-        log = log,
-        reportState = UiState.Error("Already reported"),
-        alreadyReported = true,
         onReport = {},
         onCancel = {}
     )

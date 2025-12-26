@@ -103,9 +103,12 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun registerPalmprint(palmprintData: String): RegisterPalmprintResponse {
+    override suspend fun registerPalmprint(palmprintData: String, userId: Int?): RegisterPalmprintResponse {
         return try {
-            val request = RegisterPalmprintRequest(palmprintData)
+            val request = RegisterPalmprintRequest(
+                userId = userId,           // 필요 없으면 null로 두면 됨
+                palmprintData = palmprintData
+            )
             userApi.registerPalmprint(request)
         } catch (e: HttpException) {
             throw parseError(e)
@@ -119,6 +122,7 @@ class UserRepositoryImpl @Inject constructor(
             throw parseError(e)
         }
     }
+
 
     override suspend fun getUserVerifications(page: Int, size: Int): PagedResponse<UserVerificationLog> {
         return try {
