@@ -24,6 +24,8 @@ interface UserRepository {
 
     suspend fun deleteUserInstitution(institutionId: Int)
 
+    suspend fun deleteMe()
+
     suspend fun getPaymentMethods(): List<PaymentMethod>
 
     suspend fun addPaymentMethod(cardName: String, cardId: String): PaymentMethod

@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import androidx.navigation.navArgument
 import com.example.palmprint_recognition.ui.auth.AuthViewModel
+import com.example.palmprint_recognition.ui.auth.features.logout.screens.LogoutScreen
 
 /* Dashboard */
 import com.example.palmprint_recognition.ui.admin.features.dashboard.screens.AdminDashboardScreen
@@ -49,7 +50,14 @@ fun NavGraphBuilder.adminGraph(
                 onDeviceManageClick = { navController.navigate(AdminRoutes.DEVICE_LIST) },
                 onReportManageClick = { navController.navigate(AdminRoutes.REPORT_LIST) },
                 onVerificationClick = { navController.navigate(AdminRoutes.VERIFICATION) },
-                        authViewModel = authViewModel // 전달
+                onLogoutClick = { navController.navigate(AdminRoutes.LOGOUT) }  // ✅ 추가
+            )
+        }
+
+        composable(AdminRoutes.LOGOUT) {
+            LogoutScreen(
+                onCancel = { navController.popBackStack() },
+                authViewModel = authViewModel
             )
         }
 

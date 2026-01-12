@@ -1,7 +1,7 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="186dp"
+    android:width="140dp"
     android:height="79dp"
-    android:viewportWidth="186"
+    android:viewportWidth="140"
     android:viewportHeight="79">
 
     <!-- Left Icon Paths -->

@@ -66,7 +66,13 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-
+    override suspend fun deleteMe() {
+        try {
+            userApi.deleteMe() // 204면 그냥 성공
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
 
 
     override suspend fun getPaymentMethods(): List<PaymentMethod> {

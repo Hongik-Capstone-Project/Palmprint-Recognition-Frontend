@@ -19,6 +19,8 @@ import com.example.palmprint_recognition.ui.user.features.histories.screens.Hist
 import com.example.palmprint_recognition.ui.user.features.histories.screens.ReportHistoryScreen
 import com.example.palmprint_recognition.ui.user.features.palmprint_management.screens.DeletePalmprintScreen
 import com.example.palmprint_recognition.ui.user.features.palmprint_management.screens.RegisterPalmprintScreen
+import com.example.palmprint_recognition.ui.user.features.sign_out.screens.SignOutScreen
+import com.example.palmprint_recognition.ui.auth.features.logout.screens.LogoutScreen
 
 /**
  * ============================================================================
@@ -44,23 +46,28 @@ fun NavGraphBuilder.userGraph(
          */
         composable(UserRoutes.MAIN) {
             UserMainScreen(
-                onInstitutionManageClick = {
-                    navController.navigate(UserRoutes.INSTITUTION_LIST)
-                },
-                onPaymentManageClick = {
-                    navController.navigate(UserRoutes.PAYMENT_LIST)
-                },
-                onRegisterPalmprintClick = {
-                    navController.navigate(UserRoutes.REGISTER_PALMPRINT)
-                },
-                onDeletePalmprintClick = {
-                    navController.navigate(UserRoutes.DELETE_PALMPRINT)
-                },
-                onHistoryClick = {
-                    navController.navigate(UserRoutes.HISTORY_LIST)
-                },
+                onInstitutionManageClick = { navController.navigate(UserRoutes.INSTITUTION_LIST) },
+                onPaymentManageClick = { navController.navigate(UserRoutes.PAYMENT_LIST) },
+                onRegisterPalmprintClick = { navController.navigate(UserRoutes.REGISTER_PALMPRINT) },
+                onDeletePalmprintClick = { navController.navigate(UserRoutes.DELETE_PALMPRINT) },
+                onHistoryClick = { navController.navigate(UserRoutes.HISTORY_LIST) },
                 onHowToUseClick = { navController.navigate(UserRoutes.MAIN) },
-                onSignOutClick = { navController.navigate(UserRoutes.MAIN) },
+                onLogoutClick = { navController.navigate(UserRoutes.LOGOUT) },
+                onSignOutClick = { navController.navigate(UserRoutes.DELETE_ACCOUNT) },
+                authViewModel = authViewModel
+            )
+        }
+
+        composable(UserRoutes.LOGOUT) {
+            LogoutScreen(
+                onCancel = { navController.popBackStack() },
+                authViewModel = authViewModel
+            )
+        }
+
+        composable(UserRoutes.DELETE_ACCOUNT) {
+            SignOutScreen(
+                onCancel = { navController.popBackStack() },
                 authViewModel = authViewModel
             )
         }
