@@ -23,7 +23,7 @@ import javax.inject.Singleton
 object NetworkModule {
 
     // 실제 배포된 백엔드 서버 주소로 변경
-    private const val BASE_URL = "http://54.180.254.119:8000/"
+    private const val BASE_URL = "http://43.203.103.107:8000/"
 
     // Gson
     @Provides
