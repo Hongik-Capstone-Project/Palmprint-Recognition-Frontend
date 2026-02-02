@@ -3,6 +3,7 @@ package com.example.palmprint_recognition.ui.admin.navigation
 object AdminRoutes {
 
     const val DASHBOARD = "admin_dashboard"
+    const val LOGOUT = "admin_logout"
 
     // USER
     const val USER_LIST = "admin_user_list"

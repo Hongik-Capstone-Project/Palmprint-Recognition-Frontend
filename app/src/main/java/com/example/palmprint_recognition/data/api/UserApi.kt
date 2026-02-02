@@ -24,34 +24,41 @@ import retrofit2.http.Query
 interface UserApi {
 
 
-        /**
-         * 현재 로그인된 사용자의 등록된 기관 목록 조회
-         * GET /api/users/me/institutions
-         * Response: List<UserInstitution>
-         */
-        @GET("/api/users/me/institutions")
-        suspend fun getUserInstitutions(): List<UserInstitution>
+    /**
+     * 현재 로그인된 사용자의 등록된 기관 목록 조회
+     * GET /api/users/me/institutions
+     * Response: List<UserInstitution>
+     */
+    @GET("/api/users/me/institutions")
+    suspend fun getUserInstitutions(): List<UserInstitution>
 
-        /**
-         * 현재 로그인된 사용자에게 기관 추가
-         * POST /api/users/me/institutions
-         * Response: UserInstitution
-         */
-        @POST("/api/users/me/institutions")
-        suspend fun addUserInstitution(
-            @Body request: AddUserInstitutionRequest
-        ): UserInstitution
+    /**
+     * 현재 로그인된 사용자에게 기관 추가
+     * POST /api/users/me/institutions
+     * Response: UserInstitution
+     */
+    @POST("/api/users/me/institutions")
+    suspend fun addUserInstitution(
+        @Body request: AddUserInstitutionRequest
+    ): UserInstitution
 
-        /**
-         * 현재 로그인된 사용자의 특정 기관 연결 삭제
-         * DELETE /api/users/me/institutions/{institution_id}
-         * Response: 204 (Unit)
-         */
-        @DELETE("/api/users/me/institutions/{institution_id}")
-        suspend fun deleteUserInstitution(
-            @Path("institution_id") institutionId: Int
-        ): Unit
+    /**
+     * 현재 로그인된 사용자의 특정 기관 연결 삭제
+     * DELETE /api/users/me/institutions/{institution_id}
+     * Response: 204 (Unit)
+     */
+    @DELETE("/api/users/me/institutions/{institution_id}")
+    suspend fun deleteUserInstitution(
+        @Path("institution_id") institutionId: Int
+    ): Unit
 
+    /**
+     * 회원탈퇴 (현재 로그인한 사용자 삭제)
+     * DELETE /api/users/me
+     * Response: 204 (Unit)
+     */
+    @DELETE("/api/users/me")
+    suspend fun deleteMe(): Unit
 
     /**
      * 결제 수단 리스트 조회

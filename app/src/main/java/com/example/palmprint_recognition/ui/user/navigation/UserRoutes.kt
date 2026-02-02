@@ -8,8 +8,10 @@ object UserRoutes {
     /** 사용자 메인 화면 */
     const val MAIN = "user_main"
 
-    /** 회원탈퇴 확인 화면 (추가 예정) */
+    /** 회원탈퇴 확인 화면  */
     const val DELETE_ACCOUNT = "delete_account"
+
+    const val LOGOUT = "user_logout"
 
     // Institution
     const val INSTITUTION_LIST = "user_institution_list"
