@@ -11,7 +11,7 @@ import javax.inject.Inject
 
 data class PalmprintStatusUiState(
     val isLoading: Boolean = false,
-    val isRegistered: Boolean? = null, // null = 아직 모름/조회 실패
+    val totalCount: Int? = null,       // 등록된 손바닥 개수
     val errorMessage: String? = null
 )
 
@@ -24,35 +24,48 @@ class UserMainViewModel @Inject constructor(
     val palmStatus = _palmStatus.asStateFlow()
 
     private var inFlight = false
+    private var hasLoadedOnce = false
 
-    fun refreshPalmprintStatus() {
+    /**
+     * force=false: 최초 1회만 GET
+     * force=true: 등록/삭제 이후 갱신(요구사항)
+     */
+    fun refreshPalmCount(force: Boolean = false) {
         if (inFlight) return
+        if (!force && hasLoadedOnce) return
 
         viewModelScope.launch {
             inFlight = true
-            _palmStatus.value = _palmStatus.value.copy(
-                isLoading = true,
-                errorMessage = null
-            )
+            _palmStatus.value = _palmStatus.value.copy(isLoading = true, errorMessage = null)
 
             runCatching {
-                userRepository.getPalmprintRegistrationStatus()
+                userRepository.getMyPalms()
             }.onSuccess { res ->
+                hasLoadedOnce = true
                 _palmStatus.value = PalmprintStatusUiState(
                     isLoading = false,
-                    isRegistered = res.isPalmprintRegistered,
+                    totalCount = res.totalCount,
                     errorMessage = null
                 )
             }.onFailure { e ->
-                // 실패해도 앱이 죽지 않게: null로 두고 기본 문구 표시
+                // 실패해도 앱이 죽지 않게: totalCount는 null 유지
                 _palmStatus.value = PalmprintStatusUiState(
                     isLoading = false,
-                    isRegistered = null,
+                    totalCount = null,
                     errorMessage = e.message
                 )
             }
 
             inFlight = false
         }
+    }
+
+    /**
+     * (선택) 다른 화면에서 totalCount를 이미 알고 있을 때 주입 가능
+     * - 예: Register 화면에서 등록 후 GET까지 해서 totalCount를 알고 있음
+     */
+    fun setPalmCount(count: Int) {
+        hasLoadedOnce = true
+        _palmStatus.value = PalmprintStatusUiState(isLoading = false, totalCount = count)
     }
 }

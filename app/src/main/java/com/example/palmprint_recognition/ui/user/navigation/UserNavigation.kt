@@ -46,6 +46,7 @@ fun NavGraphBuilder.userGraph(
          */
         composable(UserRoutes.MAIN) {
             UserMainScreen(
+                navController = navController,
                 onInstitutionManageClick = { navController.navigate(UserRoutes.INSTITUTION_LIST) },
                 onPaymentManageClick = { navController.navigate(UserRoutes.PAYMENT_LIST) },
                 onRegisterPalmprintClick = { navController.navigate(UserRoutes.REGISTER_PALMPRINT) },
@@ -212,30 +213,29 @@ fun NavGraphBuilder.userGraph(
          */
         composable(UserRoutes.REGISTER_PALMPRINT) {
             RegisterPalmprintScreen(
-                onGoMain = { navController.navigateToUserMainRefresh() }
+                onGoMain = { navController.goMainAfterPalmChanged() }
             )
         }
 
         /**
          * 손바닥 삭제
-         * - 성공 시 CommonResultScreen 내부에서 "메인으로 돌아가기" 버튼 클릭 → MAIN 이동
          */
         composable(UserRoutes.DELETE_PALMPRINT) {
             DeletePalmprintScreen(
-                onGoMain = { navController.navigateToUserMainRefresh() },
+                onGoMain = { navController.goMainAfterPalmChanged() },
                 onCancel = { navController.popBackStack() }
             )
         }
     }
 }
 
-/**
- * MAIN으로 "새로 진입"시키는 방식
- * - MAIN을 재생성하여 UserMainScreen의 LaunchedEffect(Unit) refresh가 확실히 동작
- */
-private fun NavController.navigateToUserMainRefresh() {
-    navigate(UserRoutes.MAIN) {
-        popUpTo(UserRoutes.MAIN) { inclusive = true }
-        launchSingleTop = true
-    }
+private const val KEY_PALM_CHANGED = "palm_changed"
+
+private fun NavController.goMainAfterPalmChanged() {
+    // MAIN에 refresh가 필요하다는 신호를 저장
+    getBackStackEntry(UserRoutes.MAIN)
+        .savedStateHandle[KEY_PALM_CHANGED] = true
+
+    // MAIN으로 돌아가기 (재생성 X)
+    popBackStack(UserRoutes.MAIN, inclusive = false)
 }

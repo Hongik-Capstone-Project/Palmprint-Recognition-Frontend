@@ -4,7 +4,7 @@ import com.example.palmprint_recognition.data.api.UserApi
 import com.example.palmprint_recognition.data.model.AddUserInstitutionRequest
 import com.example.palmprint_recognition.data.model.ApiException
 import com.example.palmprint_recognition.data.model.ErrorResponse
-import com.example.palmprint_recognition.data.model.PalmprintRegistrationStatusResponse
+import com.example.palmprint_recognition.data.model.GetMyPalmsResponse
 import com.example.palmprint_recognition.data.model.PaymentMethod
 import com.example.palmprint_recognition.data.model.AddPaymentMethodRequest
 import com.example.palmprint_recognition.data.model.RegisterPalmprintRequest
@@ -101,18 +101,17 @@ class UserRepositoryImpl @Inject constructor(
     }
 
 
-    override suspend fun getPalmprintRegistrationStatus(): PalmprintRegistrationStatusResponse {
+    override suspend fun getMyPalms(): GetMyPalmsResponse {
         return try {
-            userApi.getPalmprintRegistrationStatus()
+            userApi.getMyPalms()
         } catch (e: HttpException) {
             throw parseError(e)
         }
     }
 
-    override suspend fun registerPalmprint(palmprintData: String, userId: Int?): RegisterPalmprintResponse {
+    override suspend fun registerPalmprint(palmprintData: String): RegisterPalmprintResponse {
         return try {
             val request = RegisterPalmprintRequest(
-                userId = userId,           // 필요 없으면 null로 두면 됨
                 palmprintData = palmprintData
             )
             userApi.registerPalmprint(request)
@@ -121,9 +120,17 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deletePalmprint() {
+    override suspend fun deleteAllMyPalms() {
         try {
-            userApi.deletePalmprint()
+            userApi.deleteAllMyPalms()
+        } catch (e: HttpException) {
+            throw parseError(e)
+        }
+    }
+
+    override suspend fun deletePalm(palmId: Int) {
+        try {
+            userApi.deletePalm(palmId)
         } catch (e: HttpException) {
             throw parseError(e)
         }

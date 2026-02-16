@@ -1,7 +1,6 @@
 package com.example.palmprint_recognition.data.api
 
 import com.example.palmprint_recognition.data.model.AddUserInstitutionRequest
-import com.example.palmprint_recognition.data.model.PalmprintRegistrationStatusResponse
 import com.example.palmprint_recognition.data.model.RegisterPalmprintRequest
 import com.example.palmprint_recognition.data.model.RegisterPalmprintResponse
 import com.example.palmprint_recognition.data.model.UserInstitution
@@ -11,6 +10,7 @@ import com.example.palmprint_recognition.data.model.UserVerificationLog
 import com.example.palmprint_recognition.data.model.ReportVerificationRequest
 import com.example.palmprint_recognition.data.model.PaymentMethod
 import com.example.palmprint_recognition.data.model.AddPaymentMethodRequest
+import com.example.palmprint_recognition.data.model.GetMyPalmsResponse
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -89,18 +89,15 @@ interface UserApi {
     ): Unit
 
     /**
-     * 현재 로그인된 사용자의 손바닥 등록 여부를 조회하는 API
-     *
-     * @return 사용자의 손바닥 등록 여부
+     * 1) Get My Palms
+     * GET /api/users/me/palmprints
      */
     @GET("/api/users/me/palmprints")
-    suspend fun getPalmprintRegistrationStatus(): PalmprintRegistrationStatusResponse
+    suspend fun getMyPalms(): GetMyPalmsResponse
 
     /**
-     * 현재 로그인된 사용자의 손바닥 정보를 등록하는 API
-     *
-     * @param request 등록할 손바닥 데이터
-     * @return 등록된 손바닥 정보와 성공 메시지
+     * 2) Register Palm
+     * POST /api/users/me/palmprints
      */
     @POST("/api/users/me/palmprints")
     suspend fun registerPalmprint(
@@ -108,10 +105,20 @@ interface UserApi {
     ): RegisterPalmprintResponse
 
     /**
-     * 현재 로그인된 사용자의 손바닥 정보를 삭제하는 API
+     * 3) Delete All My Palms
+     * DELETE /api/users/me/palmprints/me/all
      */
-    @DELETE("/api/users/me/palmprints")
-    suspend fun deletePalmprint(): Unit
+    @DELETE("/api/users/me/palmprints/me/all")
+    suspend fun deleteAllMyPalms(): Unit
+
+    /**
+     * 4) Delete Palm
+     * DELETE /api/users/me/palmprints/me/{palm_id}
+     */
+    @DELETE("/api/users/me/palmprints/me/{palm_id}")
+    suspend fun deletePalm(
+        @Path("palm_id") palmId: Int
+    ): Unit
 
     /**
      * 내 인증(검증) 내역 조회 (페이지네이션)

@@ -38,8 +38,9 @@ fun RegisterPalmprintScreen(
 
     // 성공이면 공용 팝업으로 대체 렌더링
     if (uiState is UiState.Success) {
+        val success = (uiState as UiState.Success).data  // RegisterPalmprintSuccessUi
         ResultScreen(
-            message = "손바닥 등록을 완료했어요!",
+            message = success.message, // ViewModel이 준 message 사용
             buttonText = "메인으로 돌아가기",
             onButtonClick = {
                 viewModel.clearState()

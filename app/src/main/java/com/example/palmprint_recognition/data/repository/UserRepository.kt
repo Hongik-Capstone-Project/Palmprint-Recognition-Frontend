@@ -1,6 +1,6 @@
 package com.example.palmprint_recognition.data.repository
 
-import com.example.palmprint_recognition.data.model.PalmprintRegistrationStatusResponse
+import com.example.palmprint_recognition.data.model.GetMyPalmsResponse
 import com.example.palmprint_recognition.data.model.RegisterPalmprintResponse
 import com.example.palmprint_recognition.data.model.Institution
 import com.example.palmprint_recognition.data.model.PaymentMethod
@@ -32,15 +32,25 @@ interface UserRepository {
 
     suspend fun deletePaymentMethod(paymentMethodId: Int)
 
-    suspend fun getPalmprintRegistrationStatus(): PalmprintRegistrationStatusResponse
+    /**
+     * 내 손바닥 목록 조회
+     */
+    suspend fun getMyPalms(): GetMyPalmsResponse
 
     /**
-     * @param palmprintData Base64 string
-     * @param userId 서버가 user_id를 요구할 때만 사용 (그 외 null)
+     * 손바닥 등록 (Base64 string)
      */
-    suspend fun registerPalmprint(palmprintData: String, userId: Int? = null): RegisterPalmprintResponse
+    suspend fun registerPalmprint(palmprintData: String): RegisterPalmprintResponse
 
-    suspend fun deletePalmprint()
+    /**
+     * 손바닥 전체 삭제
+     */
+    suspend fun deleteAllMyPalms()
+
+    /**
+     * 손바닥 개별 삭제
+     */
+    suspend fun deletePalm(palmId: Int)
 
     suspend fun getUserVerifications(page: Int, size: Int): PagedResponse<UserVerificationLog>
 

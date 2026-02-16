@@ -14,9 +14,16 @@ import com.example.palmprint_recognition.ui.user.features.user_main.components.M
 import com.example.palmprint_recognition.ui.user.features.user_main.viewmodel.UserMainViewModel
 import com.example.palmprint_recognition.ui.auth.AuthViewModel
 import androidx.compose.runtime.collectAsState
+import androidx.navigation.NavController
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
+private const val KEY_PALM_CHANGED = "palm_changed"
+
 
 @Composable
 fun UserMainScreen(
+    navController: NavController,
     onInstitutionManageClick: () -> Unit,
     onPaymentManageClick: () -> Unit,
     onRegisterPalmprintClick: () -> Unit,
@@ -32,14 +39,38 @@ fun UserMainScreen(
     val name = authState.name ?: "사용자"
     val palmStatus by viewModel.palmStatus.collectAsStateWithLifecycle()
 
+    // 1) 최초 진입 시 1회만 (ViewModel이 hasLoadedOnce로 막음)
     LaunchedEffect(Unit) {
-        viewModel.refreshPalmprintStatus()
+        viewModel.refreshPalmCount(force = false)
     }
 
-    val palmSubtitle = when (palmStatus.isRegistered) {
-        true -> "현재 손바닥이 정상적으로 등록되어있어요."
-        false -> "등록된 손바닥 정보가 없습니다."
-        null -> "손바닥 등록 상태를 불러오는 중입니다."
+    // 2) 등록/삭제 후에만 refresh 하도록 플래그 감지
+    val palmChangedFlow = navController
+        .currentBackStackEntry
+        ?.savedStateHandle
+        ?.getStateFlow(KEY_PALM_CHANGED, false)
+
+    val palmChanged by (palmChangedFlow ?: kotlinx.coroutines.flow.flowOf(false))
+        .collectAsStateWithLifecycle(initialValue = false)
+
+    LaunchedEffect(palmChanged) {
+        if (palmChanged) {
+            // 플래그 소비(다음에 또 안 뜨게)
+            navController.currentBackStackEntry
+                ?.savedStateHandle
+                ?.set(KEY_PALM_CHANGED, false)
+
+            // 등록/삭제 후에만 강제 GET
+            viewModel.refreshPalmCount(force = true)
+        }
+    }
+
+
+    val palmSubtitle = when {
+        palmStatus.isLoading -> "손바닥 정보를 불러오는 중입니다"
+        palmStatus.totalCount == null -> "손바닥 정보를 불러오는 중입니다" // 실패/미확정도 동일 문구로 처리(요구사항에 맞춤)
+        palmStatus.totalCount == 0 -> "현재 등록된 손바닥이 없어요"
+        else -> "현재 ${palmStatus.totalCount}개의 손바닥이 등록되어 있어요"
     }
 
     RootLayoutScrollable(
