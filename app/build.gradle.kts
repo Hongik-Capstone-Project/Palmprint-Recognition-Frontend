@@ -38,7 +38,11 @@ android {
         jvmTarget = "11"
     }
 
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        buildConfig = true   // 추가
+    }
+
 }
 
 dependencies {
