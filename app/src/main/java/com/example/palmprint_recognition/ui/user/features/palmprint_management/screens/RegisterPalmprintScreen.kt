@@ -36,7 +36,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import java.io.File
-import com.example.palmprint_recognition.BuildConfig
+//import com.example.palmprint_recognition.BuildConfig
 
 
 @Composable
@@ -78,44 +78,26 @@ private fun RegisterPalmprintContent(
     onCaptured: (Bitmap) -> Unit,
     onGoMain: () -> Unit
 ) {
-    val context = LocalContext.current
-
     var capturedBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var localErrorMessage by remember { mutableStateOf<String?>(null) }
 
-    // 카메라가 저장할 Uri
-    var pendingUri by remember { mutableStateOf<Uri?>(null) }
+    // ✅ 방법 B: 커스텀 카메라 표시 여부
+    var showCamera by remember { mutableStateOf(false) }
 
     val isLoading = uiState is UiState.Loading
     val serverErrorMessage = (uiState as? UiState.Error)?.message
 
-    // ✅ 기본 카메라 실행 런처
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (!success) {
-            // 사용자가 취소한 경우도 여기에 들어옴
-            localErrorMessage = "촬영이 취소되었습니다."
-            return@rememberLauncherForActivityResult
-        }
-
-        val uri = pendingUri
-        if (uri == null) {
-            localErrorMessage = "촬영 결과를 찾을 수 없습니다."
-            return@rememberLauncherForActivityResult
-        }
-
-        val bmp = uriToBitmap(context, uri)
-        if (bmp == null) {
-            localErrorMessage = "촬영한 이미지를 불러오지 못했습니다."
-            return@rememberLauncherForActivityResult
-        }
-
-        capturedBitmap = bmp
-        onCaptured(bmp)
-
-        // 통신 확인용 로그(용량이 너무 크면 줄이기 위해 길이는 출력하지 않거나 일부만)
-        Log.d("PalmRegister", "Captured bitmap: ${bmp.width}x${bmp.height}")
+    // ✅ showCamera=true면 CameraScreen을 현재 화면 “대신” 보여줌
+    if (showCamera) {
+        CameraScreen(
+            onCaptured = { bmp ->
+                capturedBitmap = bmp
+                onCaptured(bmp)
+                showCamera = false
+            },
+            onCancel = { showCamera = false }
+        )
+        return
     }
 
     val canSubmit = (capturedBitmap != null) && !isLoading
@@ -136,21 +118,12 @@ private fun RegisterPalmprintContent(
                     color = Color(0xFF697077)
                 )
 
+                // ✅ 클릭하면 커스텀 카메라 화면으로 전환
                 CaptureBox(
                     bitmap = capturedBitmap,
                     onClickCapture = {
                         localErrorMessage = null
-
-                        // ✅ 촬영 저장 위치 Uri 생성
-                        val uri = createTempImageUri(context)
-                        if (uri == null) {
-                            localErrorMessage = "카메라 파일 Uri 생성 실패(설정 확인 필요)"
-                            return@CaptureBox
-                        }
-                        pendingUri = uri
-
-                        // ✅ 기본 카메라 앱 실행
-                        cameraLauncher.launch(uri)
+                        showCamera = true
                     }
                 )
 
@@ -179,18 +152,14 @@ private fun RegisterPalmprintContent(
                             return@SingleCenterButton
                         }
 
-                        // (선택) 너무 큰 이미지면 네트워크가 힘들 수 있어서 리사이즈 추천
                         val resized = bmp.resizeKeepingRatio(maxWidth = 720)
-
                         val base64 = bitmapToBase64Jpeg(resized)
                         if (base64.isBlank()) {
                             localErrorMessage = "이미지 처리 중 오류가 발생했습니다."
                             return@SingleCenterButton
                         }
 
-                        // ✅ 통신 확인용 로그(길이만)
                         Log.d("PalmRegister", "Base64 length = ${base64.length}")
-
                         onRegister(base64)
                     }
                 )
@@ -232,19 +201,19 @@ private fun CaptureBox(
 }
 
 
-private fun createTempImageUri(context: Context): Uri? {
-    return try {
-        val tempFile = File.createTempFile("palm_", ".jpg", context.cacheDir)
-        FileProvider.getUriForFile(
-            context,
-            "${BuildConfig.APPLICATION_ID}.fileprovider",
-            tempFile
-        )
-    } catch (e: Exception) {
-        Log.e("PalmRegister", "createTempImageUri failed", e)
-        null
-    }
-}
+//private fun createTempImageUri(context: Context): Uri? {
+//    return try {
+//        val tempFile = File.createTempFile("palm_", ".jpg", context.cacheDir)
+//        FileProvider.getUriForFile(
+//            context,
+//            "${BuildConfig.APPLICATION_ID}.fileprovider",
+//            tempFile
+//        )
+//    } catch (e: Exception) {
+//        Log.e("PalmRegister", "createTempImageUri failed", e)
+//        null
+//    }
+//}
 
 
 private fun uriToBitmap(context: Context, uri: Uri): Bitmap? {

@@ -104,6 +104,7 @@ dependencies {
     // Camera
     implementation("androidx.activity:activity-ktx:1.8.0")
     implementation("androidx.activity:activity-compose:1.8.0")
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.50")
