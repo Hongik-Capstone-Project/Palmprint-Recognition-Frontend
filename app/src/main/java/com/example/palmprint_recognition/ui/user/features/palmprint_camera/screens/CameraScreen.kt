@@ -29,7 +29,7 @@ import com.example.palmprint_recognition.ui.user.features.palmprint_camera.statu
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.bindCameraUseCases
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.calcGuideCropAreaRatioPercent
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.captureToFileThenBitmap
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.cropBitmapByGuideRect
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.cropBitmapByGuideOval
 
 /**
  * 손바닥 촬영용 커스텀 카메라 화면
@@ -187,7 +187,7 @@ fun CameraScreen(
                                 return@captureToFileThenBitmap
                             }
 
-                            val croppedBitmap = cropBitmapByGuideRect(
+                            val croppedBitmap = cropBitmapByGuideOval(
                                 bitmap = originalBitmap,
                                 viewW = previewWidth,
                                 viewH = previewHeight
@@ -202,7 +202,9 @@ fun CameraScreen(
 
                             Log.d(
                                 "PalmGuide",
-                                "Guide ratio = $ratio, avg = ${debugState.averageRatio}, count = ${debugState.ratioCount}"
+                                "original=${originalBitmap.width}x${originalBitmap.height}, " +
+                                        "cropped=${croppedBitmap.width}x${croppedBitmap.height}, " +
+                                        "ratio=$ratio"
                             )
 
                             val isTooSmall = ratio < 12f
