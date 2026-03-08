@@ -12,12 +12,43 @@ import com.example.palmprint_recognition.ui.auth.AuthViewModel
 import com.example.palmprint_recognition.ui.auth.navigation.AuthRoutes
 import com.example.palmprint_recognition.ui.auth.navigation.authGraph
 import com.example.palmprint_recognition.ui.user.navigation.userGraph
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.screens.CameraModuleTestScreen
+import androidx.navigation.compose.composable
 
+private const val IS_CAMERA_TEST_MODE = true
+private const val CAMERA_TEST_ROUTE = "camera_test"
+
+
+/**
+ * 앱 전체 루트 네비게이션
+ *
+ * 기능
+ * - 로그인 상태에 따라 Auth / Admin / User 그래프를 분기한다
+ * - 테스트 모드에서는 카메라 모듈 테스트 화면으로 바로 진입한다
+ *
+ * @param modifier Compose Modifier
+ * @param authViewModel 인증 상태를 관리하는 ViewModel
+ */
 @Composable
 fun AppNavHost(
     modifier: Modifier = Modifier,
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
+    if (IS_CAMERA_TEST_MODE) {
+        val navController = rememberNavController()
+
+        NavHost(
+            navController = navController,
+            startDestination = CAMERA_TEST_ROUTE,
+            modifier = modifier
+        ) {
+            composable(CAMERA_TEST_ROUTE) {
+                CameraModuleTestScreen()
+            }
+        }
+        return
+    }
+
     val authState by authViewModel.authState.collectAsStateWithLifecycle()
 
     // prefs 로딩 완료 전에는 NavHost를 만들지 않음 (깜빡임 방지)

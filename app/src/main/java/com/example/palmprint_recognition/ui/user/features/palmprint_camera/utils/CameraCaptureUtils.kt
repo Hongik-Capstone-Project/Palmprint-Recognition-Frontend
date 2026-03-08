@@ -2,7 +2,11 @@ package com.example.palmprint_recognition.ui.user.features.palmprint_camera.util
 
 import android.content.Context
 import android.graphics.Bitmap
-import androidx.camera.core.*
+import androidx.camera.core.AspectRatio
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
@@ -14,6 +18,11 @@ import java.io.File
 
 /**
  * CameraX Preview + ImageCapture 바인딩
+ *
+ * @param context Context
+ * @param lifecycleOwner LifecycleOwner
+ * @param previewView CameraX PreviewView
+ * @param onReadyCapture 준비된 ImageCapture 콜백
  */
 fun bindCameraUseCases(
     context: Context,
@@ -21,13 +30,10 @@ fun bindCameraUseCases(
     previewView: PreviewView,
     onReadyCapture: (ImageCapture) -> Unit
 ) {
-
     val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-
     val executor = ContextCompat.getMainExecutor(context)
 
     cameraProviderFuture.addListener({
-
         val cameraProvider = cameraProviderFuture.get()
 
         previewView.scaleType = PreviewView.ScaleType.FIT_CENTER
@@ -50,7 +56,6 @@ fun bindCameraUseCases(
         val selector = CameraSelector.DEFAULT_BACK_CAMERA
 
         cameraProvider.unbindAll()
-
         cameraProvider.bindToLifecycle(
             lifecycleOwner,
             selector,
@@ -59,20 +64,31 @@ fun bindCameraUseCases(
         )
 
         onReadyCapture(imageCapture)
-
     }, executor)
 }
 
 /**
- * 이미지 촬영 후 Bitmap으로 변환
+ * 이미지를 임시 파일로 저장한 뒤 Bitmap으로 변환한다
+ *
+ * 주의
+ * - EXIF 회전 보정 후
+ * - 프리뷰 방향과 Bitmap 방향을 한 번 더 맞춘다
+ *
+ * @param context Context
+ * @param imageCapture CameraX ImageCapture
+ * @param previewWidth 프리뷰 너비
+ * @param previewHeight 프리뷰 높이
+ * @param onSuccess 방향 보정이 끝난 Bitmap 콜백
+ * @param onFailure 실패 메시지 콜백
  */
 fun captureToFileThenBitmap(
     context: Context,
     imageCapture: ImageCapture,
+    previewWidth: Float,
+    previewHeight: Float,
     onSuccess: (Bitmap) -> Unit,
     onFailure: (String) -> Unit
 ) {
-
     val executor = ContextCompat.getMainExecutor(context)
 
     val photoFile = File.createTempFile(
@@ -91,20 +107,25 @@ fun captureToFileThenBitmap(
             override fun onImageSaved(
                 outputFileResults: ImageCapture.OutputFileResults
             ) {
+                val decodedBitmap = decodeBitmapWithExifRotation(photoFile.absolutePath)
 
-                val bmp = decodeBitmapWithExifRotation(photoFile.absolutePath)
-
-                if (bmp == null) {
+                if (decodedBitmap == null) {
                     onFailure("촬영 이미지 디코딩 실패")
-                } else {
-                    onSuccess(bmp)
+                    return
                 }
+
+                val alignedBitmap = alignBitmapToPreviewOrientation(
+                    bitmap = decodedBitmap,
+                    previewWidth = previewWidth,
+                    previewHeight = previewHeight
+                )
+
+                onSuccess(alignedBitmap)
             }
 
             override fun onError(
                 exception: ImageCaptureException
             ) {
-
                 onFailure("촬영 실패: ${exception.message}")
             }
         }

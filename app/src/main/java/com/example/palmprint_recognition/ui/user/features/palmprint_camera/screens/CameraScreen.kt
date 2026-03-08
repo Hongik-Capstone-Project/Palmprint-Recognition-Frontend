@@ -29,7 +29,7 @@ import com.example.palmprint_recognition.ui.user.features.palmprint_camera.statu
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.bindCameraUseCases
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.calcGuideCropAreaRatioPercent
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.captureToFileThenBitmap
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.cropBitmapByGuideOval
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.cropBitmapByGuideRect
 
 /**
  * 손바닥 촬영용 커스텀 카메라 화면
@@ -178,8 +178,11 @@ fun CameraScreen(
                     captureToFileThenBitmap(
                         context = context,
                         imageCapture = capture,
+                        previewWidth = previewWidth,
+                        previewHeight = previewHeight,
                         onSuccess = { originalBitmap ->
                             isCapturing = false
+
 
                             if (previewWidth <= 0f || previewHeight <= 0f) {
                                 errorMessage = "프리뷰 크기를 알 수 없어 crop을 건너뜁니다."
@@ -187,7 +190,7 @@ fun CameraScreen(
                                 return@captureToFileThenBitmap
                             }
 
-                            val croppedBitmap = cropBitmapByGuideOval(
+                            val croppedBitmap = cropBitmapByGuideRect(
                                 bitmap = originalBitmap,
                                 viewW = previewWidth,
                                 viewH = previewHeight
@@ -199,13 +202,6 @@ fun CameraScreen(
                             )
 
                             debugState = debugState.addRatio(ratio)
-
-                            Log.d(
-                                "PalmGuide",
-                                "original=${originalBitmap.width}x${originalBitmap.height}, " +
-                                        "cropped=${croppedBitmap.width}x${croppedBitmap.height}, " +
-                                        "ratio=$ratio"
-                            )
 
                             val isTooSmall = ratio < 12f
                             val isTooLarge = ratio > 45f
@@ -221,6 +217,13 @@ fun CameraScreen(
                             }
 
                             onCaptured(croppedBitmap)
+
+                            Log.d(
+                                "PalmCrop",
+                                "preview=${previewWidth}x${previewHeight}, " +
+                                        "original=${originalBitmap.width}x${originalBitmap.height}, " +
+                                        "cropped=${croppedBitmap.width}x${croppedBitmap.height}"
+                            )
                         },
                         onFailure = { message ->
                             isCapturing = false
