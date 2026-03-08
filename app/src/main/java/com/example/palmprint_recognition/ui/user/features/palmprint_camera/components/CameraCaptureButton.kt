@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.palmprint_recognition.ui.user.features.palmprint_management.components.CameraShutterIcon
 
 /**
  * 카메라 셔터 버튼
