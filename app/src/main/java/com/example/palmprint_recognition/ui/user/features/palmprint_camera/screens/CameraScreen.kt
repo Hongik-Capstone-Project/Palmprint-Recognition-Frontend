@@ -18,6 +18,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.*
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.bindCameraUseCases
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.captureToFileThenBitmap
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.cropBitmapByGuideRect
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.calcGuideCropAreaRatioPercent
 
 /**
  * 손바닥 촬영용 커스텀 카메라 화면
@@ -122,13 +126,49 @@ fun CameraScreen(
                 val cap = imageCapture
 
                 if (cap == null) {
-                    error = "카메라가 아직 준비되지 않았습니다."
+                    error = "카메라 준비 중입니다"
                     return@CameraCaptureButton
                 }
 
-                Log.d("CameraScreen", "Capture clicked")
+                isCapturing = true
+                error = null
 
-                // 실제 촬영 로직은 util 분리 단계에서 연결
+                captureToFileThenBitmap(
+                    context = context,
+                    imageCapture = cap,
+                    onSuccess = { bmp ->
+
+                        isCapturing = false
+
+                        if (previewW <= 0f || previewH <= 0f) {
+
+                            error = "프리뷰 크기 확인 실패"
+                            onCaptured(bmp)
+
+                            return@captureToFileThenBitmap
+                        }
+
+                        val cropped = cropBitmapByGuideRect(
+                            bitmap = bmp,
+                            viewW = previewW,
+                            viewH = previewH
+                        )
+
+                        val ratio = calcGuideCropAreaRatioPercent(
+                            bmp,
+                            cropped
+                        )
+
+                        Log.d("PalmGuide", "Guide ratio = $ratio")
+
+                        onCaptured(cropped)
+                    },
+                    onFailure = {
+
+                        isCapturing = false
+                        error = it
+                    }
+                )
             }
         }
 
