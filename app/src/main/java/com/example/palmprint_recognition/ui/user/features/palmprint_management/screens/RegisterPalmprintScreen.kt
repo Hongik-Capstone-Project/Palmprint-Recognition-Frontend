@@ -31,11 +31,8 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.FileProvider
-import java.io.File
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.screens.CameraScreen
+
 //import com.example.palmprint_recognition.BuildConfig
 
 
