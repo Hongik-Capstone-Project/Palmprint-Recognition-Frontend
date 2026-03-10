@@ -115,10 +115,14 @@ fun calculateRealtimeBlurScore(
     val width = image.width
     val height = image.height
 
+    if (!buffer.hasRemaining()) return 0f
+
     if (width < 3 || height < 3) return 0f
 
     val bytes = ByteArray(buffer.remaining())
     buffer.get(bytes)
+
+    if (bytes.isEmpty()) return 0f
 
     val sampledLuma = sampleCenterLumaRegion(
         source = bytes,

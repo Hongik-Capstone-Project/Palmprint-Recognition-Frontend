@@ -92,8 +92,8 @@ fun CameraScreen(
                     "frameIndex=${frameMetadata.frameIndex}, " +
                             "frame=${frameMetadata.width}x${frameMetadata.height}, " +
                             "rotation=${frameMetadata.rotationDegrees}, " +
-                            "timestamp=${frameMetadata.timestamp}, " +
                             "blur=${frameMetadata.blurScore}, " +
+                            "ratio=${frameMetadata.ratioEstimate}, " +
                             "condition=${frameMetadata.realtimeState.condition}"
                 )
             }
