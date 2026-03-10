@@ -192,25 +192,3 @@ fun cropBitmapByGuideRect(
     )
 }
 
-/**
- * 원본 이미지 대비 가이드 crop 영역의 면적 비율을 계산한다.
- *
- * 주의
- * - 이 값은 손바닥 실제 점유율이 아니다
- * - 직사각형 crop 영역이 원본 이미지에서 차지하는 면적 비율이다
- *
- * @param original 원본 Bitmap
- * @param cropped crop된 Bitmap
- * @return 원본 대비 crop 영역 면적 비율(%)
- */
-fun calcGuideCropAreaRatioPercent(
-    original: Bitmap,
-    cropped: Bitmap
-): Float {
-    val total = original.width.toFloat() * original.height.toFloat()
-    val part = cropped.width.toFloat() * cropped.height.toFloat()
-
-    if (total <= 0f) return 0f
-
-    return (part / total) * 100f
-}

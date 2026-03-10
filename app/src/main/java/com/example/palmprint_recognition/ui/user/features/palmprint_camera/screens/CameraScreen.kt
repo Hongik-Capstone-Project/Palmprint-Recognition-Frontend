@@ -25,11 +25,13 @@ import com.example.palmprint_recognition.ui.user.features.palmprint_camera.compo
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.CameraPermissionContent
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.CameraPreview
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.CameraStatusText
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCaptureCondition
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraGuideDebugState
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analyzeCapturedBitmap
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.bindCameraUseCases
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.calcGuideCropAreaRatioPercent
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.captureToFileThenBitmap
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.cropBitmapByGuideRect
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.toCameraConditionMessage
 
 /**
  * 손바닥 촬영용 커스텀 카메라 화면
@@ -98,8 +100,8 @@ fun CameraScreen(
             ) { capture ->
                 imageCapture = capture
             }
-        }.onFailure { e ->
-            Log.e("CameraScreen", "Camera bind failed", e)
+        }.onFailure { exception ->
+            Log.e("CameraScreen", "Camera bind failed", exception)
             errorMessage = "카메라 초기화에 실패했습니다."
         }
     }
@@ -183,7 +185,6 @@ fun CameraScreen(
                         onSuccess = { originalBitmap ->
                             isCapturing = false
 
-
                             if (previewWidth <= 0f || previewHeight <= 0f) {
                                 errorMessage = "프리뷰 크기를 알 수 없어 crop을 건너뜁니다."
                                 onCaptured(originalBitmap)
@@ -196,25 +197,23 @@ fun CameraScreen(
                                 viewH = previewHeight
                             )
 
-                            val ratio = calcGuideCropAreaRatioPercent(
-                                original = originalBitmap,
-                                cropped = croppedBitmap
+                            val analysisState = analyzeCapturedBitmap(
+                                originalBitmap = originalBitmap,
+                                croppedBitmap = croppedBitmap
                             )
 
-                            debugState = debugState.addRatio(ratio)
+                            debugState = debugState.addRatio(analysisState.ratio)
 
-                            val isTooSmall = ratio < 12f
-                            val isTooLarge = ratio > 45f
-
-                            if (isTooSmall) {
-                                errorMessage = "너무 멀리서 찍혔습니다. 손바닥을 타원에 더 맞춰주세요."
+                            if (analysisState.condition != CameraCaptureCondition.READY) {
+                                errorMessage = toCameraConditionMessage(
+                                    analysisState.condition
+                                )
                                 return@captureToFileThenBitmap
                             }
 
-                            if (isTooLarge) {
-                                errorMessage = "너무 가까이 찍혔습니다. 손바닥을 조금 멀리 해주세요."
-                                return@captureToFileThenBitmap
-                            }
+                            errorMessage = toCameraConditionMessage(
+                                analysisState.condition
+                            )
 
                             onCaptured(croppedBitmap)
 
@@ -222,7 +221,10 @@ fun CameraScreen(
                                 "PalmCrop",
                                 "preview=${previewWidth}x${previewHeight}, " +
                                         "original=${originalBitmap.width}x${originalBitmap.height}, " +
-                                        "cropped=${croppedBitmap.width}x${croppedBitmap.height}"
+                                        "cropped=${croppedBitmap.width}x${croppedBitmap.height}, " +
+                                        "ratio=${analysisState.ratio}, " +
+                                        "blur=${analysisState.blurScore}, " +
+                                        "condition=${analysisState.condition}"
                             )
                         },
                         onFailure = { message ->
