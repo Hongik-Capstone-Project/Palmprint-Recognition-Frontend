@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
@@ -27,11 +28,14 @@ import com.example.palmprint_recognition.ui.user.features.palmprint_camera.compo
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.CameraStatusText
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCaptureCondition
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraGuideDebugState
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraRealtimeState
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.CameraRealtimeFrameAnalyzer
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analyzeCapturedBitmap
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.bindCameraUseCases
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.captureToFileThenBitmap
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.cropBitmapByGuideRect
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.toCameraConditionMessage
+
 
 /**
  * 손바닥 촬영용 커스텀 카메라 화면
@@ -40,7 +44,8 @@ import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils
  * - CameraX 프리뷰 표시
  * - 손바닥 가이드라인 표시
  * - 촬영 버튼 처리
- * - crop 및 가이드 비율 계산
+ * - crop 및 촬영 조건 분석
+ * - 실시간 프레임 분석 구조 연결
  * - 촬영 결과를 상위 화면으로 전달
  *
  * @param onCaptured 촬영 완료된 Bitmap 콜백
@@ -66,10 +71,35 @@ fun CameraScreen(
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
 
     var debugState by remember { mutableStateOf(CameraGuideDebugState()) }
+    var realtimeState by remember { mutableStateOf(CameraRealtimeState()) }
 
     /**
-     * 카메라 권한 요청 런처
+     * 실시간 프레임 분석기
+     *
+     * - 프레임이 들어오는 구조 연결한다
+     * - 프레임 스킵: 5프레임 중 1개만 분석한다
      */
+    val realtimeAnalyzer = remember {
+        CameraRealtimeFrameAnalyzer(
+            analysisInterval = 5,
+            onFrameAvailable = { frameMetadata ->
+                realtimeState = frameMetadata.realtimeState.copy(
+                    isAnalyzing = false
+                )
+
+                Log.d(
+                    "CameraRealtime",
+                    "frameIndex=${frameMetadata.frameIndex}, " +
+                            "frame=${frameMetadata.width}x${frameMetadata.height}, " +
+                            "rotation=${frameMetadata.rotationDegrees}, " +
+                            "timestamp=${frameMetadata.timestamp}, " +
+                            "blur=${frameMetadata.blurScore}, " +
+                            "condition=${frameMetadata.realtimeState.condition}"
+                )
+            }
+        )
+    }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -79,16 +109,10 @@ fun CameraScreen(
         }
     }
 
-    /**
-     * 화면 진입 시 카메라 권한 요청
-     */
     LaunchedEffect(Unit) {
         permissionLauncher.launch(Manifest.permission.CAMERA)
     }
 
-    /**
-     * 권한 승인 후 CameraX 바인딩
-     */
     LaunchedEffect(hasPermission) {
         if (!hasPermission) return@LaunchedEffect
 
@@ -96,7 +120,8 @@ fun CameraScreen(
             bindCameraUseCases(
                 context = context,
                 lifecycleOwner = lifecycleOwner,
-                previewView = previewView
+                previewView = previewView,
+                analyzer = realtimeAnalyzer
             ) { capture ->
                 imageCapture = capture
             }
@@ -147,6 +172,15 @@ fun CameraScreen(
             )
         }
 
+        if (errorMessage == null) {
+            CameraStatusText(
+                text = realtimeState.message,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 96.dp)
+            )
+        }
+
         debugState.lastRatio?.let { last ->
             val average = debugState.averageRatio ?: last
 
@@ -155,6 +189,15 @@ fun CameraScreen(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = 140.dp)
+            )
+        }
+
+        realtimeState.blurScore?.let { blur ->
+            CameraStatusText(
+                text = "realtime blur: ${"%.1f".format(blur)}",
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 184.dp)
             )
         }
 

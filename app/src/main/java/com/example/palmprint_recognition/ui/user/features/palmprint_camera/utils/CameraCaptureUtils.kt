@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
@@ -17,17 +18,28 @@ import java.io.File
  */
 
 /**
- * CameraX Preview + ImageCapture 바인딩
+ * CameraX Preview + ImageCapture + ImageAnalysis 바인딩
+ *
+ * 역할
+ * - 카메라 프리뷰 표시
+ * - 사진 촬영 기능 연결
+ * - 실시간 프레임 분석 기능 연결
+ *
+ * 현재 단계
+ * - ImageAnalysis 구조만 먼저 추가한다
+ * - 실제 blur 계산/프레임 스킵 로직은 다음 단계에서 추가한다
  *
  * @param context Context
  * @param lifecycleOwner LifecycleOwner
  * @param previewView CameraX PreviewView
+ * @param analyzer 실시간 프레임 분석기
  * @param onReadyCapture 준비된 ImageCapture 콜백
  */
 fun bindCameraUseCases(
     context: Context,
     lifecycleOwner: androidx.lifecycle.LifecycleOwner,
     previewView: PreviewView,
+    analyzer: ImageAnalysis.Analyzer,
     onReadyCapture: (ImageCapture) -> Unit
 ) {
     val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
@@ -53,6 +65,15 @@ fun bindCameraUseCases(
             .setTargetRotation(rotation)
             .build()
 
+        val imageAnalysis = ImageAnalysis.Builder()
+            .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .setOutputImageRotationEnabled(true)
+            .build()
+            .also {
+                it.setAnalyzer(executor, analyzer)
+            }
+
         val selector = CameraSelector.DEFAULT_BACK_CAMERA
 
         cameraProvider.unbindAll()
@@ -60,7 +81,8 @@ fun bindCameraUseCases(
             lifecycleOwner,
             selector,
             preview,
-            imageCapture
+            imageCapture,
+            imageAnalysis
         )
 
         onReadyCapture(imageCapture)
@@ -105,7 +127,7 @@ fun captureToFileThenBitmap(
         object : ImageCapture.OnImageSavedCallback {
 
             override fun onImageSaved(
-                outputFileResults: ImageCapture.OutputFileResults
+                outputFileResults: androidx.camera.core.ImageCapture.OutputFileResults
             ) {
                 val decodedBitmap = decodeBitmapWithExifRotation(photoFile.absolutePath)
 
