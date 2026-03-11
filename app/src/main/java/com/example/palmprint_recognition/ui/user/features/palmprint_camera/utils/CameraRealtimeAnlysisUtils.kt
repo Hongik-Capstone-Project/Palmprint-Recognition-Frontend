@@ -22,6 +22,7 @@ private const val DEFAULT_REALTIME_BLUR_THRESHOLD = 80f
  * @property frameIndex 누적 프레임 번호
  * @property blurScore 실시간 blur score
  * @property ratioEstimate 실시간 ratio 근사값
+ * @property tiltScore 실시간 tilt 점수
  * @property realtimeState 실시간 상태 결과
  */
 data class CameraFrameMetadata(
@@ -32,6 +33,7 @@ data class CameraFrameMetadata(
     val frameIndex: Long,
     val blurScore: Float,
     val ratioEstimate: Float,
+    val tiltScore: Float,
     val realtimeState: CameraRealtimeState
 )
 
@@ -46,7 +48,10 @@ fun shouldAnalyzeFrame(
     frameIndex: Long,
     interval: Int = DEFAULT_ANALYSIS_INTERVAL
 ): Boolean {
-    if (interval <= 1) return true
+    if (interval <= 1) {
+        return true
+    }
+
     return frameIndex % interval == 0L
 }
 
@@ -56,7 +61,7 @@ fun shouldAnalyzeFrame(
  * 역할
  * - 프리뷰 프레임을 계속 전달받는다
  * - 프레임 스킵 로직을 적용한다
- * - 실시간 blur score와 ratio 근사값을 계산한다
+ * - 실시간 blur / ratio / tilt를 계산한다
  * - 각 조건을 합쳐 최종 상태를 만든다
  *
  * 중요
@@ -64,11 +69,13 @@ fun shouldAnalyzeFrame(
  *
  * @param analysisInterval 몇 프레임마다 1번 분석할지 결정하는 주기
  * @param blurThreshold blur 최소 기준값
+ * @param conditionConfig 조건 활성화 설정
  * @param onFrameAvailable 분석 완료된 프레임 결과 콜백
  */
 class CameraRealtimeFrameAnalyzer(
     private val analysisInterval: Int = DEFAULT_ANALYSIS_INTERVAL,
     private val blurThreshold: Float = DEFAULT_REALTIME_BLUR_THRESHOLD,
+    private val conditionConfig: CameraConditionConfig = CameraConditionConfig(),
     private val onFrameAvailable: (CameraFrameMetadata) -> Unit
 ) : ImageAnalysis.Analyzer {
 
@@ -82,10 +89,11 @@ class CameraRealtimeFrameAnalyzer(
      * 2. 분석 대상 프레임인지 확인
      * 3. blur score 계산
      * 4. ratio 근사 계산
-     * 5. blur/ratio 상태 평가
-     * 6. 최종 상태 조합
-     * 7. 결과 콜백 전달
-     * 8. 항상 image.close() 호출
+     * 5. tilt score 계산
+     * 6. blur / ratio / tilt 상태 평가
+     * 7. 조건 on/off를 반영하여 최종 상태 조합
+     * 8. 결과 콜백 전달
+     * 9. 항상 image.close() 호출
      *
      * @param image CameraX 분석 프레임
      */
@@ -101,6 +109,7 @@ class CameraRealtimeFrameAnalyzer(
 
             val blurScore = calculateRealtimeBlurScore(image)
             val ratioEstimate = calculateRealtimeRatioEstimate(image)
+            val tiltScore = calculateRealtimeTiltScore(image)
 
             val blurCondition = evaluateRealtimeBlurCondition(
                 blurScore = blurScore,
@@ -111,17 +120,27 @@ class CameraRealtimeFrameAnalyzer(
                 ratioEstimate = ratioEstimate
             )
 
+            val tiltCondition = evaluateTiltCondition(
+                tiltScore = tiltScore
+            )
+
             val finalCondition = resolveCameraCaptureCondition(
                 ratioCondition = ratioCondition,
-                blurCondition = blurCondition
+                blurCondition = blurCondition,
+                tiltCondition = tiltCondition,
+                config = conditionConfig
             )
 
             val realtimeState = CameraRealtimeState(
                 isAnalyzing = false,
                 blurScore = blurScore,
                 ratioEstimate = ratioEstimate,
+                tiltScore = tiltScore,
+                ratioCondition = ratioCondition,
+                blurCondition = blurCondition,
+                tiltCondition = tiltCondition,
                 condition = finalCondition,
-                message = toRealtimeConditionMessage(finalCondition)
+                message = toCameraConditionMessage(finalCondition)
             )
 
             val metadata = CameraFrameMetadata(
@@ -132,6 +151,7 @@ class CameraRealtimeFrameAnalyzer(
                 frameIndex = frameIndex,
                 blurScore = blurScore,
                 ratioEstimate = ratioEstimate,
+                tiltScore = tiltScore,
                 realtimeState = realtimeState
             )
 
@@ -139,22 +159,5 @@ class CameraRealtimeFrameAnalyzer(
         } finally {
             image.close()
         }
-    }
-}
-
-/**
- * 실시간 촬영 상태를 사용자 메시지로 변환한다.
- *
- * @param condition 실시간 촬영 상태
- * @return 사용자 안내 문구
- */
-fun toRealtimeConditionMessage(
-    condition: CameraCaptureCondition
-): String {
-    return when (condition) {
-        CameraCaptureCondition.TOO_FAR -> "손바닥을 더 가까이 맞춰주세요."
-        CameraCaptureCondition.TOO_CLOSE -> "손바닥을 조금 멀리 해주세요."
-        CameraCaptureCondition.TOO_BLURRY -> "손을 잠시 멈춰주세요. 초점이 흐립니다."
-        CameraCaptureCondition.READY -> "촬영 가능한 상태입니다."
     }
 }

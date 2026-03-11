@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
@@ -29,13 +28,16 @@ import com.example.palmprint_recognition.ui.user.features.palmprint_camera.compo
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCaptureCondition
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraGuideDebugState
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraRealtimeState
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.CameraConditionConfig
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.CameraRealtimeFrameAnalyzer
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analyzeCapturedBitmap
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.bindCameraUseCases
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.captureToFileThenBitmap
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.cropBitmapByGuideRect
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.saveBitmapToGallery
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.toCameraConditionMessage
 
+private const val SAVE_CAPTURED_IMAGES_FOR_TEST = true
 
 /**
  * 손바닥 촬영용 커스텀 카메라 화면
@@ -47,6 +49,7 @@ import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils
  * - crop 및 촬영 조건 분석
  * - 실시간 프레임 분석 구조 연결
  * - 촬영 결과를 상위 화면으로 전달
+ * - 테스트용 원본 / crop 이미지 저장
  *
  * @param onCaptured 촬영 완료된 Bitmap 콜백
  * @param onCancel 카메라 종료 콜백
@@ -72,20 +75,37 @@ fun CameraScreen(
 
     var debugState by remember { mutableStateOf(CameraGuideDebugState()) }
     var realtimeState by remember { mutableStateOf(CameraRealtimeState()) }
+    var realtimeTiltScore by remember { mutableStateOf<Float?>(null) }
+
+    /**
+     * 실시간 조건 활성화 설정
+     *
+     * 테스트 중 특정 조건을 켜고 끄고 싶을 때 여기서 조정한다.
+     */
+    val conditionConfig = remember {
+        CameraConditionConfig(
+            useRatioCondition = false,
+            useBlurCondition = false,
+            useTiltCondition = true
+        )
+    }
 
     /**
      * 실시간 프레임 분석기
      *
-     * - 프레임이 들어오는 구조 연결한다
-     * - 프레임 스킵: 5프레임 중 1개만 분석한다
+     * - 프레임이 들어오는 구조 연결
+     * - 프레임 스킵: 5프레임 중 1개만 분석
+     * - blur / ratio / tilt 상태를 실시간 계산
      */
     val realtimeAnalyzer = remember {
         CameraRealtimeFrameAnalyzer(
             analysisInterval = 5,
+            conditionConfig = conditionConfig,
             onFrameAvailable = { frameMetadata ->
                 realtimeState = frameMetadata.realtimeState.copy(
                     isAnalyzing = false
                 )
+                realtimeTiltScore = frameMetadata.tiltScore
 
                 Log.d(
                     "CameraRealtime",
@@ -94,12 +114,16 @@ fun CameraScreen(
                             "rotation=${frameMetadata.rotationDegrees}, " +
                             "blur=${frameMetadata.blurScore}, " +
                             "ratio=${frameMetadata.ratioEstimate}, " +
+                            "tilt=${frameMetadata.tiltScore}, " +
                             "condition=${frameMetadata.realtimeState.condition}"
                 )
             }
         )
     }
 
+    /**
+     * 카메라 권한 요청 런처
+     */
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -109,12 +133,20 @@ fun CameraScreen(
         }
     }
 
+    /**
+     * 화면 진입 시 카메라 권한 요청
+     */
     LaunchedEffect(Unit) {
         permissionLauncher.launch(Manifest.permission.CAMERA)
     }
 
+    /**
+     * 권한 승인 후 CameraX 바인딩
+     */
     LaunchedEffect(hasPermission) {
-        if (!hasPermission) return@LaunchedEffect
+        if (!hasPermission) {
+            return@LaunchedEffect
+        }
 
         runCatching {
             bindCameraUseCases(
@@ -201,6 +233,15 @@ fun CameraScreen(
             )
         }
 
+        realtimeTiltScore?.let { tilt ->
+            CameraStatusText(
+                text = "realtime tilt: ${"%.3f".format(tilt)}",
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 228.dp)
+            )
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -242,7 +283,8 @@ fun CameraScreen(
 
                             val analysisState = analyzeCapturedBitmap(
                                 originalBitmap = originalBitmap,
-                                croppedBitmap = croppedBitmap
+                                croppedBitmap = croppedBitmap,
+                                conditionConfig = conditionConfig
                             )
 
                             debugState = debugState.addRatio(analysisState.ratio)
@@ -252,6 +294,27 @@ fun CameraScreen(
                                     analysisState.condition
                                 )
                                 return@captureToFileThenBitmap
+                            }
+
+                            if (SAVE_CAPTURED_IMAGES_FOR_TEST) {
+                                val timestamp = System.currentTimeMillis()
+
+                                val rawSaved = saveBitmapToGallery(
+                                    context = context,
+                                    bitmap = originalBitmap,
+                                    fileName = "palm_raw_$timestamp.jpg"
+                                )
+
+                                val cropSaved = saveBitmapToGallery(
+                                    context = context,
+                                    bitmap = croppedBitmap,
+                                    fileName = "palm_crop_$timestamp.jpg"
+                                )
+
+                                Log.d(
+                                    "PalmSave",
+                                    "rawSaved=$rawSaved, cropSaved=$cropSaved"
+                                )
                             }
 
                             errorMessage = toCameraConditionMessage(

@@ -12,5 +12,6 @@ enum class CameraCaptureCondition {
     TOO_FAR,
     TOO_CLOSE,
     TOO_BLURRY,
+    TILT_BAD,
     READY
 }
