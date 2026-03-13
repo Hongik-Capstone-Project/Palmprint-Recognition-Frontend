@@ -1,4 +1,4 @@
-package com.example.palmprint_recognition.ui.user.features.palmprint_camera.components
+package com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.guide
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
@@ -7,7 +7,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.calculateGuideSpec
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.guide.calculateGuideSpec
 
 /**
  * 손바닥 촬영 가이드라인 오버레이
@@ -45,12 +45,12 @@ fun CameraGuideOverlay(
 
         // 전체 마스크
         drawRect(
-            color = Color(0x88000000)
+            color = Color(0x22000000)
         )
 
         // 타원 내부를 조금 더 밝게 표시
         drawOval(
-            color = Color(0x22000000),
+            color = Color(0x00000000),
             topLeft = Offset(ovalRect.left, ovalRect.top),
             size = Size(ovalRect.width, ovalRect.height)
         )

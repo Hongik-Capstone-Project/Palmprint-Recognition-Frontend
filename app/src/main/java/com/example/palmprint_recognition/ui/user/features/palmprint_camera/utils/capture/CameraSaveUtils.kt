@@ -1,4 +1,4 @@
-package com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils
+package com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture
 
 import android.content.ContentValues
 import android.content.Context

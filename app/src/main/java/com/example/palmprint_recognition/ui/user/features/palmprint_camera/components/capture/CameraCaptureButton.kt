@@ -1,4 +1,4 @@
-package com.example.palmprint_recognition.ui.user.features.palmprint_camera.components
+package com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.capture
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box

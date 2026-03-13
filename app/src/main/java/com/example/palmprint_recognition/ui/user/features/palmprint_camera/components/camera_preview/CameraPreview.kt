@@ -1,4 +1,4 @@
-package com.example.palmprint_recognition.ui.user.features.palmprint_camera.components
+package com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.camera_preview
 
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable

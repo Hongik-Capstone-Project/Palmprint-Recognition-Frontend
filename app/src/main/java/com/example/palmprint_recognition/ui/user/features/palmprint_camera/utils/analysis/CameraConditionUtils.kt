@@ -1,4 +1,4 @@
-package com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils
+package com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis
 
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCaptureCondition
 
@@ -41,7 +41,7 @@ fun resolveCameraCaptureCondition(
     ratioCondition: CameraCaptureCondition,
     blurCondition: CameraCaptureCondition,
     tiltCondition: CameraCaptureCondition,
-    config: CameraConditionConfig = CameraConditionConfig()
+    config: CameraConditionConfig
 ): CameraCaptureCondition {
     val effectiveRatioCondition = if (config.useRatioCondition) {
         ratioCondition

@@ -1,4 +1,4 @@
-package com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils
+package com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.guide
 
 import android.graphics.Bitmap
 import androidx.compose.ui.geometry.Rect

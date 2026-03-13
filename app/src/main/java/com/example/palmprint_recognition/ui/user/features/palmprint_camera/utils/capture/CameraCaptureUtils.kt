@@ -1,4 +1,4 @@
-package com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils
+package com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -11,6 +11,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import java.io.File
 
 /**
@@ -37,7 +38,7 @@ import java.io.File
  */
 fun bindCameraUseCases(
     context: Context,
-    lifecycleOwner: androidx.lifecycle.LifecycleOwner,
+    lifecycleOwner: LifecycleOwner,
     previewView: PreviewView,
     analyzer: ImageAnalysis.Analyzer,
     onReadyCapture: (ImageCapture) -> Unit
@@ -127,7 +128,7 @@ fun captureToFileThenBitmap(
         object : ImageCapture.OnImageSavedCallback {
 
             override fun onImageSaved(
-                outputFileResults: androidx.camera.core.ImageCapture.OutputFileResults
+                outputFileResults: ImageCapture.OutputFileResults
             ) {
                 val decodedBitmap = decodeBitmapWithExifRotation(photoFile.absolutePath)
 

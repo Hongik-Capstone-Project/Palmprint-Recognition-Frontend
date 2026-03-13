@@ -1,12 +1,17 @@
-package com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils
+package com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis
 
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCaptureCondition
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.config.CameraAnalysisConfig
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraRealtimeState
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.blur.calculateRealtimeBlurScore
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.blur.evaluateBlurCondition
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.ratio.calculateRealtimeRatioEstimate
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.ratio.evaluateRatioCondition
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.tilt.calculateRealtimeTiltScore
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.tilt.evaluateTiltCondition
 
 private const val DEFAULT_ANALYSIS_INTERVAL = 5
-private const val DEFAULT_REALTIME_BLUR_THRESHOLD = 80f
 
 /**
  * 실시간 프리뷰 프레임 메타 정보
@@ -68,14 +73,12 @@ fun shouldAnalyzeFrame(
  * - ImageProxy는 반드시 close() 해야 한다
  *
  * @param analysisInterval 몇 프레임마다 1번 분석할지 결정하는 주기
- * @param blurThreshold blur 최소 기준값
  * @param conditionConfig 조건 활성화 설정
  * @param onFrameAvailable 분석 완료된 프레임 결과 콜백
  */
 class CameraRealtimeFrameAnalyzer(
     private val analysisInterval: Int = DEFAULT_ANALYSIS_INTERVAL,
-    private val blurThreshold: Float = DEFAULT_REALTIME_BLUR_THRESHOLD,
-    private val conditionConfig: CameraConditionConfig = CameraConditionConfig(),
+    private val conditionConfig: CameraConditionConfig = CameraAnalysisConfig.conditionConfig,
     private val onFrameAvailable: (CameraFrameMetadata) -> Unit
 ) : ImageAnalysis.Analyzer {
 
@@ -83,17 +86,6 @@ class CameraRealtimeFrameAnalyzer(
 
     /**
      * CameraX가 전달한 프레임을 처리한다.
-     *
-     * 처리 순서
-     * 1. 프레임 번호 증가
-     * 2. 분석 대상 프레임인지 확인
-     * 3. blur score 계산
-     * 4. ratio 근사 계산
-     * 5. tilt score 계산
-     * 6. blur / ratio / tilt 상태 평가
-     * 7. 조건 on/off를 반영하여 최종 상태 조합
-     * 8. 결과 콜백 전달
-     * 9. 항상 image.close() 호출
      *
      * @param image CameraX 분석 프레임
      */
@@ -108,20 +100,28 @@ class CameraRealtimeFrameAnalyzer(
             }
 
             val blurScore = calculateRealtimeBlurScore(image)
-            val ratioEstimate = calculateRealtimeRatioEstimate(image)
-            val tiltScore = calculateRealtimeTiltScore(image)
 
-            val blurCondition = evaluateRealtimeBlurCondition(
-                blurScore = blurScore,
-                blurThreshold = blurThreshold
+            val ratioEstimate = calculateRealtimeRatioEstimate(image)
+
+            val tiltScore = calculateRealtimeTiltScore(
+                image = image,
+                darkPixelThreshold = CameraAnalysisConfig.REALTIME_TILT_DARK_PIXEL_THRESHOLD
             )
 
-            val ratioCondition = evaluateRealtimeRatioCondition(
-                ratioEstimate = ratioEstimate
+            val blurCondition = evaluateBlurCondition(
+                blurScore = blurScore,
+                blurThreshold = CameraAnalysisConfig.REALTIME_BLUR_THRESHOLD
+            )
+
+            val ratioCondition = evaluateRatioCondition(
+                ratio = ratioEstimate,
+                tooFarThreshold = CameraAnalysisConfig.REALTIME_TOO_FAR_RATIO_THRESHOLD,
+                tooCloseThreshold = CameraAnalysisConfig.REALTIME_TOO_CLOSE_RATIO_THRESHOLD
             )
 
             val tiltCondition = evaluateTiltCondition(
-                tiltScore = tiltScore
+                tiltScore = tiltScore,
+                tiltOffsetThreshold = CameraAnalysisConfig.TILT_OFFSET_THRESHOLD
             )
 
             val finalCondition = resolveCameraCaptureCondition(
@@ -130,6 +130,8 @@ class CameraRealtimeFrameAnalyzer(
                 tiltCondition = tiltCondition,
                 config = conditionConfig
             )
+
+            val message = toCameraConditionMessage(finalCondition)
 
             val realtimeState = CameraRealtimeState(
                 isAnalyzing = false,
@@ -140,22 +142,22 @@ class CameraRealtimeFrameAnalyzer(
                 blurCondition = blurCondition,
                 tiltCondition = tiltCondition,
                 condition = finalCondition,
-                message = toCameraConditionMessage(finalCondition)
+                message = message
             )
 
-            val metadata = CameraFrameMetadata(
-                width = image.width,
-                height = image.height,
-                rotationDegrees = image.imageInfo.rotationDegrees,
-                timestamp = image.imageInfo.timestamp,
-                frameIndex = frameIndex,
-                blurScore = blurScore,
-                ratioEstimate = ratioEstimate,
-                tiltScore = tiltScore,
-                realtimeState = realtimeState
+            onFrameAvailable(
+                CameraFrameMetadata(
+                    width = image.width,
+                    height = image.height,
+                    rotationDegrees = image.imageInfo.rotationDegrees,
+                    timestamp = image.imageInfo.timestamp,
+                    frameIndex = frameIndex,
+                    blurScore = blurScore,
+                    ratioEstimate = ratioEstimate,
+                    tiltScore = tiltScore,
+                    realtimeState = realtimeState
+                )
             )
-
-            onFrameAvailable(metadata)
         } finally {
             image.close()
         }

@@ -1,4 +1,4 @@
-package com.example.palmprint_recognition.ui.user.features.palmprint_camera.components
+package com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.capture
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size

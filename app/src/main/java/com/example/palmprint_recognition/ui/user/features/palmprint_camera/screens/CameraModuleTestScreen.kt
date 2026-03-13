@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,6 +29,7 @@ import com.example.palmprint_recognition.ui.common.button.SingleCenterButton
 import com.example.palmprint_recognition.ui.common.layout.Footer
 import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
 import com.example.palmprint_recognition.ui.common.layout.RootLayoutScrollable
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCapturedResult
 import com.example.palmprint_recognition.ui.user.features.palmprint_management.components.AddSquareIcon
 import java.io.ByteArrayOutputStream
 
@@ -40,20 +40,32 @@ import java.io.ByteArrayOutputStream
  * - 서버 요청 없이 CameraScreen 동작을 확인한다
  * - 촬영 결과 Bitmap 표시를 확인한다
  * - Base64 변환이 정상 동작하는지 로그로 확인한다
+ * - blur / ratio / tilt 분석 결과를 화면에서 확인한다
  */
 @Composable
 fun CameraModuleTestScreen() {
     var capturedBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var capturedResult by remember { mutableStateOf<CameraCapturedResult?>(null) }
     var isCameraOpened by remember { mutableStateOf(false) }
     var debugMessage by remember { mutableStateOf("아직 촬영된 이미지가 없습니다.") }
 
     if (isCameraOpened) {
         CameraScreen(
-            onCaptured = { bitmap ->
-                capturedBitmap = bitmap
+            onCaptured = { result ->
+                capturedBitmap = result.croppedBitmap
+                capturedResult = result
                 isCameraOpened = false
+
                 debugMessage =
-                    "촬영 성공: ${bitmap.width} x ${bitmap.height}"
+                    "촬영 성공: ${result.croppedBitmap.width} x ${result.croppedBitmap.height}"
+
+                Log.d(
+                    "CameraModuleTest",
+                    "ratio=${result.analysisState.ratio}, " +
+                            "blur=${result.analysisState.blurScore}, " +
+                            "tilt=${result.analysisState.tiltScore}, " +
+                            "condition=${result.analysisState.condition}"
+                )
             },
             onCancel = {
                 isCameraOpened = false
@@ -92,6 +104,12 @@ fun CameraModuleTestScreen() {
                     text = debugMessage,
                     color = Color.DarkGray
                 )
+
+                capturedResult?.let { result ->
+                    CameraConditionDebugSection(
+                        result = result
+                    )
+                }
             }
         },
         footer = {
@@ -114,8 +132,8 @@ fun CameraModuleTestScreen() {
                         onClick = {
                             val bitmap = capturedBitmap ?: return@SingleCenterButton
                             val base64 = bitmapToBase64Jpeg(bitmap)
-                            debugMessage =
-                                "Base64 length = ${base64.length}"
+                            debugMessage = "Base64 length = ${base64.length}"
+
                             Log.d(
                                 "CameraModuleTest",
                                 "Base64 length = ${base64.length}"
@@ -172,6 +190,31 @@ private fun CameraTestPreviewBox(
                 )
             }
         }
+    }
+}
+
+/**
+ * 촬영 후 분석 결과를 화면에 표시한다.
+ *
+ * @param result 카메라 촬영 결과
+ */
+@Composable
+private fun CameraConditionDebugSection(
+    result: CameraCapturedResult
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(text = "촬영 분석 결과")
+        Text(text = "ratio: ${"%.2f".format(result.analysisState.ratio)}")
+        Text(text = "blur: ${"%.2f".format(result.analysisState.blurScore)}")
+        Text(text = "tilt: ${"%.4f".format(result.analysisState.tiltScore)}")
+        Text(text = "ratioCondition: ${result.analysisState.ratioCondition}")
+        Text(text = "blurCondition: ${result.analysisState.blurCondition}")
+        Text(text = "tiltCondition: ${result.analysisState.tiltCondition}")
+        Text(text = "finalCondition: ${result.analysisState.condition}")
+        Text(text = "message: ${result.analysisState.message}")
     }
 }
 

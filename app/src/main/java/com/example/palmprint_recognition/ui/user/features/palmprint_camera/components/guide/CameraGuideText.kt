@@ -1,4 +1,4 @@
-package com.example.palmprint_recognition.ui.user.features.palmprint_camera.components
+package com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.guide
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
