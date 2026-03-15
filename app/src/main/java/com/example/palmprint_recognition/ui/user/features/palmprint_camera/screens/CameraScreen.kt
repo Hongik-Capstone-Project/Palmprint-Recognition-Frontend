@@ -23,23 +23,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.camera_preview.CameraPreview
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.capture.CameraCaptureButton
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.guide.CameraGuideOverlay
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.guide.CameraGuideText
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.permission.CameraPermissionContent
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.camera_preview.CameraPreview
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.guide.CameraStatusText
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.permission.CameraPermissionContent
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.config.CameraAnalysisConfig
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCaptureCondition
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCapturedResult
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraGuideDebugState
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraRealtimeState
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.CameraRealtimeFrameAnalyzer
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.analyzeCapturedBitmap
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture.bindCameraUseCases
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture.captureToFileThenBitmap
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.guide.cropBitmapByGuideRect
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture.saveBitmapToGallery
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture.handleCapturedBitmap
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture.saveCapturedBitmapsForTest
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture.bindCameraUseCases
 
 private const val SAVE_CAPTURED_IMAGES_FOR_TEST = true
 private const val REALTIME_ANALYSIS_INTERVAL = 5
@@ -50,9 +49,8 @@ private const val REALTIME_ANALYSIS_INTERVAL = 5
  * 기능
  * - CameraX 프리뷰 표시
  * - 손바닥 가이드라인 표시
- * - 촬영 버튼 처리
- * - 촬영 후 crop 및 품질 분석
  * - 실시간 프레임 분석 결과 표시
+ * - 촬영 버튼 처리
  * - 촬영 결과를 상위 화면으로 전달
  *
  * @param onCaptured 촬영 완료 결과 콜백
@@ -85,9 +83,6 @@ fun CameraScreen(
 
     /**
      * 실시간 프레임 분석기
-     *
-     * - 프레임 스킵 적용
-     * - blur / ratio / tilt 상태를 계산
      */
     val realtimeAnalyzer = remember(conditionConfig) {
         CameraRealtimeFrameAnalyzer(
@@ -207,7 +202,8 @@ fun CameraScreen(
             val average = debugState.averageRatio ?: last
 
             CameraStatusText(
-                text = "frame ratio: ${"%.1f".format(last)}% / avg: ${"%.1f".format(average)}% (n=${debugState.ratioCount})",
+                text = "frame ratio: ${"%.1f".format(last)}% / avg: " +
+                        "${"%.1f".format(average)}% (n=${debugState.ratioCount})",
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = 140.dp)
@@ -264,19 +260,17 @@ fun CameraScreen(
                                 return@captureToFileThenBitmap
                             }
 
-                            val croppedBitmap = cropBitmapByGuideRect(
-                                bitmap = originalBitmap,
-                                viewW = previewWidth,
-                                viewH = previewHeight
-                            )
-
-                            val analysisState = analyzeCapturedBitmap(
+                            val captureResult = handleCapturedBitmap(
                                 originalBitmap = originalBitmap,
-                                croppedBitmap = croppedBitmap,
+                                previewWidth = previewWidth,
+                                previewHeight = previewHeight,
+                                debugState = debugState,
                                 conditionConfig = conditionConfig
                             )
 
-                            debugState = debugState.addRatio(analysisState.ratio)
+                            debugState = captureResult.updatedDebugState
+
+                            val analysisState = captureResult.capturedResult.analysisState
 
                             if (analysisState.condition != CameraCaptureCondition.READY) {
                                 errorMessage = analysisState.message
@@ -284,46 +278,16 @@ fun CameraScreen(
                             }
 
                             if (SAVE_CAPTURED_IMAGES_FOR_TEST) {
-                                val timestamp = System.currentTimeMillis()
-
-                                val rawSaved = saveBitmapToGallery(
+                                saveCapturedBitmapsForTest(
                                     context = context,
-                                    bitmap = originalBitmap,
-                                    fileName = "palm_raw_$timestamp.jpg"
-                                )
-
-                                val cropSaved = saveBitmapToGallery(
-                                    context = context,
-                                    bitmap = croppedBitmap,
-                                    fileName = "palm_crop_$timestamp.jpg"
-                                )
-
-                                Log.d(
-                                    "PalmSave",
-                                    "rawSaved=$rawSaved, cropSaved=$cropSaved"
+                                    result = captureResult.capturedResult
                                 )
                             }
 
                             errorMessage = analysisState.message
+                            onCaptured(captureResult.capturedResult)
 
-                            onCaptured(
-                                CameraCapturedResult(
-                                    originalBitmap = originalBitmap,
-                                    croppedBitmap = croppedBitmap,
-                                    analysisState = analysisState
-                                )
-                            )
-
-                            Log.d(
-                                "PalmCrop",
-                                "preview=${previewWidth}x${previewHeight}, " +
-                                        "original=${originalBitmap.width}x${originalBitmap.height}, " +
-                                        "cropped=${croppedBitmap.width}x${croppedBitmap.height}, " +
-                                        "ratio=${analysisState.ratio}, " +
-                                        "blur=${analysisState.blurScore}, " +
-                                        "tilt=${analysisState.tiltScore}, " +
-                                        "condition=${analysisState.condition}"
-                            )
+                            Log.d("PalmCrop", captureResult.logMessage)
                         },
                         onFailure = { message ->
                             isCapturing = false

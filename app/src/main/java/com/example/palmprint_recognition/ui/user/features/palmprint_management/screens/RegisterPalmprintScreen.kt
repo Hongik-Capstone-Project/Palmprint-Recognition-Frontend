@@ -2,13 +2,26 @@ package com.example.palmprint_recognition.ui.user.features.palmprint_management.
 
 import android.graphics.Bitmap
 import android.util.Base64
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -16,41 +29,42 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.palmprint_recognition.ui.common.button.SingleCenterButton
 import com.example.palmprint_recognition.ui.common.layout.Footer
 import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
 import com.example.palmprint_recognition.ui.common.layout.RootLayoutScrollable
-import com.example.palmprint_recognition.ui.common.button.SingleCenterButton
 import com.example.palmprint_recognition.ui.common.screens.ResultScreen
 import com.example.palmprint_recognition.ui.core.state.UiState
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCapturedResult
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.screens.CameraScreen
 import com.example.palmprint_recognition.ui.user.features.palmprint_management.components.AddSquareIcon
 import com.example.palmprint_recognition.ui.user.features.palmprint_management.viewmodel.RegisterPalmprintViewModel
 import java.io.ByteArrayOutputStream
-import android.content.Context
-import android.graphics.ImageDecoder
-import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
-import android.util.Log
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.screens.CameraScreen
 
-//import com.example.palmprint_recognition.BuildConfig
-
-
+/**
+ * 손바닥 등록 화면
+ *
+ * 기능
+ * - 커스텀 카메라 화면 진입
+ * - 촬영 결과 미리보기 표시
+ * - crop된 이미지를 Base64로 변환하여 등록 요청
+ * - 등록 성공 시 결과 화면 표시
+ *
+ * @param onGoMain 메인 화면 이동 콜백
+ * @param viewModel 손바닥 등록 ViewModel
+ */
 @Composable
 fun RegisterPalmprintScreen(
-    // “등록 완료 팝업”의 버튼을 눌렀을 때 이동(메인으로)
     onGoMain: () -> Unit,
-    // 카메라 화면으로 이동을 Navigation에서 처리하고 싶으면 이 콜백 사용
-    // 여기서는 간단히 "PalmCameraScreen을 같은 NavGraph에 두고 이동"하는 방식도 가능
-    viewModel: RegisterPalmprintViewModel = hiltViewModel(),
+    viewModel: RegisterPalmprintViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
-    // 성공이면 공용 팝업으로 대체 렌더링
     if (uiState is UiState.Success) {
-        val success = (uiState as UiState.Success).data  // RegisterPalmprintSuccessUi
+        val successState = (uiState as UiState.Success).data
+
         ResultScreen(
-            message = success.message, // ViewModel이 준 message 사용
+            message = successState.message,
             buttonText = "메인으로 돌아가기",
             onButtonClick = {
                 viewModel.clearState()
@@ -62,46 +76,55 @@ fun RegisterPalmprintScreen(
 
     RegisterPalmprintContent(
         uiState = uiState,
-        onRegister = { base64 -> viewModel.registerPalmprint(base64) },
-        onCaptured = { /* 필요 시 로깅/처리 */ },
-        onGoMain = onGoMain
+        onRegister = viewModel::registerPalmprint
     )
 }
 
+/**
+ * 손바닥 등록 화면 본문
+ *
+ * 역할
+ * - 카메라 표시 여부 제어
+ * - 촬영 결과 보관
+ * - 등록 버튼 클릭 처리
+ *
+ * @param uiState 등록 요청 상태
+ * @param onRegister Base64 등록 요청 콜백
+ */
 @Composable
 private fun RegisterPalmprintContent(
     uiState: UiState<*>,
-    onRegister: (String) -> Unit,
-    onCaptured: (Bitmap) -> Unit,
-    onGoMain: () -> Unit
+    onRegister: (String) -> Unit
 ) {
-    var capturedBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    var localErrorMessage by remember { mutableStateOf<String?>(null) }
-
-    // ✅ 방법 B: 커스텀 카메라 표시 여부
-    var showCamera by remember { mutableStateOf(false) }
+    var capturedResult by remember { mutableStateOf<CameraCapturedResult?>(null) }
+    var localMessage by remember { mutableStateOf<String?>(null) }
+    var isCameraOpened by remember { mutableStateOf(false) }
 
     val isLoading = uiState is UiState.Loading
     val serverErrorMessage = (uiState as? UiState.Error)?.message
 
-    // ✅ showCamera=true면 CameraScreen을 현재 화면 “대신” 보여줌
-    if (showCamera) {
+    if (isCameraOpened) {
         CameraScreen(
-            onCaptured = { bmp ->
-                capturedBitmap = bmp
-                onCaptured(bmp)
-                showCamera = false
+            onCaptured = { result ->
+                capturedResult = result
+                isCameraOpened = false
+                localMessage = buildCaptureSummaryMessage(result)
             },
-            onCancel = { showCamera = false }
+            onCancel = {
+                isCameraOpened = false
+            }
         )
         return
     }
 
-    val canSubmit = (capturedBitmap != null) && !isLoading
+    val previewBitmap = capturedResult?.croppedBitmap
+    val canSubmit = previewBitmap != null && !isLoading
 
     RootLayoutScrollable(
         sectionGap = 12.dp,
-        header = { HeaderContainer() },
+        header = {
+            HeaderContainer()
+        },
         body = {
             Column(
                 modifier = Modifier
@@ -110,28 +133,41 @@ private fun RegisterPalmprintContent(
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Text(text = "손바닥 등록하기")
+
                 Text(
                     text = "손바닥 인식의 정확성을 위해\n조명이 밝은 환경에서 가이드라인에 맞추어 촬영해주세요.",
                     color = Color(0xFF697077)
                 )
 
-                // ✅ 클릭하면 커스텀 카메라 화면으로 전환
-                CaptureBox(
-                    bitmap = capturedBitmap,
+                RegisterPalmprintCaptureBox(
+                    bitmap = previewBitmap,
                     onClickCapture = {
-                        localErrorMessage = null
-                        showCamera = true
+                        localMessage = null
+                        isCameraOpened = true
                     }
                 )
 
-                localErrorMessage?.let { Text(text = it, color = Color.Red) }
-                serverErrorMessage?.let { Text(text = it, color = Color.Red) }
+                localMessage?.let { message ->
+                    Text(
+                        text = message,
+                        color = Color.DarkGray
+                    )
+                }
+
+                serverErrorMessage?.let { message ->
+                    Text(
+                        text = message,
+                        color = Color.Red
+                    )
+                }
 
                 if (isLoading) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
-                    ) { CircularProgressIndicator() }
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
         },
@@ -141,22 +177,26 @@ private fun RegisterPalmprintContent(
                     text = "등록하기",
                     enabled = canSubmit,
                     onClick = {
-                        localErrorMessage = null
+                        localMessage = null
 
-                        val bmp = capturedBitmap
-                        if (bmp == null) {
-                            localErrorMessage = "손바닥 이미지를 먼저 촬영해주세요."
+                        val bitmap = capturedResult?.croppedBitmap
+                        if (bitmap == null) {
+                            localMessage = "손바닥 이미지를 먼저 촬영해주세요."
                             return@SingleCenterButton
                         }
 
-                        val resized = bmp.resizeKeepingRatio(maxWidth = 720)
-                        val base64 = bitmapToBase64Jpeg(resized)
+                        val resizedBitmap = resizeBitmapKeepingRatio(
+                            bitmap = bitmap,
+                            maxWidth = 720
+                        )
+
+                        val base64 = bitmapToBase64Jpeg(resizedBitmap)
                         if (base64.isBlank()) {
-                            localErrorMessage = "이미지 처리 중 오류가 발생했습니다."
+                            localMessage = "이미지 처리 중 오류가 발생했습니다."
                             return@SingleCenterButton
                         }
 
-                        Log.d("PalmRegister", "Base64 length = ${base64.length}")
+                        Log.d("PalmRegister", "Base64 length=${base64.length}")
                         onRegister(base64)
                     }
                 )
@@ -165,15 +205,19 @@ private fun RegisterPalmprintContent(
     )
 }
 
-
+/**
+ * 손바닥 촬영 결과 미리보기 박스
+ *
+ * @param bitmap 표시할 Bitmap
+ * @param onClickCapture 카메라 열기 콜백
+ */
 @Composable
-private fun CaptureBox(
+private fun RegisterPalmprintCaptureBox(
     bitmap: Bitmap?,
-    onClickCapture: () -> Unit,
-    modifier: Modifier = Modifier
+    onClickCapture: () -> Unit
 ) {
     Box(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .height(379.dp)
             .border(1.dp, Color(0xFF697077))
@@ -182,67 +226,89 @@ private fun CaptureBox(
         contentAlignment = Alignment.Center
     ) {
         if (bitmap == null) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 AddSquareIcon()
-                Spacer(Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(14.dp))
                 Text(text = "손바닥 촬영하기")
             }
         } else {
             Image(
                 bitmap = bitmap.asImageBitmap(),
-                contentDescription = "captured palm",
+                contentDescription = "captured palmprint",
                 modifier = Modifier.fillMaxSize()
             )
         }
     }
 }
 
-
-//private fun createTempImageUri(context: Context): Uri? {
-//    return try {
-//        val tempFile = File.createTempFile("palm_", ".jpg", context.cacheDir)
-//        FileProvider.getUriForFile(
-//            context,
-//            "${BuildConfig.APPLICATION_ID}.fileprovider",
-//            tempFile
-//        )
-//    } catch (e: Exception) {
-//        Log.e("PalmRegister", "createTempImageUri failed", e)
-//        null
-//    }
-//}
-
-
-private fun uriToBitmap(context: Context, uri: Uri): Bitmap? {
-    return try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val source = ImageDecoder.createSource(context.contentResolver, uri)
-            ImageDecoder.decodeBitmap(source)
-        } else {
-            @Suppress("DEPRECATION")
-            MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-        }
-    } catch (e: Exception) {
-        null
-    }
+/**
+ * 촬영 결과 요약 메시지를 생성한다.
+ *
+ * @param result 촬영 결과
+ * @return 사용자 표시용 메시지
+ */
+private fun buildCaptureSummaryMessage(
+    result: CameraCapturedResult
+): String {
+    return "촬영 성공: ${result.croppedBitmap.width} x ${result.croppedBitmap.height}, " +
+            "ratio=${"%.1f".format(result.analysisState.ratio)}, " +
+            "blur=${"%.1f".format(result.analysisState.blurScore)}, " +
+            "tilt=${"%.3f".format(result.analysisState.tiltScore)}"
 }
 
 /**
- * 큰 이미지면 Base64가 너무 커질 수 있어서(서버/네트워크 부담),
- * maxWidth 기준으로 비율 유지 리사이즈(초보자용 간단 버전)
+ * Bitmap을 비율 유지하며 축소한다.
+ *
+ * @param bitmap 원본 Bitmap
+ * @param maxWidth 최대 너비
+ * @return 축소된 Bitmap
  */
-private fun Bitmap.resizeKeepingRatio(maxWidth: Int): Bitmap {
-    if (this.width <= maxWidth) return this
-    val ratio = maxWidth.toFloat() / this.width.toFloat()
-    val newHeight = (this.height * ratio).toInt().coerceAtLeast(1)
-    return Bitmap.createScaledBitmap(this, maxWidth, newHeight, true)
+private fun resizeBitmapKeepingRatio(
+    bitmap: Bitmap,
+    maxWidth: Int
+): Bitmap {
+    if (bitmap.width <= maxWidth) {
+        return bitmap
+    }
+
+    val ratio = maxWidth.toFloat() / bitmap.width.toFloat()
+    val targetHeight = (bitmap.height * ratio).toInt().coerceAtLeast(1)
+
+    return Bitmap.createScaledBitmap(
+        bitmap,
+        maxWidth,
+        targetHeight,
+        true
+    )
 }
 
+/**
+ * Bitmap을 JPEG Base64 문자열로 변환한다.
+ *
+ * @param bitmap 변환할 Bitmap
+ * @return Base64 문자열
+ */
+private fun bitmapToBase64Jpeg(
+    bitmap: Bitmap
+): String {
+    val outputStream = ByteArrayOutputStream()
 
-private fun bitmapToBase64Jpeg(bitmap: Bitmap): String {
-    val baos = ByteArrayOutputStream()
-    val ok = bitmap.compress(Bitmap.CompressFormat.JPEG, 90, baos)
-    if (!ok) return ""
-    val bytes = baos.toByteArray()
-    return Base64.encodeToString(bytes, Base64.NO_WRAP)
+    val isSuccess = bitmap.compress(
+        Bitmap.CompressFormat.JPEG,
+        90,
+        outputStream
+    )
+
+    if (!isSuccess) {
+        return ""
+    }
+
+    val byteArray = outputStream.toByteArray()
+
+    return Base64.encodeToString(
+        byteArray,
+        Base64.NO_WRAP
+    )
 }
