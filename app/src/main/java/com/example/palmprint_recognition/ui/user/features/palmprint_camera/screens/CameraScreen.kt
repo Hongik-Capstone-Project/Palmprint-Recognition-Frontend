@@ -1,7 +1,6 @@
 package com.example.palmprint_recognition.ui.user.features.palmprint_camera.screens
 
 import android.Manifest
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.ImageCapture
@@ -30,15 +29,15 @@ import com.example.palmprint_recognition.ui.user.features.palmprint_camera.compo
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.guide.CameraStatusText
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.permission.CameraPermissionContent
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.config.CameraAnalysisConfig
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCaptureCondition
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCapturedResult
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraGuideDebugState
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraRealtimeState
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.CameraRealtimeFrameAnalyzer
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture.bindCameraUseCases
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture.captureToFileThenBitmap
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture.handleCapturedBitmap
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture.saveCapturedBitmapsForTest
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture.bindCameraUseCases
+import timber.log.Timber
 
 private const val SAVE_CAPTURED_IMAGES_FOR_TEST = true
 private const val REALTIME_ANALYSIS_INTERVAL = 5
@@ -81,9 +80,6 @@ fun CameraScreen(
         CameraAnalysisConfig.conditionConfig
     }
 
-    /**
-     * 실시간 프레임 분석기
-     */
     val realtimeAnalyzer = remember(conditionConfig) {
         CameraRealtimeFrameAnalyzer(
             analysisInterval = REALTIME_ANALYSIS_INTERVAL,
@@ -91,23 +87,21 @@ fun CameraScreen(
             onFrameAvailable = { frameMetadata ->
                 realtimeState = frameMetadata.realtimeState
 
-                Log.d(
-                    "CameraRealtime",
-                    "frameIndex=${frameMetadata.frameIndex}, " +
-                            "frame=${frameMetadata.width}x${frameMetadata.height}, " +
-                            "rotation=${frameMetadata.rotationDegrees}, " +
-                            "blur=${frameMetadata.blurScore}, " +
-                            "ratio=${frameMetadata.ratioEstimate}, " +
-                            "tilt=${frameMetadata.tiltScore}, " +
-                            "condition=${frameMetadata.realtimeState.condition}"
+                Timber.tag("CameraRealtime").d(
+                    "frameIndex=%d frame=%dx%d rotation=%d blur=%.1f ratio=%.1f tilt=%.3f condition=%s",
+                    frameMetadata.frameIndex,
+                    frameMetadata.width,
+                    frameMetadata.height,
+                    frameMetadata.rotationDegrees,
+                    frameMetadata.blurScore,
+                    frameMetadata.ratioEstimate,
+                    frameMetadata.tiltScore,
+                    frameMetadata.realtimeState.condition
                 )
             }
         )
     }
 
-    /**
-     * 카메라 권한 요청 런처
-     */
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -118,16 +112,10 @@ fun CameraScreen(
         }
     }
 
-    /**
-     * 화면 진입 시 카메라 권한 요청
-     */
     LaunchedEffect(Unit) {
         permissionLauncher.launch(Manifest.permission.CAMERA)
     }
 
-    /**
-     * 권한 승인 후 CameraX 바인딩
-     */
     LaunchedEffect(hasPermission) {
         if (!hasPermission) {
             return@LaunchedEffect
@@ -143,7 +131,7 @@ fun CameraScreen(
                 imageCapture = capture
             }
         }.onFailure { exception ->
-            Log.e("CameraScreen", "Camera bind failed", exception)
+            Timber.tag("CameraScreen").e(exception, "Camera bind failed")
             errorMessage = "카메라 초기화에 실패했습니다."
         }
     }
@@ -185,7 +173,7 @@ fun CameraScreen(
                 text = message,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(top = 96.dp)
+                    .padding(top = 100.dp)
             )
         }
 
@@ -194,19 +182,28 @@ fun CameraScreen(
                 text = realtimeState.message,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(top = 96.dp)
+                    .padding(top = 120.dp)
             )
         }
 
-        debugState.lastRatio?.let { last ->
-            val average = debugState.averageRatio ?: last
+        debugState.lastRatio?.let { lastRatio ->
+            val averageRatio = debugState.averageRatio ?: lastRatio
 
             CameraStatusText(
-                text = "frame ratio: ${"%.1f".format(last)}% / avg: " +
-                        "${"%.1f".format(average)}% (n=${debugState.ratioCount})",
+                text = "frame ratio: ${"%.1f".format(lastRatio)}% / avg: " +
+                        "${"%.1f".format(averageRatio)}% (n=${debugState.ratioCount})",
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = 140.dp)
+            )
+        }
+
+        realtimeState.ratioEstimate?.let { ratioEstimate ->
+            CameraStatusText(
+                text = "realtime ratio: ${"%.1f".format(ratioEstimate)}%",
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 184.dp)
             )
         }
 
@@ -215,7 +212,7 @@ fun CameraScreen(
                 text = "realtime blur: ${"%.1f".format(blurScore)}",
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(top = 184.dp)
+                    .padding(top = 228.dp)
             )
         }
 
@@ -224,14 +221,23 @@ fun CameraScreen(
                 text = "realtime tilt: ${"%.3f".format(tiltScore)}",
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(top = 228.dp)
+                    .padding(top = 272.dp)
             )
         }
+
+//        CameraStatusText(
+//            text = "ratioCond=${realtimeState.ratioCondition}, " +
+//                    "blurCond=${realtimeState.blurCondition}, " +
+//                    "tiltCond=${realtimeState.tiltCondition}",
+//            modifier = Modifier
+//                .align(Alignment.TopCenter)
+//                .padding(top = 316.dp)
+//        )
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 40.dp),
+                .padding(bottom = 20.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
             CameraCaptureButton(
@@ -272,9 +278,12 @@ fun CameraScreen(
 
                             val analysisState = captureResult.capturedResult.analysisState
 
-                            if (analysisState.condition != CameraCaptureCondition.READY) {
+                            if (analysisState.condition !=
+                                com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCaptureCondition.READY
+                            ) {
                                 errorMessage = analysisState.message
-                                return@captureToFileThenBitmap
+                            } else {
+                                errorMessage = analysisState.message
                             }
 
                             if (SAVE_CAPTURED_IMAGES_FOR_TEST) {
@@ -284,10 +293,9 @@ fun CameraScreen(
                                 )
                             }
 
-                            errorMessage = analysisState.message
                             onCaptured(captureResult.capturedResult)
 
-                            Log.d("PalmCrop", captureResult.logMessage)
+                            Timber.tag("PalmCrop").d(captureResult.logMessage)
                         },
                         onFailure = { message ->
                             isCapturing = false

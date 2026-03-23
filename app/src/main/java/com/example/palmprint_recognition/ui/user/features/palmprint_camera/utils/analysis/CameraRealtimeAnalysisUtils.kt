@@ -6,10 +6,11 @@ import com.example.palmprint_recognition.ui.user.features.palmprint_camera.confi
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraRealtimeState
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.blur.calculateRealtimeBlurScore
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.blur.evaluateBlurCondition
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.ratio.calculateRealtimeRatioEstimate
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.ratio.calculateRealtimeRatioMetrics
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.ratio.evaluateRatioCondition
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.tilt.calculateRealtimeTiltScore
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.tilt.evaluateTiltCondition
+import timber.log.Timber
 
 private const val DEFAULT_ANALYSIS_INTERVAL = 5
 
@@ -66,7 +67,7 @@ fun shouldAnalyzeFrame(
  * 역할
  * - 프리뷰 프레임을 계속 전달받는다
  * - 프레임 스킵 로직을 적용한다
- * - 실시간 blur / ratio / tilt를 계산한다
+ * - 실시간 blur, ratio, tilt를 계산한다
  * - 각 조건을 합쳐 최종 상태를 만든다
  *
  * 중요
@@ -101,7 +102,8 @@ class CameraRealtimeFrameAnalyzer(
 
             val blurScore = calculateRealtimeBlurScore(image)
 
-            val ratioEstimate = calculateRealtimeRatioEstimate(image)
+            val ratioMetrics = calculateRealtimeRatioMetrics(image)
+            val ratioEstimate = ratioMetrics.ratioScore
 
             val tiltScore = calculateRealtimeTiltScore(
                 image = image,
@@ -114,7 +116,8 @@ class CameraRealtimeFrameAnalyzer(
             )
 
             val ratioCondition = evaluateRatioCondition(
-                ratio = ratioEstimate,
+                centerOccupancyPercent = ratioMetrics.centerOccupancyPercent,
+                edgeTouchPercent = ratioMetrics.edgeTouchPercent,
                 tooFarThreshold = CameraAnalysisConfig.REALTIME_TOO_FAR_RATIO_THRESHOLD,
                 tooCloseThreshold = CameraAnalysisConfig.REALTIME_TOO_CLOSE_RATIO_THRESHOLD
             )
@@ -143,6 +146,20 @@ class CameraRealtimeFrameAnalyzer(
                 tiltCondition = tiltCondition,
                 condition = finalCondition,
                 message = message
+            )
+
+            Timber.tag("RealtimeAnalysis").d(
+                "frame=%d ratio=%.1f center=%.1f edge=%.1f blur=%.1f tilt=%.3f ratioCond=%s blurCond=%s tiltCond=%s final=%s",
+                frameIndex,
+                ratioEstimate,
+                ratioMetrics.centerOccupancyPercent,
+                ratioMetrics.edgeTouchPercent,
+                blurScore,
+                tiltScore,
+                ratioCondition,
+                blurCondition,
+                tiltCondition,
+                finalCondition
             )
 
             onFrameAvailable(

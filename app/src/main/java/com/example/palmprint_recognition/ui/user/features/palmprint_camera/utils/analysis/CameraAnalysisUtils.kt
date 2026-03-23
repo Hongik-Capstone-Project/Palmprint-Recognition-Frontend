@@ -3,10 +3,10 @@ package com.example.palmprint_recognition.ui.user.features.palmprint_camera.util
 import android.graphics.Bitmap
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.config.CameraAnalysisConfig
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraAnalysisState
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCaptureCondition
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.blur.calculateBitmapBlurScore
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.blur.evaluateBlurCondition
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.ratio.calculateBitmapRatioPercent
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.ratio.evaluateRatioCondition
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.tilt.calculateBitmapTiltScore
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.tilt.evaluateTiltCondition
 
@@ -47,7 +47,7 @@ fun analyzeCapturedBitmap(
         darkPixelThreshold = CameraAnalysisConfig.BITMAP_TILT_DARK_PIXEL_THRESHOLD
     )
 
-    val ratioCondition = evaluateRatioCondition(
+    val ratioCondition = evaluateBitmapRatioCondition(
         ratio = ratio,
         tooFarThreshold = CameraAnalysisConfig.TOO_FAR_RATIO_THRESHOLD,
         tooCloseThreshold = CameraAnalysisConfig.TOO_CLOSE_RATIO_THRESHOLD
@@ -82,4 +82,28 @@ fun analyzeCapturedBitmap(
         condition = finalCondition,
         message = message
     )
+}
+
+/**
+ * 촬영 후 Bitmap ratio 값을 기반으로 거리 관련 상태를 판단한다.
+ *
+ * 역할
+ * - 촬영 후 분석에서는 단일 ratio 값을 사용한다
+ * - TOO_FAR, TOO_CLOSE, READY를 모두 판단한다
+ *
+ * @param ratio 촬영 후 ratio 값(%)
+ * @param tooFarThreshold 너무 멀다고 판단하는 하한값
+ * @param tooCloseThreshold 너무 가깝다고 판단하는 상한값
+ * @return TOO_FAR, TOO_CLOSE 또는 READY
+ */
+private fun evaluateBitmapRatioCondition(
+    ratio: Float,
+    tooFarThreshold: Float,
+    tooCloseThreshold: Float
+): CameraCaptureCondition {
+    return when {
+        ratio < tooFarThreshold -> CameraCaptureCondition.TOO_FAR
+        ratio > tooCloseThreshold -> CameraCaptureCondition.TOO_CLOSE
+        else -> CameraCaptureCondition.READY
+    }
 }

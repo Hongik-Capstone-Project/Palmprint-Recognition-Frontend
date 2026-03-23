@@ -27,7 +27,8 @@ fun calculateRealtimeBlurScore(
     image: ImageProxy
 ): Float {
     val yPlane = image.planes.firstOrNull() ?: return 0f
-    val buffer = yPlane.buffer
+    val buffer = yPlane.buffer.duplicate()
+    buffer.rewind()
 
     if (!buffer.hasRemaining()) {
         return 0f

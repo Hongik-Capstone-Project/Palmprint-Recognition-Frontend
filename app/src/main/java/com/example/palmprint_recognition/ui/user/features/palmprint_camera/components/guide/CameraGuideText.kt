@@ -25,7 +25,7 @@ fun CameraGuideText(
     Column(
         modifier = modifier
             .background(Color(0x66000000))
-            .padding(vertical = 8.dp, horizontal = 12.dp),
+            .padding(vertical = 6.dp, horizontal = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 

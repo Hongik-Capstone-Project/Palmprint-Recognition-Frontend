@@ -38,11 +38,11 @@ fun CameraShutterIcon(
             radius = r * 0.62f
         )
 
-        // 작은 하이라이트(위쪽)
-        drawCircle(
-            color = Color(0xAAFFFFFF),
-            radius = r * 0.08f,
-            center = Offset(center.x - r * 0.25f, center.y - r * 0.25f)
-        )
+//        // 작은 하이라이트(위쪽)
+//        drawCircle(
+//            color = Color(0xAAFFFFFF),
+//            radius = r * 0.08f,
+//            center = Offset(center.x - r * 0.25f, center.y - r * 0.25f)
+//        )
     }
 }
