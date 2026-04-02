@@ -4,6 +4,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import com.example.palmprint_recognition.ui.demo.features.guide.screens.DemoGuideScreen
 import com.example.palmprint_recognition.ui.demo.features.home.screens.DemoHomeScreen
 import com.example.palmprint_recognition.ui.demo.features.register.screens.DemoRegisterScreen
 import com.example.palmprint_recognition.ui.demo.features.verify.screens.DemoVerifyScreen
@@ -46,6 +47,10 @@ fun NavGraphBuilder.demoGraph(
                 },
                 onBack = { navController.popBackStack() }
             )
+        }
+
+        composable(DemoRoutes.GUIDE) {
+            DemoGuideScreen()
         }
     }
 }
