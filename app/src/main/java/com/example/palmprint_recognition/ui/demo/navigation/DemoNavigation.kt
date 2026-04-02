@@ -19,7 +19,8 @@ fun NavGraphBuilder.demoGraph(
         composable(DemoRoutes.HOME) {
             DemoHomeScreen(
                 onRegisterClick = { navController.navigate(DemoRoutes.REGISTER) },
-                onVerifyClick = { navController.navigate(DemoRoutes.VERIFY) }
+                onVerifyClick = { navController.navigate(DemoRoutes.VERIFY) },
+                onGuideClick = { navController.navigate(DemoRoutes.GUIDE) }
             )
         }
 
