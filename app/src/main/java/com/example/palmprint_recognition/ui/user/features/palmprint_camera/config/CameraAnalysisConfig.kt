@@ -44,7 +44,7 @@ object CameraAnalysisConfig {
      * - TOO_FAR는 낮출수록 덜 예민해진다
      * - TOO_CLOSE는 높일수록 덜 예민해진다
      */
-    const val TOO_FAR_RATIO_THRESHOLD = 34f
+    const val TOO_FAR_RATIO_THRESHOLD = 10f
     const val TOO_CLOSE_RATIO_THRESHOLD = 78f
 
     /**

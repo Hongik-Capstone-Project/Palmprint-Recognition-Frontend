@@ -7,38 +7,40 @@ import kotlin.math.roundToInt
 private const val PREVIEW_ASPECT_RATIO = 3f / 4f
 
 /**
+ * 손바닥 가이드 이미지 크기/위치 조정 상수
+ *
+ * 설명
+ * - BASE_GUIDE_WIDTH_RATIO: 기존 기준 크기
+ * - GUIDE_SCALE: 기존 대비 확대 배율
+ * - GUIDE_TOP_OFFSET_RATIO: 프리뷰 상단에서 얼마나 아래로 내릴지
+ *
+ * 주의
+ * - GUIDE_SCALE을 크게 해도 실제 화면에서는 previewRect를 넘지 않도록 제한한다
+ */
+private const val BASE_GUIDE_WIDTH_RATIO = 0.78f
+private const val GUIDE_SCALE = 2f
+private const val GUIDE_TOP_OFFSET_RATIO = 0.03f
+
+/**
+ * 손바닥 PNG 가이드가 화면을 너무 벗어나지 않도록 제한하는 값
+ */
+private const val MAX_GUIDE_WIDTH_RATIO = 1.3f
+private const val MAX_GUIDE_HEIGHT_RATIO = 1.3f
+
+/**
  * 손바닥 촬영 가이드 영역 정보
  *
  * 역할
  * - previewRect: 실제 카메라 프리뷰가 보이는 영역
- * - ovalRect: 사용자에게 보여줄 세로 타원 가이드 영역
+ * - guideImageRect: 화면에 표시된 손바닥 PNG 가이드 이미지의 배치 영역
  * - cropRect: 서버 전송용 직사각형 crop 영역
- * - wristY: 손목 기준선 y 좌표
- *
- * @property previewRect 실제 프리뷰가 표시되는 영역
- * @property ovalRect 화면에 표시할 타원 가이드 영역
- * @property cropRect 서버 전송용 직사각형 crop 영역
- * @property wristY 손목 기준선 y 좌표
  */
 data class GuideSpec(
     val previewRect: Rect,
-    val ovalRect: Rect,
-    val cropRect: Rect,
-    val wristY: Float
+    val guideImageRect: Rect,
+    val cropRect: Rect
 )
 
-/**
- * 전체 화면 안에서 실제 카메라 프리뷰가 표시되는 영역을 계산한다.
- *
- * 전제
- * - PreviewView는 FIT_CENTER
- * - CameraX는 4:3 비율을 사용
- * - 세로 화면에서는 실제 프리뷰 비율이 3:4 형태로 보인다
- *
- * @param viewW 전체 뷰 너비
- * @param viewH 전체 뷰 높이
- * @return 실제 프리뷰 표시 영역
- */
 private fun calculatePreviewContentRect(
     viewW: Float,
     viewH: Float
@@ -46,116 +48,121 @@ private fun calculatePreviewContentRect(
     val viewAspect = viewW / viewH
 
     return if (viewAspect > PREVIEW_ASPECT_RATIO) {
-        // 화면이 더 넓은 경우: 좌우 여백
         val contentH = viewH
         val contentW = contentH * PREVIEW_ASPECT_RATIO
         val left = (viewW - contentW) / 2f
 
         Rect(
-            left,
-            0f,
-            left + contentW,
-            contentH
+            left = left,
+            top = 0f,
+            right = left + contentW,
+            bottom = contentH
         )
     } else {
-        // 화면이 더 높은 경우: 위아래 여백
         val contentW = viewW
         val contentH = contentW / PREVIEW_ASPECT_RATIO
         val top = (viewH - contentH) / 2f
 
         Rect(
-            0f,
-            top,
-            contentW,
-            top + contentH
+            left = 0f,
+            top = top,
+            right = contentW,
+            bottom = top + contentH
         )
     }
 }
 
 /**
- * 화면 크기에 맞는 손바닥 촬영 가이드 영역을 계산한다.
+ * CameraGuideOverlay에서 사용하는 손바닥 PNG 가이드의 화면 배치 영역을 계산한다.
  *
- * 설계 의도
- * - 타원은 사용자 가이드용으로만 사용한다
- * - 실제 서버 전송 이미지는 cropRect 기준 직사각형 crop을 사용한다
- * - 손가락 끝은 덜 포함하고, 손목은 조금 더 포함하도록 아래쪽 여백을 더 준다
- * - 전체 화면이 아니라 실제 프리뷰 영역 기준으로 계산한다
+ * 반영 사항
+ * - 기존보다 약 1.5배 크게 시도
+ * - 화면 밖으로 너무 벗어나지 않도록 최대 크기 제한
+ * - 기존보다 약간 아래쪽에 배치
  *
- * @param viewW 프리뷰 View 너비
- * @param viewH 프리뷰 View 높이
- * @return 손바닥 촬영 가이드 정보
+ * 주의
+ * - Overlay와 Utils가 같은 배치 규칙을 써야 화면 가이드와 crop이 어긋나지 않는다.
+ * - 기기 화면이 좁으면 "정확히 1.5배"가 아니라 제한된 최대 크기로 표시될 수 있다.
  */
+private fun calculateGuideImageRect(previewRect: Rect): Rect {
+    val previewW = previewRect.width
+    val previewH = previewRect.height
+
+    val baseGuideSize = previewW * BASE_GUIDE_WIDTH_RATIO
+    val scaledGuideSize = baseGuideSize * GUIDE_SCALE
+
+    val maxGuideWidth = previewW * MAX_GUIDE_WIDTH_RATIO
+    val maxGuideHeight = previewH * MAX_GUIDE_HEIGHT_RATIO
+
+    val guideSize = scaledGuideSize
+        .coerceAtMost(maxGuideWidth)
+        .coerceAtMost(maxGuideHeight)
+
+    val guideW = guideSize
+    val guideH = guideSize
+
+    val left = previewRect.left + (previewW - guideW) / 2f
+    val top = previewRect.top + previewH * GUIDE_TOP_OFFSET_RATIO
+
+    return Rect(
+        left = left,
+        top = top,
+        right = left + guideW,
+        bottom = top + guideH
+    )
+}
+
+/**
+ * 손바닥 PNG 안에서 실제 손 모양이 차지하는 비율
+ *
+ * 설명
+ * - PNG는 투명 여백을 포함한 정사각형 이미지다
+ * - cropRect는 PNG 전체가 아니라, 실제 손 외곽선이 자리한 영역을 기준으로 잡아야 한다
+ */
+private object GuideImageHandBounds {
+    const val LEFT = 0.15f
+    const val TOP = 0.08f
+    const val RIGHT = 0.82f
+    const val BOTTOM = 0.89f
+}
+
 fun calculateGuideSpec(
     viewW: Float,
     viewH: Float
 ): GuideSpec {
     val previewRect = calculatePreviewContentRect(viewW, viewH)
+    val guideImageRect = calculateGuideImageRect(previewRect)
 
-    val previewW = previewRect.width
-    val previewH = previewRect.height
+    val guideW = guideImageRect.width
+    val guideH = guideImageRect.height
 
-    // -----------------------------
-    // 1) 사용자에게 보여줄 타원 가이드
-    // -----------------------------
-    val ovalW = previewW * 0.70f
-    val ovalH = previewH * 0.62f
+    val handLeft = guideImageRect.left + guideW * GuideImageHandBounds.LEFT
+    val handTop = guideImageRect.top + guideH * GuideImageHandBounds.TOP
+    val handRight = guideImageRect.left + guideW * GuideImageHandBounds.RIGHT
+    val handBottom = guideImageRect.top + guideH * GuideImageHandBounds.BOTTOM
 
-    val ovalLeft = previewRect.left + (previewW - ovalW) / 2f
-    val ovalTop = previewRect.top + previewH * 0.14f
+    val handWidth = handRight - handLeft
+    val handHeight = handBottom - handTop
 
-    val ovalRect = Rect(
-        ovalLeft,
-        ovalTop,
-        ovalLeft + ovalW,
-        ovalTop + ovalH
-    )
-
-    val wristY = ovalRect.bottom + previewH * 0.05f
-
-    // -----------------------------
-    // 2) 실제 전송용 직사각형 crop 영역
-    // -----------------------------
-    // - 좌우는 약간 여유
-    // - 위쪽은 손가락 끝 비중을 줄이기 위해 조금 덜 포함
-    // - 아래쪽은 손목/하단 손바닥 구조를 위해 더 포함
-    val cropLeft = (ovalRect.left - ovalW * 0.06f).coerceAtLeast(previewRect.left)
-    val cropRight = (ovalRect.right + ovalW * 0.06f).coerceAtMost(previewRect.right)
-
-    val cropTop = (ovalRect.top + ovalH * 0.06f).coerceAtLeast(previewRect.top)
-    val cropBottom = (ovalRect.bottom + ovalH * 0.18f).coerceAtMost(previewRect.bottom)
+    val cropLeft = (handLeft - handWidth * 0.08f).coerceAtLeast(previewRect.left)
+    val cropTop = (handTop - handHeight * 0.05f).coerceAtLeast(previewRect.top)
+    val cropRight = (handRight + handWidth * 0.08f).coerceAtMost(previewRect.right)
+    val cropBottom = (handBottom + handHeight * 0.10f).coerceAtMost(previewRect.bottom)
 
     val cropRect = Rect(
-        cropLeft,
-        cropTop,
-        cropRight,
-        cropBottom
+        left = cropLeft,
+        top = cropTop,
+        right = cropRight,
+        bottom = cropBottom
     )
 
     return GuideSpec(
         previewRect = previewRect,
-        ovalRect = ovalRect,
-        cropRect = cropRect,
-        wristY = wristY
+        guideImageRect = guideImageRect,
+        cropRect = cropRect
     )
 }
 
-/**
- * 프리뷰 기준 cropRect를 실제 Bitmap 좌표로 변환하여 crop한다.
- *
- * 동작
- * - 전체 화면이 아니라 실제 previewRect를 기준으로 정규화한다
- * - previewRect 내부에서의 비율을 Bitmap 좌표로 변환한다
- * - 최종적으로 서버 전송용 직사각형 crop Bitmap을 반환한다
- *
- * 주의
- * - 이 함수는 타원 마스크를 적용하지 않는다
- * - 사용자에게 보여지는 이미지와 서버 전송 이미지가 동일하도록 직사각형 crop만 사용한다
- *
- * @param bitmap 원본 Bitmap
- * @param viewW 프리뷰 View 너비
- * @param viewH 프리뷰 View 높이
- * @return 서버 전송용 직사각형 crop Bitmap
- */
 fun cropBitmapByGuideRect(
     bitmap: Bitmap,
     viewW: Float,
@@ -168,7 +175,6 @@ fun cropBitmapByGuideRect(
     val previewW = previewRect.width
     val previewH = previewRect.height
 
-    // previewRect 내부 기준으로 정규화
     val leftN = ((cropRect.left - previewRect.left) / previewW).coerceIn(0f, 1f)
     val topN = ((cropRect.top - previewRect.top) / previewH).coerceIn(0f, 1f)
     val rightN = ((cropRect.right - previewRect.left) / previewW).coerceIn(0f, 1f)
@@ -191,4 +197,3 @@ fun cropBitmapByGuideRect(
         safeHeight
     )
 }
-

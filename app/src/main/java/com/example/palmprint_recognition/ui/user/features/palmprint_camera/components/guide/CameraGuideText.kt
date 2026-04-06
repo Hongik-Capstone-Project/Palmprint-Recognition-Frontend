@@ -30,13 +30,9 @@ fun CameraGuideText(
     ) {
 
         Text(
-            text = "손바닥을 타원 안에 맞춰주세요",
+            text = "손바닥을 가이드라인에 맞춰주세요",
             color = Color.White
         )
 
-        Text(
-            text = "손목을 아래 선에 맞춰주세요",
-            color = Color.White
-        )
     }
 }

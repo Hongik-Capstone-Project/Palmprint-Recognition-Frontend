@@ -186,44 +186,50 @@ fun CameraScreen(
             )
         }
 
-        debugState.lastRatio?.let { lastRatio ->
-            val averageRatio = debugState.averageRatio ?: lastRatio
 
-            CameraStatusText(
-                text = "frame ratio: ${"%.1f".format(lastRatio)}% / avg: " +
-                        "${"%.1f".format(averageRatio)}% (n=${debugState.ratioCount})",
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 140.dp)
-            )
-        }
 
-        realtimeState.ratioEstimate?.let { ratioEstimate ->
-            CameraStatusText(
-                text = "realtime ratio: ${"%.1f".format(ratioEstimate)}%",
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 184.dp)
-            )
-        }
 
-        realtimeState.blurScore?.let { blurScore ->
-            CameraStatusText(
-                text = "realtime blur: ${"%.1f".format(blurScore)}",
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 228.dp)
-            )
-        }
 
-        realtimeState.tiltScore?.let { tiltScore ->
-            CameraStatusText(
-                text = "realtime tilt: ${"%.3f".format(tiltScore)}",
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 272.dp)
-            )
-        }
+//        debugState.lastRatio?.let { lastRatio ->
+//            val averageRatio = debugState.averageRatio ?: lastRatio
+//
+//            CameraStatusText(
+//                text = "frame ratio: ${"%.1f".format(lastRatio)}% / avg: " +
+//                        "${"%.1f".format(averageRatio)}% (n=${debugState.ratioCount})",
+//                modifier = Modifier
+//                    .align(Alignment.TopCenter)
+//                    .padding(top = 140.dp)
+//            )
+//        }
+//
+//        realtimeState.ratioEstimate?.let { ratioEstimate ->
+//            CameraStatusText(
+//                text = "realtime ratio: ${"%.1f".format(ratioEstimate)}%",
+//                modifier = Modifier
+//                    .align(Alignment.TopCenter)
+//                    .padding(top = 184.dp)
+//            )
+//        }
+//
+//        realtimeState.blurScore?.let { blurScore ->
+//            CameraStatusText(
+
+
+//                text = "realtime blur: ${"%.1f".format(blurScore)}",
+//                modifier = Modifier
+//                    .align(Alignment.TopCenter)
+//                    .padding(top = 228.dp)
+//            )
+//        }
+//
+//        realtimeState.tiltScore?.let { tiltScore ->
+//            CameraStatusText(
+//                text = "realtime tilt: ${"%.3f".format(tiltScore)}",
+//                modifier = Modifier
+//                    .align(Alignment.TopCenter)
+//                    .padding(top = 272.dp)
+//            )
+//        }
 
 //        CameraStatusText(
 //            text = "ratioCond=${realtimeState.ratioCondition}, " +

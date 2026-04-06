@@ -44,7 +44,7 @@ class DemoRegisterViewModel @Inject constructor(
                 )
 
                 DemoRegisterSuccessUi(
-                    message = response.message.ifBlank { "${response.name} 님의 손바닥 등록을 완료했어요!" },
+                    message = "${response.name} 님의 손바닥 등록을 완료했어요!",
                     name = response.name,
                     userId = response.userId,
                     palmId = response.palmId

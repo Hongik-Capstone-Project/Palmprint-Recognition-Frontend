@@ -120,21 +120,7 @@ private fun DemoRegisterContent(
     RootLayoutScrollable(
         sectionGap = 12.dp,
         header = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-            ) {
                 HeaderContainer()
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                LabeledField(
-                    label = "이름",
-                    value = name,
-                    onValueChange = { name = it }
-                )
-            }
         },
         body = {
             Column(
@@ -148,6 +134,14 @@ private fun DemoRegisterContent(
                 Text(
                     text = "전시용 데모 등록 화면입니다.\n이름을 입력한 뒤 가이드라인에 맞추어 손바닥을 촬영해주세요.",
                     color = Color(0xFF697077)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                LabeledField(
+                    label = "이름",
+                    value = name,
+                    onValueChange = { name = it }
                 )
 
                 DemoRegisterCaptureBox(
