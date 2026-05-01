@@ -24,9 +24,11 @@ data class CameraRealtimeState(
     val blurScore: Float? = null,
     val ratioEstimate: Float? = null,
     val tiltScore: Float? = null,
+    val handHeightRatio: Float? = null,
     val ratioCondition: CameraCaptureCondition = CameraCaptureCondition.READY,
     val blurCondition: CameraCaptureCondition = CameraCaptureCondition.READY,
     val tiltCondition: CameraCaptureCondition = CameraCaptureCondition.READY,
+    val handSizeCondition: CameraCaptureCondition = CameraCaptureCondition.READY,
     val condition: CameraCaptureCondition = CameraCaptureCondition.READY,
     val message: String = "손바닥을 가이드에 맞춰주세요."
 )

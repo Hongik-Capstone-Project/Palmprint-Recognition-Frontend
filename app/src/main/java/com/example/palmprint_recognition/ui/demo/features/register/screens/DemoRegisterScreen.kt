@@ -136,13 +136,15 @@ private fun DemoRegisterContent(
                     color = Color(0xFF697077)
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
                 LabeledField(
                     label = "이름",
                     value = name,
                     onValueChange = { name = it }
                 )
+
+                Spacer(modifier = Modifier.height(2.dp))
 
                 DemoRegisterCaptureBox(
                     bitmap = previewBitmap,

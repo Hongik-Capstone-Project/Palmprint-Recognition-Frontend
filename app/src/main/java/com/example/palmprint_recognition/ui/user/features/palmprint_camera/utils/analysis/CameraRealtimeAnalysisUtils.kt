@@ -11,6 +11,8 @@ import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.tilt.calculateRealtimeTiltScore
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.tilt.evaluateTiltCondition
 import timber.log.Timber
+import android.graphics.Bitmap
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.helper.convertImageProxyToBitmap
 
 private const val DEFAULT_ANALYSIS_INTERVAL = 5
 
@@ -80,6 +82,7 @@ fun shouldAnalyzeFrame(
 class CameraRealtimeFrameAnalyzer(
     private val analysisInterval: Int = DEFAULT_ANALYSIS_INTERVAL,
     private val conditionConfig: CameraConditionConfig = CameraAnalysisConfig.conditionConfig,
+    private val onBitmapFrameAvailable: ((Bitmap) -> Unit)? = null,
     private val onFrameAvailable: (CameraFrameMetadata) -> Unit
 ) : ImageAnalysis.Analyzer {
 
@@ -174,6 +177,15 @@ class CameraRealtimeFrameAnalyzer(
                     tiltScore = tiltScore,
                     realtimeState = realtimeState
                 )
+            )
+
+            convertImageProxyToBitmap(image)?.let { bitmap ->
+                onBitmapFrameAvailable?.invoke(bitmap)
+            }
+        } catch (exception: Exception) {
+            Timber.tag("RealtimeAnalysis").e(
+                exception,
+                "Realtime frame analysis failed"
             )
         } finally {
             image.close()

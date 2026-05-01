@@ -13,6 +13,7 @@ import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import java.io.File
+import java.util.concurrent.Executors
 
 /**
  * CameraX 촬영 관련 유틸
@@ -44,7 +45,8 @@ fun bindCameraUseCases(
     onReadyCapture: (ImageCapture) -> Unit
 ) {
     val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-    val executor = ContextCompat.getMainExecutor(context)
+    val mainExecutor = ContextCompat.getMainExecutor(context)
+    val analysisExecutor = Executors.newSingleThreadExecutor()
 
     cameraProviderFuture.addListener({
         val cameraProvider = cameraProviderFuture.get()
@@ -72,7 +74,7 @@ fun bindCameraUseCases(
             .setOutputImageRotationEnabled(true)
             .build()
             .also {
-                it.setAnalyzer(executor, analyzer)
+                it.setAnalyzer(analysisExecutor, analyzer)
             }
 
         val selector = CameraSelector.DEFAULT_BACK_CAMERA
@@ -87,7 +89,7 @@ fun bindCameraUseCases(
         )
 
         onReadyCapture(imageCapture)
-    }, executor)
+    }, mainExecutor)
 }
 
 /**

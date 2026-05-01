@@ -38,6 +38,19 @@ import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture.handleCapturedBitmap
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture.saveCapturedBitmapsForTest
 import timber.log.Timber
+import androidx.compose.runtime.DisposableEffect
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.landmark.HandLandmarkDetector
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.landmark.HandLandmarkOverlay
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.landmark.HandLandmarkPoint
+import android.os.Handler
+import android.os.Looper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCaptureCondition
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.landmark.calculateHandHeightRatio
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.landmark.evaluateHandSizeCondition
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.resolveCameraCaptureCondition
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.toCameraConditionMessage
 
 private const val SAVE_CAPTURED_IMAGES_FOR_TEST = true
 private const val REALTIME_ANALYSIS_INTERVAL = 5
@@ -63,6 +76,10 @@ fun CameraScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    val mainHandler = remember {
+        Handler(Looper.getMainLooper())
+    }
+
     var hasPermission by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isCapturing by remember { mutableStateOf(false) }
@@ -80,10 +97,63 @@ fun CameraScreen(
         CameraAnalysisConfig.conditionConfig
     }
 
-    val realtimeAnalyzer = remember(conditionConfig) {
+    var handLandmarks by remember {
+        mutableStateOf<List<HandLandmarkPoint>>(emptyList())
+    }
+
+    var handHeightRatio by remember {
+        mutableStateOf<Float?>(null)
+    }
+
+    var handSizeCondition by remember {
+        mutableStateOf(CameraCaptureCondition.READY)
+    }
+
+    val landmarkBasedCondition = resolveCameraCaptureCondition(
+        ratioCondition = handSizeCondition,
+        blurCondition = realtimeState.blurCondition,
+        tiltCondition = realtimeState.tiltCondition,
+        config = conditionConfig
+    )
+
+    val landmarkBasedMessage = toCameraConditionMessage(
+        condition = landmarkBasedCondition
+    )
+
+
+    val handLandmarkDetector = remember {
+        HandLandmarkDetector(
+            context = context,
+            onResult = { result ->
+                mainHandler.post {
+                    handLandmarks = result.landmarks
+
+                    Timber.tag("HandLandmark").d(
+                        "landmarkCount=%d handedness=%s",
+                        result.landmarks.size,
+                        result.handedness
+                    )
+                }
+            },
+            onError = { exception ->
+                Timber.tag("HandLandmark").e(
+                    exception,
+                    "Hand landmark detection failed"
+                )
+            }
+        )
+    }
+
+    val realtimeAnalyzer = remember(
+        conditionConfig,
+        handLandmarkDetector
+    ) {
         CameraRealtimeFrameAnalyzer(
             analysisInterval = REALTIME_ANALYSIS_INTERVAL,
             conditionConfig = conditionConfig,
+            onBitmapFrameAvailable = { bitmap ->
+                handLandmarkDetector.detect(bitmap)
+            },
             onFrameAvailable = { frameMetadata ->
                 realtimeState = frameMetadata.realtimeState
 
@@ -122,6 +192,10 @@ fun CameraScreen(
         }
 
         runCatching {
+            withContext(Dispatchers.Default) {
+                handLandmarkDetector.setup()
+            }
+
             bindCameraUseCases(
                 context = context,
                 lifecycleOwner = lifecycleOwner,
@@ -133,6 +207,12 @@ fun CameraScreen(
         }.onFailure { exception ->
             Timber.tag("CameraScreen").e(exception, "Camera bind failed")
             errorMessage = "카메라 초기화에 실패했습니다."
+        }
+    }
+
+    DisposableEffect(handLandmarkDetector) {
+        onDispose {
+            handLandmarkDetector.close()
         }
     }
 
@@ -158,6 +238,22 @@ fun CameraScreen(
             }
         )
 
+        HandLandmarkOverlay(
+            landmarks = handLandmarks,
+            modifier = Modifier.fillMaxSize(),
+            onHandRectChanged = { handRect, guideRect ->
+                handHeightRatio = calculateHandHeightRatio(
+                    handRect = handRect,
+                    guideRect = guideRect
+                )
+
+                handSizeCondition = evaluateHandSizeCondition(
+                    handRect = handRect,
+                    guideRect = guideRect
+                )
+            }
+        )
+
         CameraGuideOverlay(
             modifier = Modifier.fillMaxSize()
         )
@@ -166,6 +262,21 @@ fun CameraScreen(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 44.dp)
+        )
+
+        CameraStatusText(
+            text = "landmarks=${handLandmarks.size}",
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 160.dp)
+        )
+
+        CameraStatusText(
+            text = "handRatio=${handHeightRatio?.let { "%.2f".format(it) } ?: "-"} " +
+                    "sizeCond=$handSizeCondition",
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 200.dp)
         )
 
         errorMessage?.let { message ->
@@ -179,7 +290,7 @@ fun CameraScreen(
 
         if (errorMessage == null) {
             CameraStatusText(
-                text = realtimeState.message,
+                text = landmarkBasedMessage,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = 120.dp)
