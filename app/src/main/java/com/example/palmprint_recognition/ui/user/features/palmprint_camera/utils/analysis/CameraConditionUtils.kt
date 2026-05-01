@@ -62,6 +62,10 @@ fun resolveCameraCaptureCondition(
     }
 
     return when {
+        effectiveRatioCondition == CameraCaptureCondition.HAND_NOT_DETECTED -> {
+            CameraCaptureCondition.HAND_NOT_DETECTED
+        }
+
         effectiveRatioCondition == CameraCaptureCondition.TOO_FAR -> {
             CameraCaptureCondition.TOO_FAR
         }
@@ -94,10 +98,28 @@ fun toCameraConditionMessage(
     condition: CameraCaptureCondition
 ): String {
     return when (condition) {
-        CameraCaptureCondition.TOO_FAR -> "손바닥을 더 가까이 맞춰주세요."
-        CameraCaptureCondition.TOO_CLOSE -> "손바닥을 조금 멀리 해주세요."
-        CameraCaptureCondition.TOO_BLURRY -> "손을 잠시 멈춰주세요. 초점이 흐립니다."
-        CameraCaptureCondition.TILT_BAD -> "손바닥이 기울어졌습니다. 곧게 맞춰주세요."
-        CameraCaptureCondition.READY -> "촬영 가능한 상태입니다."
+        CameraCaptureCondition.HAND_NOT_DETECTED -> {
+            "손바닥을 화면에 보여주세요."
+        }
+
+        CameraCaptureCondition.TOO_FAR -> {
+            "손바닥을 더 가까이 맞춰주세요."
+        }
+
+        CameraCaptureCondition.TOO_CLOSE -> {
+            "손바닥을 조금 멀리 해주세요."
+        }
+
+        CameraCaptureCondition.TOO_BLURRY -> {
+            "손을 잠시 멈춰주세요. 초점이 흐립니다."
+        }
+
+        CameraCaptureCondition.TILT_BAD -> {
+            "손바닥이 기울어졌습니다. 곧게 맞춰주세요."
+        }
+
+        CameraCaptureCondition.READY -> {
+            "촬영 가능한 상태입니다."
+        }
     }
 }

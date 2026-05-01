@@ -9,6 +9,7 @@ package com.example.palmprint_recognition.ui.user.features.palmprint_camera.stat
  * - 이후에는 프리뷰 실시간 분석 상태에도 재사용한다
  */
 enum class CameraCaptureCondition {
+    HAND_NOT_DETECTED,
     TOO_FAR,
     TOO_CLOSE,
     TOO_BLURRY,

@@ -2,9 +2,13 @@ package com.example.palmprint_recognition.ui.user.features.palmprint_camera.land
 
 import androidx.compose.ui.geometry.Rect
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCaptureCondition
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.atan2
 
-private const val HAND_TOO_FAR_HEIGHT_RATIO = 0.65f
+private const val HAND_TOO_FAR_HEIGHT_RATIO = 0.70f
 private const val HAND_TOO_CLOSE_HEIGHT_RATIO = 0.92f
+private const val HAND_TILT_THRESHOLD_DEGREES = 19f
 
 /**
  * 손 랜드마크 기반 촬영 조건 판정 유틸리티
@@ -26,7 +30,7 @@ fun evaluateHandSizeCondition(
     guideRect: Rect
 ): CameraCaptureCondition {
     if (handRect == null) {
-        return CameraCaptureCondition.TOO_FAR
+        return CameraCaptureCondition.HAND_NOT_DETECTED
     }
 
     val guideHeight = guideRect.height
@@ -68,4 +72,58 @@ fun calculateHandHeightRatio(
     }
 
     return handRect.height / guideRect.height
+}
+
+
+/**
+ * 손 랜드마크 기반 tilt 점수를 계산한다.
+ *
+ * 기준
+ * - 5번 index MCP와 17번 pinky MCP를 잇는 선의 각도를 사용한다
+ * - 손바닥이 정면으로 곧게 있으면 이 선은 대체로 가로에 가깝다
+ *
+ * @param landmarks 손 랜드마크 목록
+ * @return 가로선 기준 기울어진 각도, 계산 불가 시 null
+ */
+fun calculateHandTiltDegrees(
+    landmarks: List<HandLandmarkPoint>
+): Float? {
+    val indexMcp = landmarks.getOrNull(5) ?: return null
+    val pinkyMcp = landmarks.getOrNull(17) ?: return null
+
+    val dx = pinkyMcp.x - indexMcp.x
+    val dy = pinkyMcp.y - indexMcp.y
+
+    if (dx == 0f && dy == 0f) {
+        return null
+    }
+
+    val radians = atan2(
+        y = dy.toDouble(),
+        x = dx.toDouble()
+    )
+
+    val degrees = radians * 180.0 / PI
+
+    return degrees.toFloat()
+}
+
+/**
+ * 손 랜드마크 기반으로 손바닥 기울기 조건을 판정한다.
+ *
+ * @param landmarks 손 랜드마크 목록
+ * @return tilt 관련 촬영 조건
+ */
+fun evaluateHandTiltCondition(
+    landmarks: List<HandLandmarkPoint>
+): CameraCaptureCondition {
+    val tiltDegrees = calculateHandTiltDegrees(
+        landmarks = landmarks
+    ) ?: return CameraCaptureCondition.HAND_NOT_DETECTED
+
+    return if (abs(tiltDegrees) > HAND_TILT_THRESHOLD_DEGREES) {
+        CameraCaptureCondition.TILT_BAD
+    } else {
+        CameraCaptureCondition.READY
+    }
 }

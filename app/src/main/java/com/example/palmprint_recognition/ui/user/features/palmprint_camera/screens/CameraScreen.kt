@@ -51,6 +51,8 @@ import com.example.palmprint_recognition.ui.user.features.palmprint_camera.landm
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.landmark.evaluateHandSizeCondition
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.resolveCameraCaptureCondition
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.toCameraConditionMessage
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.landmark.calculateHandTiltDegrees
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.landmark.evaluateHandTiltCondition
 
 private const val SAVE_CAPTURED_IMAGES_FOR_TEST = true
 private const val REALTIME_ANALYSIS_INTERVAL = 5
@@ -109,10 +111,18 @@ fun CameraScreen(
         mutableStateOf(CameraCaptureCondition.READY)
     }
 
+    var handTiltDegrees by remember {
+        mutableStateOf<Float?>(null)
+    }
+
+    var handTiltCondition by remember {
+        mutableStateOf(CameraCaptureCondition.READY)
+    }
+
     val landmarkBasedCondition = resolveCameraCaptureCondition(
         ratioCondition = handSizeCondition,
         blurCondition = realtimeState.blurCondition,
-        tiltCondition = realtimeState.tiltCondition,
+        tiltCondition = handTiltCondition,
         config = conditionConfig
     )
 
@@ -210,6 +220,16 @@ fun CameraScreen(
         }
     }
 
+    LaunchedEffect(handLandmarks) {
+        handTiltDegrees = calculateHandTiltDegrees(
+            landmarks = handLandmarks
+        )
+
+        handTiltCondition = evaluateHandTiltCondition(
+            landmarks = handLandmarks
+        )
+    }
+
     DisposableEffect(handLandmarkDetector) {
         onDispose {
             handLandmarkDetector.close()
@@ -277,6 +297,14 @@ fun CameraScreen(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 200.dp)
+        )
+
+        CameraStatusText(
+            text = "tilt=${handTiltDegrees?.let { "%.1f".format(it) } ?: "-"} " +
+                    "tiltCond=$handTiltCondition",
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 240.dp)
         )
 
         errorMessage?.let { message ->
