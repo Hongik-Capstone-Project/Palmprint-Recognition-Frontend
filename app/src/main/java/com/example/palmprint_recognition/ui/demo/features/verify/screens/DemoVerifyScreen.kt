@@ -1,8 +1,6 @@
 package com.example.palmprint_recognition.ui.demo.features.verify.screens
 
 import android.graphics.Bitmap
-import android.util.Base64
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,7 +36,10 @@ import com.example.palmprint_recognition.ui.demo.features.verify.viewmodel.DemoV
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.screens.CameraScreen
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCapturedResult
 import com.example.palmprint_recognition.ui.user.features.palmprint_management.components.AddSquareIcon
-import java.io.ByteArrayOutputStream
+import androidx.compose.ui.platform.LocalContext
+import com.example.palmprint_recognition.ui.demo.utils.prepareDemoPalmprintUploadImage
+import com.example.palmprint_recognition.ui.demo.utils.saveDemoPalmprintUploadDebugImage
+import timber.log.Timber
 
 /**
  * 데모 손바닥 인증 화면
@@ -90,6 +91,8 @@ private fun DemoVerifyContent(
     var capturedResult by remember { mutableStateOf<CameraCapturedResult?>(null) }
     var isCameraOpened by remember { mutableStateOf(false) }
     var localMessage by remember { mutableStateOf<String?>(null) }
+
+    val context = LocalContext.current
 
     val isLoading = uiState is UiState.Loading
     val serverErrorMessage = (uiState as? UiState.Error)?.message
@@ -179,19 +182,31 @@ private fun DemoVerifyContent(
                             return@SingleCenterButton
                         }
 
-                        val resizedBitmap = resizeBitmapKeepingRatio(
-                            bitmap = bitmap,
-                            maxWidth = 720
+                        val uploadImage = prepareDemoPalmprintUploadImage(
+                            bitmap = bitmap
                         )
 
-                        val base64 = bitmapToBase64Jpeg(resizedBitmap)
-                        if (base64.isBlank()) {
+                        if (uploadImage == null || uploadImage.base64.isBlank()) {
                             localMessage = "이미지 처리 중 오류가 발생했습니다."
                             return@SingleCenterButton
                         }
 
-                        Log.d("DemoPalmVerify", "Base64 length=${base64.length}")
-                        onVerify(base64)
+                        saveDemoPalmprintUploadDebugImage(
+                            context = context,
+                            uploadImage = uploadImage,
+                            prefix = "verify_upload"
+                        )
+
+                        Timber.tag("DemoPalmVerify").d(
+                            "width=%d height=%d bytes=%d base64Length=%d sha256=%s",
+                            uploadImage.bitmap.width,
+                            uploadImage.bitmap.height,
+                            uploadImage.jpegBytes.size,
+                            uploadImage.base64.length,
+                            uploadImage.sha256
+                        )
+
+                        onVerify(uploadImage.base64)
                     }
                 )
             }
@@ -244,52 +259,4 @@ private fun buildCaptureSummaryMessage(
             "ratio=${"%.1f".format(result.analysisState.ratio)}, " +
             "blur=${"%.1f".format(result.analysisState.blurScore)}, " +
             "tilt=${"%.3f".format(result.analysisState.tiltScore)}"
-}
-
-/**
- * Bitmap을 비율 유지하며 축소
- */
-private fun resizeBitmapKeepingRatio(
-    bitmap: Bitmap,
-    maxWidth: Int
-): Bitmap {
-    if (bitmap.width <= maxWidth) {
-        return bitmap
-    }
-
-    val ratio = maxWidth.toFloat() / bitmap.width.toFloat()
-    val targetHeight = (bitmap.height * ratio).toInt().coerceAtLeast(1)
-
-    return Bitmap.createScaledBitmap(
-        bitmap,
-        maxWidth,
-        targetHeight,
-        true
-    )
-}
-
-/**
- * Bitmap을 JPEG Base64 문자열로 변환
- */
-private fun bitmapToBase64Jpeg(
-    bitmap: Bitmap
-): String {
-    val outputStream = ByteArrayOutputStream()
-
-    val isSuccess = bitmap.compress(
-        Bitmap.CompressFormat.JPEG,
-        90,
-        outputStream
-    )
-
-    if (!isSuccess) {
-        return ""
-    }
-
-    val byteArray = outputStream.toByteArray()
-
-    return Base64.encodeToString(
-        byteArray,
-        Base64.NO_WRAP
-    )
 }

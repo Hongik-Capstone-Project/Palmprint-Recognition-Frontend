@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import timber.log.Timber
 
 data class DemoVerifySuccessUi(
     val message: String,
@@ -42,14 +43,28 @@ class DemoVerifyViewModel @Inject constructor(
                 val successMessage = if (response.matched) {
                     buildString {
                         append("인증 성공")
-                        response.name?.let { append("\n이름: $it") }
-                        response.similarityScore?.let {
-                            append("\n유사도: ${"%.2f".format(it)}")
+                        response.name?.let { name ->
+                            append("\n이름: $name")
+                        }
+                        response.similarityScore?.let { score ->
+                            append("\n유사도: ${"%.4f".format(score)}")
                         }
                     }
                 } else {
-                    "일치하는 손바닥 정보를 찾지 못했습니다."
+                    buildString {
+                        append("일치하는 손바닥 정보를 찾지 못했습니다.")
+                        response.similarityScore?.let { score ->
+                            append("\n가장 높은 유사도: ${"%.4f".format(score)}")
+                        } ?: append("\n유사도 정보가 없습니다.")
+                    }
                 }
+
+                Timber.tag("DemoPalmVerify").d(
+                    "matched=%s name=%s similarityScore=%s",
+                    response.matched,
+                    response.name,
+                    response.similarityScore
+                )
 
                 DemoVerifySuccessUi(
                     message = successMessage,
