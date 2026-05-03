@@ -6,12 +6,8 @@ import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils
  * 카메라 분석 관련 중앙 설정
  *
  * 역할
- * - 테스트 중 사용할 condition on/off를 관리한다
- * - blur, ratio, tilt threshold를 중앙에서 관리한다
- *
- * 사용 방법
- * - threshold를 변경하고 싶다면 이 파일만 수정한다
- * - 특정 조건을 끄고 싶다면 conditionConfig에서 false로 변경한다
+ * - realtime 조건 사용 여부를 관리한다
+ * - blur / hand size / tilt / auto capture 기준값을 한 곳에서 관리한다
  */
 object CameraAnalysisConfig {
 
@@ -19,48 +15,56 @@ object CameraAnalysisConfig {
      * 조건 활성화 설정
      */
     val conditionConfig = CameraConditionConfig(
-        useRatioCondition = true,
+        useHandSizeCondition = true,
         useBlurCondition = true,
         useTiltCondition = true
     )
 
     /**
-     * 촬영 후 blur 기준값
-     *
-     * 값이 낮을수록 덜 예민하게 판정한다.
-     */
-    const val BITMAP_BLUR_THRESHOLD = 95f
-
-    /**
      * 실시간 blur 기준값
      *
-     * 값이 낮을수록 덜 예민하게 판정한다.
+     * 값이 낮을수록 blur 판정이 덜 예민해진다.
      */
     const val REALTIME_BLUR_THRESHOLD = 60f
 
     /**
-     * 촬영 후 ratio 기준값
+     * 손 크기 기준값
      *
-     * - TOO_FAR는 낮출수록 덜 예민해진다
-     * - TOO_CLOSE는 높일수록 덜 예민해진다
+     * handHeightRatio = hand bounding box 높이 / guide cropRect 높이
      */
-    const val TOO_FAR_RATIO_THRESHOLD = 10f
-    const val TOO_CLOSE_RATIO_THRESHOLD = 78f
+    const val HAND_TOO_FAR_HEIGHT_RATIO = 0.70f
+    const val HAND_TOO_CLOSE_HEIGHT_RATIO = 0.92f
 
     /**
-     * 실시간 ratio 기준값
+     * 손 기울기 기준값
      *
+     * index MCP(5)와 pinky MCP(17)를 잇는 선의 각도 기준이다.
      */
-    const val REALTIME_TOO_FAR_RATIO_THRESHOLD = 48f
-    const val REALTIME_TOO_CLOSE_RATIO_THRESHOLD = 100f
+    const val HAND_TILT_THRESHOLD_DEGREES = 19f
 
     /**
-     * tilt 기준값
+     * 자동촬영용 더 엄격한 조건
      *
-     * - DARK_PIXEL_THRESHOLD를 높이면 손 영역을 더 넓게 잡는다
-     * - TILT_OFFSET_THRESHOLD를 낮추면 더 예민하게 기울기를 감지한다
+     * 일반 READY보다 좁은 범위에서만 자동촬영한다.
      */
-    const val BITMAP_TILT_DARK_PIXEL_THRESHOLD = 165f
-    const val REALTIME_TILT_DARK_PIXEL_THRESHOLD = 170f
-    const val TILT_OFFSET_THRESHOLD = 0.13f
+    const val AUTO_CAPTURE_MIN_HAND_RATIO = 0.76f
+    const val AUTO_CAPTURE_MAX_HAND_RATIO = 0.84f
+    const val AUTO_CAPTURE_MAX_TILT_DEGREES = 14f
+    const val AUTO_CAPTURE_READY_HOLD_MS = 1000L
+    const val AUTO_CAPTURE_COOLDOWN_MS = 2000L
+
+    /**
+     * realtime 분석 주기
+     */
+    const val REALTIME_ANALYSIS_INTERVAL = 5
+
+    /**
+     * 디버그용 이미지 저장 여부
+     */
+    const val SAVE_CAPTURED_IMAGES_FOR_TEST = true
+
+    /**
+     * 랜드마크 디버그 오버레이 표시 여부
+     */
+    const val SHOW_LANDMARK_DEBUG_OVERLAY = false
 }

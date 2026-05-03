@@ -30,7 +30,6 @@ import com.example.palmprint_recognition.ui.user.features.palmprint_camera.compo
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.components.permission.CameraPermissionContent
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.config.CameraAnalysisConfig
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCapturedResult
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraGuideDebugState
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraRealtimeState
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.CameraRealtimeFrameAnalyzer
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture.bindCameraUseCases
@@ -120,7 +119,7 @@ fun CameraScreen(
     }
 
     val landmarkBasedCondition = resolveCameraCaptureCondition(
-        ratioCondition = handSizeCondition,
+        handSizeCondition = handSizeCondition,
         blurCondition = realtimeState.blurCondition,
         tiltCondition = handTiltCondition,
         config = conditionConfig

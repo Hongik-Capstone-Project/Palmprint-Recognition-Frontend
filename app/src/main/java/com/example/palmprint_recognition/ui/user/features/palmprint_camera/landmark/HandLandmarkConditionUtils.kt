@@ -1,22 +1,11 @@
 package com.example.palmprint_recognition.ui.user.features.palmprint_camera.landmark
 
 import androidx.compose.ui.geometry.Rect
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.config.CameraAnalysisConfig
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCaptureCondition
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
-
-private const val HAND_TOO_FAR_HEIGHT_RATIO = 0.70f
-private const val HAND_TOO_CLOSE_HEIGHT_RATIO = 0.92f
-private const val HAND_TILT_THRESHOLD_DEGREES = 19f
-
-/**
- * 손 랜드마크 기반 촬영 조건 판정 유틸리티
- *
- * 역할
- * - 손 bounding box와 가이드 영역을 비교한다
- * - 손이 너무 멀거나 가까운지 판단한다
- */
 
 /**
  * 손 크기를 기준으로 거리 조건을 판정한다.
@@ -33,20 +22,18 @@ fun evaluateHandSizeCondition(
         return CameraCaptureCondition.HAND_NOT_DETECTED
     }
 
-    val guideHeight = guideRect.height
-
-    if (guideHeight <= 0f) {
-        return CameraCaptureCondition.READY
+    if (guideRect.height <= 0f) {
+        return CameraCaptureCondition.HAND_NOT_DETECTED
     }
 
-    val handHeightRatio = handRect.height / guideHeight
+    val handHeightRatio = handRect.height / guideRect.height
 
     return when {
-        handHeightRatio < HAND_TOO_FAR_HEIGHT_RATIO -> {
+        handHeightRatio < CameraAnalysisConfig.HAND_TOO_FAR_HEIGHT_RATIO -> {
             CameraCaptureCondition.TOO_FAR
         }
 
-        handHeightRatio > HAND_TOO_CLOSE_HEIGHT_RATIO -> {
+        handHeightRatio > CameraAnalysisConfig.HAND_TOO_CLOSE_HEIGHT_RATIO -> {
             CameraCaptureCondition.TOO_CLOSE
         }
 
@@ -74,13 +61,8 @@ fun calculateHandHeightRatio(
     return handRect.height / guideRect.height
 }
 
-
 /**
  * 손 랜드마크 기반 tilt 점수를 계산한다.
- *
- * 기준
- * - 5번 index MCP와 17번 pinky MCP를 잇는 선의 각도를 사용한다
- * - 손바닥이 정면으로 곧게 있으면 이 선은 대체로 가로에 가깝다
  *
  * @param landmarks 손 랜드마크 목록
  * @return 가로선 기준 기울어진 각도, 계산 불가 시 null
@@ -103,9 +85,7 @@ fun calculateHandTiltDegrees(
         x = dx.toDouble()
     )
 
-    val degrees = radians * 180.0 / PI
-
-    return degrees.toFloat()
+    return (radians * 180.0 / PI).toFloat()
 }
 
 /**
@@ -121,9 +101,41 @@ fun evaluateHandTiltCondition(
         landmarks = landmarks
     ) ?: return CameraCaptureCondition.HAND_NOT_DETECTED
 
-    return if (abs(tiltDegrees) > HAND_TILT_THRESHOLD_DEGREES) {
+    return if (abs(tiltDegrees) > CameraAnalysisConfig.HAND_TILT_THRESHOLD_DEGREES) {
         CameraCaptureCondition.TILT_BAD
     } else {
         CameraCaptureCondition.READY
     }
+}
+
+/**
+ * 자동촬영용 조건을 판정한다.
+ *
+ * 일반 READY보다 더 엄격한 기준을 사용한다.
+ *
+ * @param handHeightRatio 손 높이 비율
+ * @param handTiltDegrees 손 기울기 각도
+ * @param finalCondition 현재 최종 촬영 조건
+ * @return 자동촬영 가능 여부
+ */
+fun canAutoCaptureByLandmark(
+    handHeightRatio: Float?,
+    handTiltDegrees: Float?,
+    finalCondition: CameraCaptureCondition
+): Boolean {
+    if (finalCondition != CameraCaptureCondition.READY) {
+        return false
+    }
+
+    val ratio = handHeightRatio ?: return false
+    val tilt = handTiltDegrees ?: return false
+
+    val isGoodRatio =
+        ratio >= CameraAnalysisConfig.AUTO_CAPTURE_MIN_HAND_RATIO &&
+                ratio <= CameraAnalysisConfig.AUTO_CAPTURE_MAX_HAND_RATIO
+
+    val isGoodTilt =
+        abs(tilt) <= CameraAnalysisConfig.AUTO_CAPTURE_MAX_TILT_DEGREES
+
+    return isGoodRatio && isGoodTilt
 }

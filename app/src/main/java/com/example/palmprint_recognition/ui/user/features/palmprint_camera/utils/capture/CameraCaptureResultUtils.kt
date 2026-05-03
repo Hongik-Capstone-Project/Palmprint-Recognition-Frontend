@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCapturedResult
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraGuideDebugState
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.CameraConditionConfig
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.analyzeCapturedBitmap
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.guide.cropBitmapByGuideRect
