@@ -3,11 +3,11 @@ package com.example.palmprint_recognition.ui.user.features.palmprint_camera.land
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.guide.calculateGuideSpec
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.geometry.Rect
 
 private val HAND_CONNECTIONS = listOf(
     0 to 1,
@@ -39,20 +39,24 @@ private val HAND_CONNECTIONS = listOf(
  * 손 랜드마크를 카메라 화면 위에 표시한다.
  *
  * 역할
- * - MediaPipe가 찾은 손 점을 Canvas에 그린다
- * - Camera preview가 실제 표시되는 previewRect 기준으로 좌표를 보정한다
+ * - MediaPipe가 찾은 손 점을 화면 좌표로 변환한다.
+ * - 손 bounding box와 guide cropRect를 계산한다.
+ * - 디버그 모드일 때만 랜드마크 점/선/박스를 화면에 표시한다.
  *
- * 노란색: 실제 손 랜드마크 bounding box
- * 하늘색: 가이드 cropRect
- * 흰색: 기존 손바닥 guide 이미지
+ * 중요
+ * - isDebugVisible은 표시 여부만 제어한다.
+ * - landmark 기반 조건 계산을 위해 onHandRectChanged는 항상 호출한다.
  *
  * @param landmarks 손 랜드마크 목록
  * @param modifier Compose Modifier
+ * @param isDebugVisible 디버그 오버레이 표시 여부
+ * @param onHandRectChanged 손 bounding box와 guide cropRect 전달 콜백
  */
 @Composable
 fun HandLandmarkOverlay(
     landmarks: List<HandLandmarkPoint>,
     modifier: Modifier = Modifier,
+    isDebugVisible: Boolean = false,
     onHandRectChanged: (handRect: Rect?, guideRect: Rect) -> Unit = { _, _ -> }
 ) {
     Canvas(modifier = modifier) {
@@ -76,6 +80,10 @@ fun HandLandmarkOverlay(
             handBoundingRect,
             guideSpec.cropRect
         )
+
+        if (!isDebugVisible) {
+            return@Canvas
+        }
 
         HAND_CONNECTIONS.forEach { connection ->
             val startPoint = landmarks.getOrNull(connection.first)
@@ -124,5 +132,4 @@ fun HandLandmarkOverlay(
             style = Stroke(width = 4.dp.toPx())
         )
     }
-
 }

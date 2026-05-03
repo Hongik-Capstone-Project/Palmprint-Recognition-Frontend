@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.palmprint_recognition.ui.demo.utils.prepareDemoPalmprintUploadImage
 import com.example.palmprint_recognition.ui.demo.utils.saveDemoPalmprintUploadDebugImage
 import timber.log.Timber
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraMode
 
 /**
  * 데모 손바닥 등록 화면
@@ -102,16 +103,15 @@ private fun DemoRegisterContent(
 
     if (isCameraOpened) {
         CameraScreen(
+            cameraMode = CameraMode.REGISTER,
+            isAutoCaptureEnabled = false,   // 수동촬영
             onCaptured = { result ->
                 capturedResult = result
                 isCameraOpened = false
-                localMessage = buildCaptureSummaryMessage(result)
+                localMessage = "손바닥 이미지가 촬영되었습니다."
             },
             onCancel = {
                 isCameraOpened = false
-                if (capturedResult == null) {
-                    localMessage = "촬영이 취소되었습니다."
-                }
             }
         )
         return
@@ -271,14 +271,3 @@ private fun DemoRegisterCaptureBox(
     }
 }
 
-/**
- * 촬영 결과 요약 메시지
- */
-private fun buildCaptureSummaryMessage(
-    result: CameraCapturedResult
-): String {
-    return "촬영 성공: ${result.croppedBitmap.width} x ${result.croppedBitmap.height}, " +
-            "ratio=${"%.1f".format(result.analysisState.ratio)}, " +
-            "blur=${"%.1f".format(result.analysisState.blurScore)}, " +
-            "tilt=${"%.3f".format(result.analysisState.tiltScore)}"
-}

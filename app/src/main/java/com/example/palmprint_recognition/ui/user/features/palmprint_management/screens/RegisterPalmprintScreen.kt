@@ -108,7 +108,7 @@ private fun RegisterPalmprintContent(
             onCaptured = { result ->
                 capturedResult = result
                 isCameraOpened = false
-                localMessage = buildCaptureSummaryMessage(result)
+                localMessage = "이미지 촬영에 성공했습니다"
             },
             onCancel = {
                 isCameraOpened = false
@@ -243,20 +243,6 @@ private fun RegisterPalmprintCaptureBox(
     }
 }
 
-/**
- * 촬영 결과 요약 메시지를 생성한다.
- *
- * @param result 촬영 결과
- * @return 사용자 표시용 메시지
- */
-private fun buildCaptureSummaryMessage(
-    result: CameraCapturedResult
-): String {
-    return "촬영 성공: ${result.croppedBitmap.width} x ${result.croppedBitmap.height}, " +
-            "ratio=${"%.1f".format(result.analysisState.ratio)}, " +
-            "blur=${"%.1f".format(result.analysisState.blurScore)}, " +
-            "tilt=${"%.3f".format(result.analysisState.tiltScore)}"
-}
 
 /**
  * Bitmap을 비율 유지하며 축소한다.
