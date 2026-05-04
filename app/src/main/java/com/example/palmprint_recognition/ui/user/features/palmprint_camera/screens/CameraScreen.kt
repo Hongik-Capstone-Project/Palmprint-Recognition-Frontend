@@ -55,6 +55,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.debug.CameraLogger
 import androidx.compose.foundation.layout.BoxScope
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture.saveBitmapToGallery
 
 private const val CAMERA_STATUS_TOP_PADDING = 120
 private const val CAMERA_ERROR_TOP_PADDING = 100

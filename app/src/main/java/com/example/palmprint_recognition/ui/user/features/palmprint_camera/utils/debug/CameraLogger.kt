@@ -144,4 +144,28 @@ object CameraLogger {
             handTiltCondition
         )
     }
+
+    /**
+     * MediaPipe 입력 Bitmap 정보를 로그로 출력한다.
+     *
+     * @param width Bitmap 너비
+     * @param height Bitmap 높이
+     * @param config Bitmap config 이름
+     */
+    fun logHandLandmarkInputBitmap(
+        width: Int,
+        height: Int,
+        config: String?
+    ) {
+        if (!CameraAnalysisConfig.ENABLE_CAMERA_DEBUG_LOG) {
+            return
+        }
+
+        Timber.tag(TAG_HAND_LANDMARK).d(
+            "detect input bitmap=%dx%d config=%s",
+            width,
+            height,
+            config
+        )
+    }
 }

@@ -13,8 +13,9 @@ import java.io.ByteArrayOutputStream
  * CameraX ImageProxy를 Bitmap으로 변환하는 유틸리티
  *
  * 역할
- * - 실시간 ImageAnalysis 프레임을 MediaPipe 입력용 Bitmap으로 변환한다
- * - ImageProxy의 rotationDegrees를 반영해 Bitmap 방향을 보정한다
+ * - YUV_420_888 ImageProxy를 NV21 byte array로 안전하게 변환한다.
+ * - rowStride / pixelStride 차이를 고려한다.
+ * - MediaPipe 입력용 Bitmap을 생성한다.
  */
 
 /**
@@ -26,22 +27,12 @@ import java.io.ByteArrayOutputStream
 fun convertImageProxyToBitmap(
     image: ImageProxy
 ): Bitmap? {
-    val yBuffer = image.planes.getOrNull(0)?.buffer?.duplicate() ?: return null
-    val uBuffer = image.planes.getOrNull(1)?.buffer?.duplicate() ?: return null
-    val vBuffer = image.planes.getOrNull(2)?.buffer?.duplicate() ?: return null
-
-    val ySize = yBuffer.remaining()
-    val uSize = uBuffer.remaining()
-    val vSize = vBuffer.remaining()
-
-    val nv21 = ByteArray(ySize + uSize + vSize)
-
-    yBuffer.get(nv21, 0, ySize)
-    vBuffer.get(nv21, ySize, vSize)
-    uBuffer.get(nv21, ySize + vSize, uSize)
+    val nv21Bytes = convertYuv420888ToNv21(
+        image = image
+    ) ?: return null
 
     val yuvImage = YuvImage(
-        nv21,
+        nv21Bytes,
         ImageFormat.NV21,
         image.width,
         image.height,
@@ -80,11 +71,74 @@ fun convertImageProxyToBitmap(
 }
 
 /**
+ * YUV_420_888 ImageProxy를 NV21 byte array로 변환한다.
+ *
+ * NV21 구조:
+ * - Y plane 전체
+ * - VU VU VU 순서의 chroma plane
+ *
+ * @param image CameraX ImageProxy
+ * @return NV21 byte array
+ */
+private fun convertYuv420888ToNv21(
+    image: ImageProxy
+): ByteArray? {
+    if (image.planes.size < 3) {
+        return null
+    }
+
+    val width = image.width
+    val height = image.height
+
+    val yPlane = image.planes[0]
+    val uPlane = image.planes[1]
+    val vPlane = image.planes[2]
+
+    val yBuffer = yPlane.buffer.duplicate()
+    val uBuffer = uPlane.buffer.duplicate()
+    val vBuffer = vPlane.buffer.duplicate()
+
+    val nv21 = ByteArray(width * height + width * height / 2)
+
+    var outputIndex = 0
+
+    val yRowStride = yPlane.rowStride
+    val yPixelStride = yPlane.pixelStride
+
+    for (row in 0 until height) {
+        for (col in 0 until width) {
+            val yIndex = row * yRowStride + col * yPixelStride
+            nv21[outputIndex++] = yBuffer.get(yIndex)
+        }
+    }
+
+    val chromaHeight = height / 2
+    val chromaWidth = width / 2
+
+    val uRowStride = uPlane.rowStride
+    val uPixelStride = uPlane.pixelStride
+    val vRowStride = vPlane.rowStride
+    val vPixelStride = vPlane.pixelStride
+
+    for (row in 0 until chromaHeight) {
+        for (col in 0 until chromaWidth) {
+            val uIndex = row * uRowStride + col * uPixelStride
+            val vIndex = row * vRowStride + col * vPixelStride
+
+            nv21[outputIndex++] = vBuffer.get(vIndex)
+            nv21[outputIndex++] = uBuffer.get(uIndex)
+        }
+    }
+
+    return nv21
+}
+
+/**
  * Bitmap을 지정된 각도만큼 회전한다.
  *
  * @param bitmap 원본 Bitmap
  * @param rotationDegrees 회전 각도
- * @return 회전된 Bitmap
+ * @return 회전 보정된 Bitmap
  */
 private fun rotateBitmap(
     bitmap: Bitmap,

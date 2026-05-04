@@ -40,7 +40,7 @@ object CameraAnalysisConfig {
      *
      * false여도 landmark 계산은 계속 수행한다.
      */
-    const val SHOW_LANDMARK_DEBUG_OVERLAY = true
+    const val SHOW_LANDMARK_DEBUG_OVERLAY = false
 
     /**
      * 카메라 디버그 로그 출력 여부
