@@ -2,6 +2,7 @@ package com.example.palmprint_recognition.ui.user.features.palmprint_camera.util
 
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.config.CameraAnalysisConfig
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraCaptureCondition
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.AutoCaptureState
 import timber.log.Timber
 
 /**
@@ -166,6 +167,27 @@ object CameraLogger {
             width,
             height,
             config
+        )
+    }
+
+    fun logAutoCaptureState(
+        state: AutoCaptureState,
+        canAutoCapture: Boolean,
+        handHeightRatio: Float?,
+        handTiltDegrees: Float?,
+        finalCondition: CameraCaptureCondition
+    ) {
+        if (!CameraAnalysisConfig.ENABLE_CAMERA_DEBUG_LOG) {
+            return
+        }
+
+        Timber.tag(TAG_CAMERA_SCREEN).d(
+            "autoState=%s canAuto=%s handRatio=%s tilt=%s finalCondition=%s",
+            state,
+            canAutoCapture,
+            handHeightRatio?.let { "%.2f".format(it) } ?: "-",
+            handTiltDegrees?.let { "%.1f".format(it) } ?: "-",
+            finalCondition
         )
     }
 }

@@ -101,11 +101,11 @@ private fun DemoVerifyContent(
     if (isCameraOpened) {
         CameraScreen(
             cameraMode = CameraMode.VERIFY,
-            isAutoCaptureEnabled = false,    // 수동촬영
+            isAutoCaptureEnabled = true,
             onCaptured = { result ->
                 capturedResult = result
                 isCameraOpened = false
-                localMessage = "손바닥 이미지가 촬영되었습니다."
+                localMessage = "손바닥 이미지가 자동 촬영되었습니다."
             },
             onCancel = {
                 isCameraOpened = false

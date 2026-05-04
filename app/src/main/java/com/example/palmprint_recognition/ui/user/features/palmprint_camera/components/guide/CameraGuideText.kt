@@ -15,24 +15,23 @@ import androidx.compose.ui.unit.dp
  *
  * 사용자가 손 위치를 올바르게 맞추도록 안내한다.
  *
+ * @param text 표시할 가이드 문구
  * @param modifier Compose Modifier
  */
 @Composable
 fun CameraGuideText(
+    text: String,
     modifier: Modifier = Modifier
 ) {
-
     Column(
         modifier = modifier
             .background(Color(0x66000000))
             .padding(vertical = 6.dp, horizontal = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Text(
-            text = "손바닥을 가이드라인에 맞춰주세요",
+            text = text,
             color = Color.White
         )
-
     }
 }

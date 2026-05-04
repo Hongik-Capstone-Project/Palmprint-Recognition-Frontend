@@ -55,7 +55,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.debug.CameraLogger
 import androidx.compose.foundation.layout.BoxScope
-import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.capture.saveBitmapToGallery
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.AutoCaptureState
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.landmark.canAutoCaptureByLandmark
+import kotlinx.coroutines.delay
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.toAutoCaptureConditionMessage
 
 private const val CAMERA_STATUS_TOP_PADDING = 120
 private const val CAMERA_ERROR_TOP_PADDING = 100
@@ -150,6 +153,21 @@ fun CameraScreen(
         mutableStateOf(CameraCaptureCondition.HAND_NOT_DETECTED)
     }
 
+    var autoCaptureState by remember {
+        mutableStateOf(
+            if (isAutoCaptureEnabled) {
+                AutoCaptureState.WAITING
+            } else {
+                AutoCaptureState.DISABLED
+            }
+        )
+    }
+
+
+    var lastAutoCapturedAtMs by remember {
+        mutableStateOf(0L)
+    }
+
     val finalCondition = resolveCameraCaptureCondition(
         handSizeCondition = handSizeCondition,
         blurCondition = realtimeState.blurCondition,
@@ -157,9 +175,45 @@ fun CameraScreen(
         config = conditionConfig
     )
 
-    val finalMessage = toCameraConditionMessage(
-        condition = finalCondition
+    val canAutoCapture = canAutoCaptureByLandmark(
+        handHeightRatio = handHeightRatio,
+        handTiltDegrees = handTiltDegrees,
+        finalCondition = finalCondition
     )
+
+    val guideTitleMessage = if (isAutoCaptureEnabled) {
+        "손바닥을 가이드라인에 맞추면 자동으로 촬영됩니다."
+    } else {
+        "손바닥을 가이드라인에 맞춰주세요"
+    }
+
+    val finalMessage = if (isAutoCaptureEnabled) {
+        toAutoCaptureConditionMessage(
+            condition = finalCondition,
+            canAutoCapture = canAutoCapture,
+            handHeightRatio = handHeightRatio,
+            handTiltDegrees = handTiltDegrees,
+            minAutoRatio = CameraAnalysisConfig.AUTO_CAPTURE_MIN_HAND_RATIO,
+            maxAutoRatio = CameraAnalysisConfig.AUTO_CAPTURE_MAX_HAND_RATIO,
+            maxAutoTiltDegrees = CameraAnalysisConfig.AUTO_CAPTURE_MAX_TILT_DEGREES
+        )
+    } else {
+        toCameraConditionMessage(
+            condition = finalCondition
+        )
+    }
+
+    val autoCaptureMessage = when (autoCaptureState) {
+        AutoCaptureState.READY_HOLDING,
+        AutoCaptureState.CAPTURING -> {
+            "자동 촬영 중입니다. 손을 움직이지 마세요."
+        }
+
+        else -> null
+    }
+
+    val isManualCaptureVisible =
+        cameraMode == CameraMode.REGISTER && !isAutoCaptureEnabled
 
     val handLandmarkDetector = remember {
         HandLandmarkDetector(
@@ -268,6 +322,52 @@ fun CameraScreen(
         )
     }
 
+    LaunchedEffect(
+        isAutoCaptureEnabled,
+        canAutoCapture,
+        isCapturing,
+        imageCapture,
+        previewWidth,
+        previewHeight
+    ) {
+        if (!isAutoCaptureEnabled) {
+            autoCaptureState = AutoCaptureState.DISABLED
+            return@LaunchedEffect
+        }
+
+        if (isCapturing) {
+            autoCaptureState = AutoCaptureState.CAPTURING
+            return@LaunchedEffect
+        }
+
+        val now = System.currentTimeMillis()
+
+        val isCooldown =
+            now - lastAutoCapturedAtMs < CameraAnalysisConfig.AUTO_CAPTURE_COOLDOWN_MS
+
+        if (isCooldown) {
+            autoCaptureState = AutoCaptureState.COOLDOWN
+            return@LaunchedEffect
+        }
+
+        val isCameraReady =
+            imageCapture != null && previewWidth > 0f && previewHeight > 0f
+
+        if (!canAutoCapture || !isCameraReady) {
+            autoCaptureState = AutoCaptureState.WAITING
+            return@LaunchedEffect
+        }
+
+        autoCaptureState = AutoCaptureState.READY_HOLDING
+
+        delay(CameraAnalysisConfig.AUTO_CAPTURE_READY_HOLD_MS)
+
+        lastAutoCapturedAtMs = System.currentTimeMillis()
+        autoCaptureState = AutoCaptureState.CAPTURING
+
+        startCapture()
+    }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -334,6 +434,22 @@ fun CameraScreen(
         )
     }
 
+    LaunchedEffect(
+        autoCaptureState,
+        canAutoCapture,
+        handHeightRatio,
+        handTiltDegrees,
+        finalCondition
+    ) {
+        CameraLogger.logAutoCaptureState(
+            state = autoCaptureState,
+            canAutoCapture = canAutoCapture,
+            handHeightRatio = handHeightRatio,
+            handTiltDegrees = handTiltDegrees,
+            finalCondition = finalCondition
+        )
+    }
+
     DisposableEffect(handLandmarkDetector) {
         onDispose {
             handLandmarkDetector.close()
@@ -384,6 +500,7 @@ fun CameraScreen(
         )
 
         CameraGuideText(
+            text = guideTitleMessage,
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = CAMERA_GUIDE_TOP_PADDING.dp)
@@ -407,6 +524,16 @@ fun CameraScreen(
             )
         }
 
+        if (isAutoCaptureEnabled && autoCaptureMessage != null && errorMessage == null) {
+            CameraStatusText(
+                text = autoCaptureMessage,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 170.dp)
+            )
+        }
+
+
         if (CameraAnalysisConfig.SHOW_LANDMARK_DEBUG_OVERLAY) {
             CameraDebugStatusTextGroup(
                 handLandmarks = handLandmarks,
@@ -423,7 +550,7 @@ fun CameraScreen(
                 .padding(bottom = CAMERA_BUTTON_BOTTOM_PADDING.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
-            if (!isAutoCaptureEnabled) {
+            if (isManualCaptureVisible) {
                 CameraCaptureButton(
                     enabled = !isCapturing,
                     onClick = {
@@ -462,14 +589,6 @@ private fun BoxScope.CameraDebugStatusTextGroup(
     handTiltDegrees: Float?,
     handTiltCondition: CameraCaptureCondition
 ) {
-    CameraLogger.logCameraDebugStatus(
-        landmarkCount = handLandmarks.size,
-        handHeightRatio = handHeightRatio,
-        handSizeCondition = handSizeCondition,
-        handTiltDegrees = handTiltDegrees,
-        handTiltCondition = handTiltCondition
-    )
-
     CameraStatusText(
         text = "landmarks=${handLandmarks.size}",
         modifier = Modifier
