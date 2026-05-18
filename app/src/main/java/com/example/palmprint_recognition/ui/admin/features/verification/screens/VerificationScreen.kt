@@ -202,6 +202,46 @@ private fun PreviewVerificationScreen() {
                 location = "T동 3층",
                 isSuccess = true,
                 authType = "PALM"
+            ),
+            VerificationRecord(
+                id = "abc",
+                createdAt = "2025-12-06T10:00:00.000Z",
+                userId = 3,
+                institutionId = 10,
+                institutionName = "홍익대학교",
+                location = "T동 3층",
+                isSuccess = true,
+                authType = "PALM"
+            ),
+            VerificationRecord(
+                id = "abc",
+                createdAt = "2025-12-06T10:00:00.000Z",
+                userId = 6,
+                institutionId = 10,
+                institutionName = "홍익대학교",
+                location = "T동 4층",
+                isSuccess = true,
+                authType = "PALM"
+            ),
+            VerificationRecord(
+                id = "abc",
+                createdAt = "2025-12-06T10:00:00.000Z",
+                userId = 1,
+                institutionId = 10,
+                institutionName = "홍익대학교",
+                location = "T동 3층",
+                isSuccess = true,
+                authType = "PALM"
+            ),
+            VerificationRecord(
+                id = "abc",
+                createdAt = "2025-12-06T10:00:00.000Z",
+                userId = 2,
+                institutionId = 10,
+                institutionName = "홍익대학교",
+                location = "T동 4층",
+                isSuccess = true,
+                authType = "PALM"
             )
         ),
         isLoadingInitial = false,

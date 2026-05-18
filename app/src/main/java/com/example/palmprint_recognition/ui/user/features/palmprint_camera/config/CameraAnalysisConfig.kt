@@ -1,5 +1,8 @@
 package com.example.palmprint_recognition.ui.user.features.palmprint_camera.config
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.utils.analysis.CameraConditionConfig
 
 /**
@@ -18,6 +21,28 @@ object CameraAnalysisConfig {
         useTiltCondition = true
     )
 
+    /**
+     * 자동촬영 기본값
+     *
+     * 1단계:
+     * - 여기 값을 false / true로 바꾸면 앱 전체 기본 자동촬영 여부가 바뀐다.
+     *
+     * 2단계:
+     * - DemoGuideScreen의 스위치에서 이 값을 직접 변경한다.
+     */
+    var isAutoCaptureEnabled by mutableStateOf(false)
+
+    /**
+     * 유사도 정보 출력 여부
+     *
+     * true:
+     * - 인증 결과 화면에 유사도 점수를 표시한다.
+     *
+     * false:
+     * - 인증 결과 화면에 유사도 점수를 표시하지 않는다.
+     */
+    var isSimilarityScoreVisible by mutableStateOf(false)
+
     const val REALTIME_BLUR_THRESHOLD = 60f
 
     const val HAND_TOO_FAR_HEIGHT_RATIO = 0.70f
@@ -33,7 +58,7 @@ object CameraAnalysisConfig {
 
     const val REALTIME_ANALYSIS_INTERVAL = 5
 
-    const val SAVE_CAPTURED_IMAGES_FOR_TEST = true
+    const val SAVE_CAPTURED_IMAGES_FOR_TEST = false
 
     /**
      * 랜드마크 디버그 오버레이 표시 여부

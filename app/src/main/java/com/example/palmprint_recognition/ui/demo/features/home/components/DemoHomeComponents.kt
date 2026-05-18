@@ -44,7 +44,7 @@ fun DemoManagementSection(
         )
 
         DemoMenuButton(
-            text = "사용설명서",
+            text = "설정",
             onClick = onGuideClick
         )
     }

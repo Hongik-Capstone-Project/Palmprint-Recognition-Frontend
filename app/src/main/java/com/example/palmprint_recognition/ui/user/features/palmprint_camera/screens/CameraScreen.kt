@@ -213,7 +213,7 @@ fun CameraScreen(
     }
 
     val isManualCaptureVisible =
-        cameraMode == CameraMode.REGISTER && !isAutoCaptureEnabled
+        !isAutoCaptureEnabled
 
     val handLandmarkDetector = remember {
         HandLandmarkDetector(

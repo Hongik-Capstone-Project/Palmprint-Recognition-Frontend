@@ -42,6 +42,7 @@ import com.example.palmprint_recognition.ui.demo.utils.prepareDemoPalmprintUploa
 import com.example.palmprint_recognition.ui.demo.utils.saveDemoPalmprintUploadDebugImage
 import timber.log.Timber
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraMode
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.config.CameraAnalysisConfig
 
 /**
  * 데모 손바닥 등록 화면
@@ -104,11 +105,16 @@ private fun DemoRegisterContent(
     if (isCameraOpened) {
         CameraScreen(
             cameraMode = CameraMode.REGISTER,
-            isAutoCaptureEnabled = false,   // 수동촬영
+            isAutoCaptureEnabled = CameraAnalysisConfig.isAutoCaptureEnabled,
             onCaptured = { result ->
                 capturedResult = result
                 isCameraOpened = false
-                localMessage = "손바닥 이미지가 촬영되었습니다."
+                localMessage =
+                    if (CameraAnalysisConfig.isAutoCaptureEnabled) {
+                        "손바닥 이미지가 자동 촬영되었습니다."
+                    } else {
+                        "손바닥 이미지가 촬영되었습니다."
+                    }
             },
             onCancel = {
                 isCameraOpened = false
@@ -135,7 +141,7 @@ private fun DemoRegisterContent(
                 Text(text = "손바닥 등록하기")
 
                 Text(
-                    text = "전시용 데모 등록 화면입니다.\n이름을 입력한 뒤 가이드라인에 맞추어 손바닥을 촬영해주세요.",
+                    text = "이름을 입력한 뒤 가이드라인에 맞추어 손바닥을 촬영해주세요.",
                     color = Color(0xFF697077)
                 )
 

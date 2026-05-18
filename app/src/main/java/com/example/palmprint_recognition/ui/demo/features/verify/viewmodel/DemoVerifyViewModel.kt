@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import timber.log.Timber
+import com.example.palmprint_recognition.ui.user.features.palmprint_camera.config.CameraAnalysisConfig
 
 data class DemoVerifySuccessUi(
     val message: String,
@@ -43,19 +44,26 @@ class DemoVerifyViewModel @Inject constructor(
                 val successMessage = if (response.matched) {
                     buildString {
                         append("인증 성공")
+
                         response.name?.let { name ->
                             append("\n이름: $name")
                         }
-                        response.similarityScore?.let { score ->
-                            append("\n유사도: ${"%.4f".format(score)}")
+
+                        if (CameraAnalysisConfig.isSimilarityScoreVisible) {
+                            response.similarityScore?.let { score ->
+                                append("\n유사도: ${"%.4f".format(score)}")
+                            }
                         }
                     }
                 } else {
                     buildString {
                         append("일치하는 손바닥 정보를 찾지 못했습니다.")
-                        response.similarityScore?.let { score ->
-                            append("\n가장 높은 유사도: ${"%.4f".format(score)}")
-                        } ?: append("\n유사도 정보가 없습니다.")
+
+                        if (CameraAnalysisConfig.isSimilarityScoreVisible) {
+                            response.similarityScore?.let { score ->
+                                append("\n가장 높은 유사도: ${"%.4f".format(score)}")
+                            } ?: append("\n유사도 정보가 없습니다.")
+                        }
                     }
                 }
 
