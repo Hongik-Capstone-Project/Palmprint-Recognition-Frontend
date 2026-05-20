@@ -30,7 +30,7 @@ object CameraAnalysisConfig {
      * 2단계:
      * - DemoGuideScreen의 스위치에서 이 값을 직접 변경한다.
      */
-    var isAutoCaptureEnabled by mutableStateOf(false)
+    var isAutoCaptureEnabled by mutableStateOf(true)
 
     /**
      * 유사도 정보 출력 여부
@@ -50,9 +50,9 @@ object CameraAnalysisConfig {
 
     const val HAND_TILT_THRESHOLD_DEGREES = 17f
 
-    const val AUTO_CAPTURE_MIN_HAND_RATIO = 0.75f
+    const val AUTO_CAPTURE_MIN_HAND_RATIO = 0.70f
     const val AUTO_CAPTURE_MAX_HAND_RATIO = 0.85f
-    const val AUTO_CAPTURE_MAX_TILT_DEGREES = 16f
+    const val AUTO_CAPTURE_MAX_TILT_DEGREES = 24f
     const val AUTO_CAPTURE_READY_HOLD_MS = 1000L
     const val AUTO_CAPTURE_COOLDOWN_MS = 2000L
 
