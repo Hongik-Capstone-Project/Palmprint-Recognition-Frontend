@@ -30,7 +30,7 @@ object CameraAnalysisConfig {
      * 2단계:
      * - DemoGuideScreen의 스위치에서 이 값을 직접 변경한다.
      */
-    var isAutoCaptureEnabled by mutableStateOf(true)
+    var isAutoCaptureEnabled by mutableStateOf(false)
 
     /**
      * 유사도 정보 출력 여부

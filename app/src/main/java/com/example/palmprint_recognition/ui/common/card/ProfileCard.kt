@@ -49,16 +49,19 @@ fun ProfileCard(
 
         Spacer(Modifier.width(16.dp))
 
-        Column {
+        Column(
+            modifier = Modifier.padding(bottom = 2.dp)
+        ) {
             Text(
                 text = name,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color(0xFF21272A)
             )
+
             Text(
                 text = email,
-                fontSize = 16.sp,
+                fontSize = 13.sp,
                 color = Color(0xFF697077)
             )
         }

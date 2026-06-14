@@ -37,6 +37,14 @@ class DemoRegisterViewModel @Inject constructor(
             inFlight = true
             _state.value = UiState.Loading
 
+            /**
+             * 전시/발표용 데모 모드
+             * 서버가 닫혀 있으므로 실제 API 호출은 하지 않고,
+             * 항상 등록 성공 결과를 표시합니다.
+             */
+
+            // 실제 서버 호출 부분 주석 처리
+            /*
             runCatching {
                 val response = demoRepository.registerDemoPalmprint(
                     name = name,
@@ -54,6 +62,19 @@ class DemoRegisterViewModel @Inject constructor(
             }.onFailure { e ->
                 _state.value = UiState.Error(e.message ?: "손바닥 등록 중 오류가 발생했습니다.")
             }
+            */
+
+            // 발표용 성공 결과
+            val demoName = "홍길동"
+
+            _state.value = UiState.Success(
+                DemoRegisterSuccessUi(
+                    message = "${demoName} 님의 손바닥 등록을 완료했어요!",
+                    name = demoName,
+                    userId = 1,
+                    palmId = 1
+                )
+            )
 
             inFlight = false
         }

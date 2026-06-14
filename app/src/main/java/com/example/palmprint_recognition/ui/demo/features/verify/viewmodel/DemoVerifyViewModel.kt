@@ -36,6 +36,14 @@ class DemoVerifyViewModel @Inject constructor(
             inFlight = true
             _state.value = UiState.Loading
 
+            /**
+             * 전시/발표용 데모 모드
+             * 서버가 닫혀 있으므로 실제 API 호출은 하지 않고,
+             * 항상 인증 성공 결과를 표시합니다.
+             */
+
+            // 실제 서버 호출 부분 주석 처리
+            /*
             runCatching {
                 val response = demoRepository.verifyDemoPalmprint(
                     palmprintData = base64
@@ -85,6 +93,36 @@ class DemoVerifyViewModel @Inject constructor(
             }.onFailure { e ->
                 _state.value = UiState.Error(e.message ?: "손바닥 인증 중 오류가 발생했습니다.")
             }
+            */
+
+            // 발표용 성공 결과
+            val demoName = "홍길동"
+            val demoSimilarityScore = 0.9876
+
+            val successMessage = buildString {
+                append("인증 성공")
+                append("\n이름: $demoName")
+
+                if (CameraAnalysisConfig.isSimilarityScoreVisible) {
+                    append("\n유사도: ${"%.4f".format(demoSimilarityScore)}")
+                }
+            }
+
+            Timber.tag("DemoPalmVerify").d(
+                "DEMO MODE - matched=%s name=%s similarityScore=%s",
+                true,
+                demoName,
+                demoSimilarityScore
+            )
+
+            _state.value = UiState.Success(
+                DemoVerifySuccessUi(
+                    message = successMessage,
+                    matched = true,
+                    name = demoName,
+                    similarityScore = demoSimilarityScore
+                )
+            )
 
             inFlight = false
         }

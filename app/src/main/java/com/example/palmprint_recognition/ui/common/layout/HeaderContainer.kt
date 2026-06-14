@@ -1,12 +1,21 @@
 package com.example.palmprint_recognition.ui.common.layout
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.palmprint_recognition.ui.auth.AuthViewModel
 
 /**
- * 데모 앱용 HeaderContainer
- * - 로그인 정보 없이 로고만 표시
+ * HeaderContainer
+ * - AuthViewModel(authState)을 구독하고
+ * - Header에 userName/userEmail/userRole을 내려주는 "연결 컴포넌트"
  */
 @Composable
 fun HeaderContainer() {
-    Header()
+    Header(
+        userName = "홍길동",
+        userEmail = "gildong@example.com",
+        userRole = "USER"
+    )
 }

@@ -12,17 +12,17 @@ import androidx.compose.ui.unit.sp
 import com.example.palmprint_recognition.ui.common.button.PrimaryButton
 import com.example.palmprint_recognition.ui.common.button.VerticalTwoButtons
 import com.example.palmprint_recognition.ui.auth.AuthViewModel
+import com.example.palmprint_recognition.ui.common.button.SingleCenterButton
 
 @Composable
 fun MainManagementSection(
-    userName: String, // 추가
-    palmSubtitle: String, // 추가
+    userName: String,
+    palmSubtitle: String,
     onInstitutionManageClick: () -> Unit,
     onPaymentManageClick: () -> Unit,
     onRegisterPalmprintClick: () -> Unit,
     onDeletePalmprintClick: () -> Unit,
     onMyVerificationClick: () -> Unit,
-    onHowToUseClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -43,26 +43,18 @@ fun MainManagementSection(
 
         InfoCard(
             title = "손바닥 관리",
-            subtitle = palmSubtitle, // 변경
+            subtitle = palmSubtitle,
             leftButtonText = "손바닥 등록",
-            rightButtonText = "손바닥 삭제",
+            rightButtonText = "손바닥 인증",
             onLeftClick = onRegisterPalmprintClick,
             onRightClick = onDeletePalmprintClick
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        VerticalTwoButtons(
-            firstText = "인증 내역 조회하기",
-            secondText = "PALM AI 사용설명",
-            onFirstClick = onMyVerificationClick,
-            onSecondClick = onHowToUseClick,
-            width = null,
-            height = 56.dp,
-            backgroundColor = Color(0xFFC1C7CD),
-            borderColor = Color(0xFFC1C7CD),
-            textColor = Color.White,
-            textSize = 20
+        SingleCenterButton(
+            text = "인증 내역 조회하기",
+            onClick = onMyVerificationClick
         )
     }
 }

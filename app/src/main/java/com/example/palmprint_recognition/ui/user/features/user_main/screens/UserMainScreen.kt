@@ -66,12 +66,7 @@ fun UserMainScreen(
     }
 
 
-    val palmSubtitle = when {
-        palmStatus.isLoading -> "손바닥 정보를 불러오는 중입니다"
-        palmStatus.totalCount == null -> "손바닥 정보를 불러오는 중입니다" // 실패/미확정도 동일 문구로 처리(요구사항에 맞춤)
-        palmStatus.totalCount == 0 -> "현재 등록된 손바닥이 없어요"
-        else -> "현재 ${palmStatus.totalCount}개의 손바닥이 등록되어 있어요"
-    }
+    val palmSubtitle = "손바닥 정보를 등록하고 인증을 진행하세요"
 
     RootLayoutScrollable(
         sectionGap = 12.dp,
@@ -84,8 +79,7 @@ fun UserMainScreen(
                 onPaymentManageClick = onPaymentManageClick,
                 onRegisterPalmprintClick = onRegisterPalmprintClick,
                 onDeletePalmprintClick = onDeletePalmprintClick,
-                onMyVerificationClick = onHistoryClick,
-                onHowToUseClick = onHowToUseClick
+                onMyVerificationClick = onHistoryClick
             )
         },
         footer = {

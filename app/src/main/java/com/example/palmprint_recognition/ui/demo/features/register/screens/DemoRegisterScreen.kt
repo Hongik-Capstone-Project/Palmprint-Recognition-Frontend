@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.palmprint_recognition.ui.common.button.SingleCenterButton
-import com.example.palmprint_recognition.ui.common.field.LabeledField
 import com.example.palmprint_recognition.ui.common.layout.Footer
 import com.example.palmprint_recognition.ui.common.layout.HeaderContainer
 import com.example.palmprint_recognition.ui.common.layout.RootLayoutScrollable
@@ -44,15 +43,15 @@ import timber.log.Timber
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.status.CameraMode
 import com.example.palmprint_recognition.ui.user.features.palmprint_camera.config.CameraAnalysisConfig
 
+private const val DEMO_USER_NAME = "홍길동"
+
 /**
  * 데모 손바닥 등록 화면
  *
  * 기능
- * - 이름 입력
  * - 카메라 촬영
  * - crop된 이미지를 Base64로 변환
- * - 데모 등록 API 호출
- * - 성공 시 결과 화면 표시
+ * - 서버 호출 없이 데모 등록 성공 결과 표시
  */
 @Composable
 fun DemoRegisterScreen(
@@ -92,7 +91,6 @@ private fun DemoRegisterContent(
     onRegister: (String, String) -> Unit,
     onBack: () -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
     var capturedResult by remember { mutableStateOf<CameraCapturedResult?>(null) }
     var isCameraOpened by remember { mutableStateOf(false) }
     var localMessage by remember { mutableStateOf<String?>(null) }
@@ -124,12 +122,12 @@ private fun DemoRegisterContent(
     }
 
     val previewBitmap = capturedResult?.croppedBitmap
-    val canSubmit = name.isNotBlank() && previewBitmap != null && !isLoading
+    val canSubmit = previewBitmap != null && !isLoading
 
     RootLayoutScrollable(
         sectionGap = 12.dp,
         header = {
-                HeaderContainer()
+            HeaderContainer()
         },
         body = {
             Column(
@@ -141,16 +139,8 @@ private fun DemoRegisterContent(
                 Text(text = "손바닥 등록하기")
 
                 Text(
-                    text = "이름을 입력한 뒤 가이드라인에 맞추어 손바닥을 촬영해주세요.",
+                    text = "가이드라인에 맞추어 손바닥을 촬영한 뒤 등록을 진행해주세요.",
                     color = Color(0xFF697077)
-                )
-
-                Spacer(modifier = Modifier.height(2.dp))
-
-                LabeledField(
-                    label = "이름",
-                    value = name,
-                    onValueChange = { name = it }
                 )
 
                 Spacer(modifier = Modifier.height(2.dp))
@@ -195,11 +185,6 @@ private fun DemoRegisterContent(
                     onClick = {
                         localMessage = null
 
-                        if (name.isBlank()) {
-                            localMessage = "이름을 입력해주세요."
-                            return@SingleCenterButton
-                        }
-
                         val bitmap = capturedResult?.croppedBitmap
                         if (bitmap == null) {
                             localMessage = "손바닥 이미지를 먼저 촬영해주세요."
@@ -223,7 +208,7 @@ private fun DemoRegisterContent(
 
                         Timber.tag("DemoPalmRegister").d(
                             "name=%s width=%d height=%d bytes=%d base64Length=%d sha256=%s",
-                            name.trim(),
+                            DEMO_USER_NAME,
                             uploadImage.bitmap.width,
                             uploadImage.bitmap.height,
                             uploadImage.jpegBytes.size,
@@ -232,7 +217,7 @@ private fun DemoRegisterContent(
                         )
 
                         onRegister(
-                            name.trim(),
+                            DEMO_USER_NAME,
                             uploadImage.base64
                         )
                     }
@@ -276,4 +261,3 @@ private fun DemoRegisterCaptureBox(
         }
     }
 }
-
